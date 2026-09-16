@@ -1,34 +1,63 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Get,
+  Body,
+  Post,
+  Param,
+  Patch,
+  Query,
+  Delete,
+  UsePipes,
+  Controller,
+  ValidationPipe,
+} from '@nestjs/common';
+
 import { ProductCategoryService } from './product-category.service';
 import { CreateProductCategoryDto } from './dto/create-product-category.dto';
 import { UpdateProductCategoryDto } from './dto/update-product-category.dto';
+import type IQuery from 'interfaces/query.Interface';
 
-@Controller('product-category')
+@Controller('product-categories')
 export class ProductCategoryController {
-  constructor(private readonly productCategoryService: ProductCategoryService) {}
+  constructor(
+    private readonly productCategoryService: ProductCategoryService,
+  ) {}
 
   @Post()
+  @UsePipes(ValidationPipe)
   create(@Body() createProductCategoryDto: CreateProductCategoryDto) {
-    return this.productCategoryService.create(createProductCategoryDto);
+    return this.productCategoryService.createProductCategory(
+      createProductCategoryDto,
+    );
   }
 
   @Get()
-  findAll() {
-    return this.productCategoryService.findAll();
+  findAll(@Query() query: Partial<IQuery>) {
+    if (query.search) {
+      query.search = `name,${query.search}`;
+    }
+
+    return this.productCategoryService.findAllProductCategories(query);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.productCategoryService.findOne(+id);
+  findOneById(@Param('id') id: string, @Query() query: Partial<IQuery>) {
+    return this.productCategoryService.findProductCategoryById(id, query);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProductCategoryDto: UpdateProductCategoryDto) {
-    return this.productCategoryService.update(+id, updateProductCategoryDto);
+  @UsePipes(ValidationPipe)
+  update(
+    @Param('id') id: string,
+    @Body() updateProductCategoryDto: UpdateProductCategoryDto,
+  ) {
+    return this.productCategoryService.updateProductCategory(
+      id,
+      updateProductCategoryDto,
+    );
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.productCategoryService.remove(+id);
+    return this.productCategoryService.deleteProductCategory(id);
   }
 }

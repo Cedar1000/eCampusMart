@@ -9,7 +9,9 @@ export class CampusController {
 
   @Get()
   findAll(@Query() query: Partial<IQuery>) {
-    query.search = `name,${query.search}-abbreviation,${query.search}`;
+    if (query.search) {
+      query.search = `name,${query.search}-abbreviation,${query.search}`;
+    }
 
     return this.campusService.findAllCampuses(query);
   }

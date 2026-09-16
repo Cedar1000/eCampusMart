@@ -5,6 +5,7 @@ import slugify from 'slugify';
 import { BaseEntity } from 'src/common/base.entity';
 import { ProductImage } from './product-image.entity';
 import { ProductStatus } from '../enums/product-status.enum';
+import { ProductCondition } from '../enums/product-condition.enum';
 import { ProductCategory } from 'src/product-category/entities/product-category.entity';
 
 import { ProductStoreCategory } from 'src/product-store-category/entities/product-store-category.entity';
@@ -44,8 +45,19 @@ export class Product extends BaseEntity {
   @Column({ nullable: true })
   storeId: string;
 
+  @Column()
+  listingId: string;
+
   @Column({ type: 'enum', enum: ProductStatus, default: ProductStatus.ACTIVE })
   status: ProductStatus;
+
+  @Column({
+    type: 'enum',
+    enum: ProductCondition,
+    default: ProductCondition.BRAND_NEW,
+    nullable: true,
+  })
+  condition: ProductCondition;
 
   @ManyToOne(() => ProductCategory, (category) => category.products)
   category: ProductCategory;
