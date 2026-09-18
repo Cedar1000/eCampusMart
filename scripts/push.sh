@@ -20,5 +20,5 @@ else
 fi
 
 echo "Running npm run push..."
-git push origin work
-git push staging work
+git push origin main
+git push staging main
