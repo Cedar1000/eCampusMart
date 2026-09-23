@@ -9,15 +9,15 @@ import {
   Query,
   HttpCode,
   UsePipes,
+  UseGuards,
   Controller,
   ValidationPipe,
-  UseGuards,
 } from '@nestjs/common';
 
 import { AuthService } from './auth.service';
 
 import { SignUpDto } from './dto/signup.dto';
-import { LoginDto } from './dto/login.dto';
+import { EmailLoginDto, PhoneNumberLoginDto } from './dto/login.dto';
 import { SendOtpDto } from './dto/send-otp.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
@@ -45,10 +45,22 @@ export class AuthController {
     return this.authService.signUp(payload);
   }
 
-  @Post('/login')
+  @Post('/login/email')
   @HttpCode(200)
   @UsePipes(ValidationPipe)
-  async login(@Body() payload: LoginDto) {
+  async login(@Body() payload: EmailLoginDto) {
+    payload.payload = { email: payload.email };
+    return this.authService.login(payload);
+  }
+
+  @Post('/login/phone')
+  @HttpCode(200)
+  @UsePipes(ValidationPipe)
+  async loginWithPhone(@Body() payload: PhoneNumberLoginDto) {
+    payload.payload = {
+      countryCode: payload.countryCode,
+      phoneNumber: payload.phoneNumber,
+    };
     return this.authService.login(payload);
   }
 

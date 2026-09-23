@@ -4,7 +4,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import * as jwt from 'jsonwebtoken';
 
-const token = (id: string) => {
+const signToken = (id: string) => {
   const accessToken = jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
@@ -46,4 +46,4 @@ const refreshAccessToken = async (refreshToken: string) => {
   }
 };
 
-export { token, verifyRefreshToken, refreshAccessToken };
+export { signToken, verifyRefreshToken, refreshAccessToken };

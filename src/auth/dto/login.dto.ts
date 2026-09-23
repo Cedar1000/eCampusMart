@@ -1,16 +1,16 @@
 import { Transform } from 'class-transformer';
+
 import {
   IsEmail,
-  IsEnum,
-  IsLowercase,
+  IsString,
   IsNotEmpty,
   IsOptional,
+  IsLowercase,
 } from 'class-validator';
-import { UserRole } from '../entities/user.entity';
 
-export class LoginDto {
+export class EmailLoginDto {
+  @IsOptional()
   @IsEmail()
-  @IsNotEmpty()
   @Transform(({ value }): string =>
     typeof value === 'string' ? value.toLowerCase().trim() : value,
   )
@@ -18,9 +18,26 @@ export class LoginDto {
   email: string;
 
   @IsNotEmpty()
+  @IsString()
   password: string;
 
   @IsOptional()
-  @IsEnum(UserRole)
-  role: UserRole;
+  payload: { email: string };
+}
+
+export class PhoneNumberLoginDto {
+  @IsString()
+  @IsNotEmpty()
+  countryCode: string;
+
+  @IsNotEmpty()
+  @IsString()
+  phoneNumber: string;
+
+  @IsNotEmpty()
+  @IsString()
+  password: string;
+
+  @IsOptional()
+  payload: { countryCode: string; phoneNumber: string };
 }

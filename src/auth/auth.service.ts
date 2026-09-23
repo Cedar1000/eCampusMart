@@ -19,10 +19,10 @@ import { User } from './entities/user.entity';
 import IQuery from 'interfaces/query.Interface';
 
 import { SignUpDto } from './dto/signup.dto';
-import { LoginDto } from './dto/login.dto';
+import { EmailLoginDto, PhoneNumberLoginDto } from './dto/login.dto';
 import { UpdateRoleDto } from './dto/user-role.dto';
 
-import { token, refreshAccessToken } from 'utils/signToken';
+import { signToken, refreshAccessToken } from 'utils/signToken';
 
 import * as factory from 'utils/handlerFactory';
 import { SendOtpDto } from './dto/send-otp.dto';
@@ -60,14 +60,6 @@ export class AuthService {
     const result = await factory.createOne(this.userRepo, payload);
 
     const user: User = result.data;
-
-    const otp = generateRandomNumber(6);
-
-    const otpExpiration = new Date(
-      Date.now() + 60 * 10 * 60 * 1000,
-    ).toISOString();
-
-    await this.userRepo.update({ email }, { otp, otpExpiration });
 
     await this.sendOtp({ email });
 
@@ -114,11 +106,11 @@ export class AuthService {
       },
     );
 
-    const { token: accessToken, refreshToken } = token(user.id);
+    const { token, refreshToken } = signToken(user.id);
 
     return {
       status: 'success',
-      token: accessToken,
+      token,
       refreshToken,
       message: 'Password Created Successfully!',
     };
@@ -173,7 +165,7 @@ export class AuthService {
       },
     );
 
-    const { token: accessToken, refreshToken } = token(user.id);
+    const { token: accessToken, refreshToken } = signToken(user.id);
 
     return {
       status: 'success',
@@ -184,12 +176,12 @@ export class AuthService {
     };
   }
 
-  async login(loginData: LoginDto) {
-    const { email, password } = loginData;
+  async login(loginData: EmailLoginDto | PhoneNumberLoginDto) {
+    const { payload, password } = loginData;
 
     // Find User From Database
     const user = await this.userRepo.findOne({
-      where: { email },
+      where: payload,
       select: [
         'id',
         'firstName',
@@ -197,13 +189,15 @@ export class AuthService {
         'email',
         'isActive',
         'password',
+        'phoneNumber',
+        'countryCode',
         'emailVerified',
       ],
-
-      // relations: ['companies'],
     });
 
-    if (!user) throw new NotFoundException('Email or password is incorrect');
+    if (!user) {
+      throw new BadRequestException('Email/Number or password is incorrect');
+    }
 
     if (!user.emailVerified) {
       throw new UnauthorizedException('Your email is no verified!');
@@ -217,10 +211,10 @@ export class AuthService {
 
     // Checks if user does not exists in db and password is incorrect.
     if (!user || !passwordCheck) {
-      throw new BadRequestException('Email or password is incorrect');
+      throw new BadRequestException('Email/Number or password is incorrect');
     }
 
-    const { token: accessToken, refreshToken } = token(user.id);
+    const { token: accessToken, refreshToken } = signToken(user.id);
 
     const userClone: Omit<typeof user, 'password'> & {
       password?: string;
@@ -327,7 +321,7 @@ export class AuthService {
 
     // await sendEmail(options);
 
-    const { token: accessToken, refreshToken } = token(user.id);
+    const { token: accessToken, refreshToken } = signToken(user.id);
 
     return {
       status: 'success',
@@ -362,7 +356,7 @@ export class AuthService {
 
     await this.userRepo.update({ id: user_id }, { password: passwordHash });
 
-    const { token: accessToken, refreshToken } = token(user_id);
+    const { token: accessToken, refreshToken } = signToken(user_id);
 
     return { status: 'success', token: accessToken, refreshToken, user };
   }
