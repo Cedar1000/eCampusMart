@@ -10,11 +10,13 @@ import {
 } from 'class-validator';
 import { ProductCondition } from '../enums/product-condition.enum';
 
-import { UploadApiResponse } from 'cloudinary';
+import { Transform } from 'class-transformer';
+import { ProductImage } from '../entities/product-image.entity';
 
 export class CreateProductDto {
   @IsNotEmpty()
   @IsString()
+  @Transform(({ value }) => (value as string).toLowerCase())
   name: string;
 
   @IsNotEmpty()
@@ -53,7 +55,7 @@ export class CreateProductDto {
   @IsEnum(ProductCondition)
   condition: ProductCondition;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsArray()
-  images?: UploadApiResponse[];
+  images?: ProductImage[];
 }

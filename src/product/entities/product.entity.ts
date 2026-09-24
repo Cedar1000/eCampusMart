@@ -1,4 +1,5 @@
 import { BeforeInsert, Column, Entity, ManyToOne, OneToMany } from 'typeorm';
+import { randomInt } from 'crypto';
 
 import slugify from 'slugify';
 
@@ -71,5 +72,15 @@ export class Product extends BaseEntity {
   @BeforeInsert()
   generateSlug() {
     this.slug = slugify(this.name, { lower: true });
+    this.listingId = `LST-${this.generateListingSegment(4)}-${this.generateListingSegment(2)}`;
+  }
+
+  private generateListingSegment(length: number): string {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+
+    return Array.from(
+      { length },
+      () => characters[randomInt(characters.length)],
+    ).join('');
   }
 }

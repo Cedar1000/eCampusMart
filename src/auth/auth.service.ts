@@ -192,6 +192,7 @@ export class AuthService {
         'phoneNumber',
         'countryCode',
         'emailVerified',
+        'campusId',
       ],
     });
 

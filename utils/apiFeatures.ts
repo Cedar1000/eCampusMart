@@ -24,6 +24,7 @@ class APIFeatures implements APIFeaturesInterface {
     const queryObj = { ...this.query };
     const excludedFields = [
       'page',
+      'range',
       'sort',
       'limit',
       'fields',

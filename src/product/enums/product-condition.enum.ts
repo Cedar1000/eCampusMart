@@ -1,4 +1,4 @@
 export enum ProductCondition {
-  BRAND_NEW = 'brand_new',
-  FAIRLY_USED = 'fairly_used',
+  BRAND_NEW = 'brand-new',
+  FAIRLY_USED = 'fairly-used',
 }

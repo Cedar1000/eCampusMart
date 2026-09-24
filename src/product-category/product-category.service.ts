@@ -4,6 +4,7 @@ import { UpdateProductCategoryDto } from './dto/update-product-category.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProductCategory } from './entities/product-category.entity';
 import { Repository } from 'typeorm';
+
 import * as factory from 'utils/handlerFactory';
 import IQuery from 'interfaces/query.Interface';
 
