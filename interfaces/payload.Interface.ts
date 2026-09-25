@@ -2,7 +2,7 @@ interface IPayload {
   skip: number;
   take: number;
   order: { [key: string]: string };
-  where: any[];
+  where: { [key: string]: any };
   select: string[];
   relations: string[];
 }
