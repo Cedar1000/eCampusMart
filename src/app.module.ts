@@ -20,6 +20,9 @@ import { ProductModule } from './product/product.module';
 import { ProductCategoryModule } from './product-category/product-category.module';
 import { ProductStoreModule } from './product-store/product-store.module';
 import { ProductStoreCategoryModule } from './product-store-category/product-store-category.module';
+import { ServiceCategoryModule } from './service-category/service-category.module';
+import { ServiceStoreModule } from './service-store/service-store.module';
+import { ServiceModule } from './service/service.module';
 
 @Module({
   imports: [
@@ -32,6 +35,9 @@ import { ProductStoreCategoryModule } from './product-store-category/product-sto
     ProductCategoryModule,
     ProductStoreModule,
     ProductStoreCategoryModule,
+    ServiceCategoryModule,
+    ServiceStoreModule,
+    ServiceModule,
   ],
   controllers: [AppController],
   providers: [AppService],
