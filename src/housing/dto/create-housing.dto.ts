@@ -30,6 +30,10 @@ export class CreateHousingDto {
   campusId?: string;
 
   @IsOptional()
+  @IsUUID()
+  userId?: string;
+
+  @IsOptional()
   @IsString()
   whoCanRent?: string;
 

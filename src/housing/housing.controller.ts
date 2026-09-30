@@ -18,6 +18,8 @@ import { HousingService } from './housing.service';
 import { CreateHousingDto } from './dto/create-housing.dto';
 import { UpdateHousingDto } from './dto/update-housing.dto';
 import { ValidCampusLocationGuard } from './guards/valid-campus-location.guard';
+import { CurrentUser } from 'src/auth/decorators/get-current-user.decorator';
+import { User } from 'src/auth/entities/user.entity';
 
 @Controller('housings')
 export class HousingController {
@@ -26,7 +28,11 @@ export class HousingController {
   @Post()
   @UseGuards(ValidCampusLocationGuard)
   @UsePipes(ValidationPipe)
-  create(@Body() createHousingDto: CreateHousingDto) {
+  create(
+    @Body() createHousingDto: CreateHousingDto,
+    @CurrentUser() user: User,
+  ) {
+    createHousingDto.userId = user.id;
     return this.housingService.create(createHousingDto);
   }
 

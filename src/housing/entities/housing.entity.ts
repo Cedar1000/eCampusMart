@@ -18,6 +18,9 @@ export class Housing extends BaseEntity {
   @Column()
   campusId: string;
 
+  @Column()
+  userId: string;
+
   @Column({ nullable: true })
   whoCanRent: string;
 
