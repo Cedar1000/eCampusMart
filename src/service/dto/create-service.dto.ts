@@ -1,18 +1,19 @@
 import {
-  IsArray,
-  IsBoolean,
   IsEnum,
-  IsNotEmpty,
+  IsUUID,
+  IsArray,
   IsNumber,
   IsObject,
-  IsOptional,
   IsString,
-  IsUUID,
+  IsBoolean,
+  IsNotEmpty,
+  IsOptional,
 } from 'class-validator';
 
-import type { ServiceAvailability } from '../entities/service.entity';
 import { PriceUnit } from '../enums/price.enum';
+
 import { ServiceImage } from '../entities/service-image.entity';
+import type { ServiceAvailability } from '../entities/service.entity';
 
 export class CreateServiceDto {
   @IsNotEmpty()

@@ -1,5 +1,6 @@
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, OneToMany } from 'typeorm';
 import { BaseEntity } from 'src/common/base.entity';
+import { CampusLocation } from 'src/campus-location/entities/campus-location.entity';
 
 @Entity('campuses')
 export class Campus extends BaseEntity {
@@ -17,4 +18,7 @@ export class Campus extends BaseEntity {
 
   @Column({ nullable: true })
   logo: string;
+
+  @OneToMany(() => CampusLocation, (location) => location.campus)
+  locations: CampusLocation[];
 }

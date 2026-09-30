@@ -13,7 +13,6 @@ import {
 import APIFeaturesInterface from '../interfaces/apiFeatures.Interface';
 import IQuery from '../interfaces/query.Interface';
 import IPayload from '../interfaces/payload.Interface';
-// import generateApiFilter from './generateApiFilter';
 
 // find({
 //   where: {
@@ -23,7 +22,10 @@ import IPayload from '../interfaces/payload.Interface';
 //     age: LessThan(20)
 //     age: LessThanOrEqual(20)
 //     age: MoreThanOrEqual(20)
-
+//     Or: [
+//       { age: MoreThan(20) },
+//       { firstName: ILike('%john%') }
+//     ]
 //     age: Between(20, 30),          // inclusive on both ends
 //     firstName: ILike('%john%'),    // case-insensitive LIKE, matches 'regex: john, i'
 //   },
@@ -42,7 +44,7 @@ class APIFeatures implements APIFeaturesInterface {
     skip: 10,
     take: 10,
     order: {},
-    where: {},
+    where: [],
     select: [],
   };
 
@@ -111,7 +113,7 @@ class APIFeatures implements APIFeaturesInterface {
       {} as IFilterObject,
     );
 
-    this.payload.where = filter;
+    this.payload.where = [filter];
     return this;
   }
 

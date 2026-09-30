@@ -23,6 +23,8 @@ import { ProductStoreCategoryModule } from './product-store-category/product-sto
 import { ServiceCategoryModule } from './service-category/service-category.module';
 import { ServiceStoreModule } from './service-store/service-store.module';
 import { ServiceModule } from './service/service.module';
+import { CampusLocationModule } from './campus-location/campus-location.module';
+import { HousingModule } from './housing/housing.module';
 
 @Module({
   imports: [
@@ -38,6 +40,8 @@ import { ServiceModule } from './service/service.module';
     ServiceCategoryModule,
     ServiceStoreModule,
     ServiceModule,
+    CampusLocationModule,
+    HousingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

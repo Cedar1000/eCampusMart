@@ -39,6 +39,7 @@ export class ProductController {
   @UseInterceptors(ProductUserDetailsInterceptor)
   findAll(@Query() query: Partial<IQuery>) {
     query.relations = 'images';
+    query.status = 'active';
     return this.productService.findAll(query);
   }
 
