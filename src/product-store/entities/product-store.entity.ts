@@ -28,7 +28,13 @@ export class ProductStore extends BaseEntity {
   logo: string;
 
   @Column({ nullable: true })
-  coverImage: string;
+  logoKey: string;
+
+  @Column({ nullable: true })
+  banner: string;
+
+  @Column({ nullable: true })
+  bannerKey: string;
 
   @OneToMany(() => ProductStoreCategory, (category) => category.store)
   categories: ProductStoreCategory[];

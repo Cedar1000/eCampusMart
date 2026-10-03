@@ -40,14 +40,42 @@ export class HousingService {
   }
 
   async update(id: string, updateHousingDto: UpdateHousingDto) {
-    return await factory.updateOne(this.housingRepo, id, updateHousingDto);
+    const { images, ...housingData } = updateHousingDto;
+
+    const data = await factory.updateOne(this.housingRepo, id, housingData);
+
+    if (images?.length) {
+      await this.housingImageRepo.delete({ housingId: id });
+      await this.createHousingImages(images, id);
+    }
+
+    const housing = data.data as Housing;
+
+    if (images) housing.images = images;
+
+    return { ...data, data: housing };
   }
 
   async remove(id: string) {
+    const housing = await this.housingRepo.findOne({
+      where: { id },
+      relations: { images: true },
+    });
+
+    if (!housing) {
+      return await factory.deleteOne(this.housingRepo, id);
+    }
+
+    if (housing.images?.length) {
+      await this.housingImageRepo.remove(housing.images);
+    }
+
     return await factory.deleteOne(this.housingRepo, id);
   }
 
   async createHousingImages(images: HousingImage[], housingId: string) {
+    console.log({ images, housingId });
+
     const housingImages = images.map((image) => {
       const housingImage = new HousingImage();
       housingImage.housingId = housingId;

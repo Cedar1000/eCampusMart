@@ -7,6 +7,7 @@ import {
   Delete,
   Query,
   Controller,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 
@@ -19,12 +20,14 @@ import IQuery from 'interfaces/query.Interface';
 import { CurrentUser } from 'src/auth/decorators/get-current-user.decorator';
 import { User } from 'src/auth/entities/user.entity';
 import { ProductUserDetailsInterceptor } from './interceptors/product-user-details.interceptor';
+import { ValidProductCategoryGuard } from './guards/valid-product-category.guard';
 
 @Controller('products')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
   @Post()
+  @UseGuards(ValidProductCategoryGuard)
   create(
     @Body() createProductDto: CreateProductDto,
     @CurrentUser() user: User,

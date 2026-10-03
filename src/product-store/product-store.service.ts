@@ -1,26 +1,43 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import type IQuery from 'interfaces/query.Interface';
+import * as factory from 'utils/handlerFactory';
+import { Repository } from 'typeorm';
 import { CreateProductStoreDto } from './dto/create-product-store.dto';
 import { UpdateProductStoreDto } from './dto/update-product-store.dto';
+import { ProductStore } from './entities/product-store.entity';
 
 @Injectable()
 export class ProductStoreService {
-  create(createProductStoreDto: CreateProductStoreDto) {
-    return 'This action adds a new productStore';
+  constructor(
+    @InjectRepository(ProductStore)
+    private readonly productStoreRepo: Repository<ProductStore>,
+  ) {}
+
+  async create(createProductStoreDto: CreateProductStoreDto) {
+    return await factory.createOne(
+      this.productStoreRepo,
+      createProductStoreDto,
+    );
   }
 
-  findAll() {
-    return `This action returns all productStore`;
+  async findAll(query: Partial<IQuery>) {
+    return await factory.getAll(this.productStoreRepo, query);
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} productStore`;
+  async findOne(id: string, query: Partial<IQuery>) {
+    return await factory.getOne(this.productStoreRepo, id, query);
   }
 
-  update(id: number, updateProductStoreDto: UpdateProductStoreDto) {
-    return `This action updates a #${id} productStore`;
+  async update(id: string, updateProductStoreDto: UpdateProductStoreDto) {
+    return await factory.updateOne(
+      this.productStoreRepo,
+      id,
+      updateProductStoreDto,
+    );
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} productStore`;
+  async remove(id: string) {
+    return await factory.deleteOne(this.productStoreRepo, id);
   }
 }

@@ -6,10 +6,18 @@ import { Product } from './entities/product.entity';
 import { ProductImage } from './entities/product-image.entity';
 import { User } from 'src/auth/entities/user.entity';
 import { ProductUserDetailsInterceptor } from './interceptors/product-user-details.interceptor';
+import { ProductCategory } from 'src/product-category/entities/product-category.entity';
+import { ValidProductCategoryGuard } from './guards/valid-product-category.guard';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Product, ProductImage, User])],
+  imports: [
+    TypeOrmModule.forFeature([Product, ProductImage, User, ProductCategory]),
+  ],
   controllers: [ProductController],
-  providers: [ProductService, ProductUserDetailsInterceptor],
+  providers: [
+    ProductService,
+    ProductUserDetailsInterceptor,
+    ValidProductCategoryGuard,
+  ],
 })
 export class ProductModule {}

@@ -3,7 +3,6 @@ import {
   IsUUID,
   IsArray,
   IsNumber,
-  IsObject,
   IsString,
   IsBoolean,
   IsNotEmpty,
@@ -13,7 +12,6 @@ import {
 import { PriceUnit } from '../enums/price.enum';
 
 import { ServiceImage } from '../entities/service-image.entity';
-import type { ServiceAvailability } from '../entities/service.entity';
 
 export class CreateServiceDto {
   @IsNotEmpty()
@@ -43,10 +41,6 @@ export class CreateServiceDto {
   @IsNotEmpty()
   @IsEnum(PriceUnit)
   priceUnit: PriceUnit;
-
-  @IsOptional()
-  @IsObject()
-  availability?: ServiceAvailability;
 
   @IsOptional()
   @IsUUID()

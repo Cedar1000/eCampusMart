@@ -5,6 +5,31 @@ import { BaseEntity } from 'src/common/base.entity';
 import { ServiceCategory } from 'src/service-category/entities/service-category.entity';
 import { Service } from 'src/service/entities/service.entity';
 
+type ServiceAvailabilityDay = {
+  active: boolean;
+  openingTime: string | null;
+  closingTime: string | null;
+};
+
+export type ServiceAvailability = {
+  monday: ServiceAvailabilityDay;
+  tuesday: ServiceAvailabilityDay;
+  wednesday: ServiceAvailabilityDay;
+  thursday: ServiceAvailabilityDay;
+  friday: ServiceAvailabilityDay;
+  saturday: ServiceAvailabilityDay;
+  sunday: ServiceAvailabilityDay;
+};
+
+const DEFAULT_SERVICE_AVAILABILITY: ServiceAvailability = {
+  monday: { active: false, openingTime: null, closingTime: null },
+  tuesday: { active: false, openingTime: null, closingTime: null },
+  wednesday: { active: false, openingTime: null, closingTime: null },
+  thursday: { active: false, openingTime: null, closingTime: null },
+  friday: { active: false, openingTime: null, closingTime: null },
+  saturday: { active: false, openingTime: null, closingTime: null },
+  sunday: { active: false, openingTime: null, closingTime: null },
+};
 @Entity()
 export class ServiceStore extends BaseEntity {
   @Column()
@@ -48,6 +73,9 @@ export class ServiceStore extends BaseEntity {
 
   @Column({ nullable: true })
   bannerKey: string;
+
+  @Column({ type: 'json', default: DEFAULT_SERVICE_AVAILABILITY })
+  availability: ServiceAvailability;
 
   @OneToMany(() => ServiceCategory, (category) => category.store)
   categories: ServiceCategory[];
