@@ -17,7 +17,6 @@ import { User } from 'src/auth/entities/user.entity';
 import { ServiceService } from './service.service';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
-import { ValidServiceCategoryGuard } from './guards/valid-service-category.guard';
 import { ValidServiceStoreGuard } from './guards/valid-service-store.guard';
 
 @Controller('services')
@@ -25,7 +24,7 @@ export class ServiceController {
   constructor(private readonly serviceService: ServiceService) {}
 
   @Post()
-  @UseGuards(ValidServiceStoreGuard, ValidServiceCategoryGuard)
+  @UseGuards(ValidServiceStoreGuard)
   @UsePipes(ValidationPipe)
   create(
     @Body() createServiceDto: CreateServiceDto,
@@ -33,8 +32,6 @@ export class ServiceController {
   ) {
     createServiceDto.ownerId = user.id;
     createServiceDto.campusId = user.campusId;
-
-    console.log({ createServiceDto });
 
     return this.serviceService.create(createServiceDto);
   }

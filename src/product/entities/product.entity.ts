@@ -31,6 +31,12 @@ export class Product extends BaseEntity {
   @Column({ default: 1 })
   quantity: number;
 
+  @Column({ default: 0 })
+  viewCount: number;
+
+  @Column({ default: 0 })
+  favoriteCount: number;
+
   @Column()
   slug: string;
 

@@ -44,6 +44,10 @@ export class CreateProductDto {
   campusId: string;
 
   @IsOptional()
+  @IsUUID()
+  storeId: string;
+
+  @IsOptional()
   @IsBoolean()
   isStoreProduct: boolean;
 

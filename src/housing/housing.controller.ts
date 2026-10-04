@@ -7,6 +7,7 @@ import {
   Query,
   Delete,
   UseGuards,
+  UseInterceptors,
   UsePipes,
   Controller,
   ValidationPipe,
@@ -20,6 +21,7 @@ import { UpdateHousingDto } from './dto/update-housing.dto';
 import { ValidCampusLocationGuard } from './guards/valid-campus-location.guard';
 import { CurrentUser } from 'src/auth/decorators/get-current-user.decorator';
 import { User } from 'src/auth/entities/user.entity';
+import { HousingUserDetailsInterceptor } from './interceptors/housing-user-details.interceptor';
 
 @Controller('housings')
 export class HousingController {
@@ -37,6 +39,7 @@ export class HousingController {
   }
 
   @Get()
+  @UseInterceptors(HousingUserDetailsInterceptor)
   findAll(@Query() query: Partial<IQuery>) {
     query.relations = 'images';
 
@@ -46,6 +49,7 @@ export class HousingController {
   }
 
   @Get(':id')
+  @UseInterceptors(HousingUserDetailsInterceptor)
   findOne(@Param('id') id: string, @Query() query: Partial<IQuery>) {
     query.relations = 'images';
 

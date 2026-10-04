@@ -7,6 +7,7 @@ import { ProductImage } from './entities/product-image.entity';
 import { ProductCategory } from 'src/product-category/entities/product-category.entity';
 import { User } from 'src/auth/entities/user.entity';
 import { ProductUserDetailsInterceptor } from './interceptors/product-user-details.interceptor';
+import { ProductStore } from 'src/product-store/entities/product-store.entity';
 
 describe('ProductController', () => {
   let controller: ProductController;
@@ -31,6 +32,10 @@ describe('ProductController', () => {
         },
         {
           provide: getRepositoryToken(User),
+          useValue: {},
+        },
+        {
+          provide: getRepositoryToken(ProductStore),
           useValue: {},
         },
       ],

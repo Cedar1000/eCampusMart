@@ -18,10 +18,6 @@ export class CreateServiceDto {
   @IsString()
   title: string;
 
-  @IsOptional()
-  @IsUUID()
-  categoryId: string;
-
   @IsNotEmpty()
   @IsUUID()
   storeId: string;

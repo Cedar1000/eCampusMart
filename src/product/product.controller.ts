@@ -21,6 +21,7 @@ import { CurrentUser } from 'src/auth/decorators/get-current-user.decorator';
 import { User } from 'src/auth/entities/user.entity';
 import { ProductUserDetailsInterceptor } from './interceptors/product-user-details.interceptor';
 import { ValidProductCategoryGuard } from './guards/valid-product-category.guard';
+import { ValidProductStoreGuard } from './guards/valid-product-store.guard';
 
 @Controller('products')
 export class ProductController {
@@ -38,11 +39,33 @@ export class ProductController {
     return this.productService.create(createProductDto);
   }
 
+  @Post('create-store-product')
+  @UseGuards(ValidProductStoreGuard)
+  createStoreProduct(
+    @Body() createProductDto: CreateProductDto,
+    @CurrentUser() user: User,
+  ) {
+    createProductDto.userId = user.id;
+    createProductDto.campusId = user.campusId;
+    createProductDto.isStoreProduct = true;
+
+    return this.productService.create(createProductDto);
+  }
+
   @Get()
   @UseInterceptors(ProductUserDetailsInterceptor)
   findAll(@Query() query: Partial<IQuery>) {
     query.relations = 'images';
     query.status = 'active';
+    return this.productService.findAll(query);
+  }
+
+  @Get('/my-listings')
+  @UseInterceptors(ProductUserDetailsInterceptor)
+  myListings(@Query() query: Partial<IQuery>, @CurrentUser() user: User) {
+    query.relations = 'images';
+    query.status = 'active';
+    query.userId = user.id;
     return this.productService.findAll(query);
   }
 

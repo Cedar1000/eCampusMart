@@ -1,6 +1,6 @@
 interface IQuery {
   companyId: any;
-  organizationId?: any;
+  userId?: any;
   status?: any;
   sort?: string;
   fields?: string;

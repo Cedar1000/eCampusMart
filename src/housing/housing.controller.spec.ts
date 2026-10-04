@@ -5,6 +5,8 @@ import { HousingService } from './housing.service';
 import { Housing } from './entities/housing.entity';
 import { HousingImage } from './entities/housing-image.entity';
 import { CampusLocation } from 'src/campus-location/entities/campus-location.entity';
+import { User } from 'src/auth/entities/user.entity';
+import { HousingUserDetailsInterceptor } from './interceptors/housing-user-details.interceptor';
 
 describe('HousingController', () => {
   let controller: HousingController;
@@ -14,6 +16,7 @@ describe('HousingController', () => {
       controllers: [HousingController],
       providers: [
         HousingService,
+        HousingUserDetailsInterceptor,
         {
           provide: getRepositoryToken(Housing),
           useValue: {},
@@ -24,6 +27,10 @@ describe('HousingController', () => {
         },
         {
           provide: getRepositoryToken(CampusLocation),
+          useValue: {},
+        },
+        {
+          provide: getRepositoryToken(User),
           useValue: {},
         },
       ],
