@@ -8,7 +8,6 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ServiceCategory } from 'src/service-category/entities/service-category.entity';
-import { CreateServiceDto } from '../dto/create-service.dto';
 
 @Injectable()
 export class ValidServiceCategoryGuard implements CanActivate {
@@ -33,12 +32,6 @@ export class ValidServiceCategoryGuard implements CanActivate {
     }
 
     request.body.categoryId = serviceCategory.id;
-
-    if (storeId && serviceCategory.store?.id !== String(storeId)) {
-      throw new ForbiddenException(
-        'Service category does not belong to the selected store',
-      );
-    }
 
     const currentUserId = request.res?.locals?.user?.id;
 

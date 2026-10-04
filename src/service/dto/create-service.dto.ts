@@ -23,6 +23,10 @@ export class CreateServiceDto {
   storeId: string;
 
   @IsOptional()
+  @IsUUID()
+  categoryId: string;
+
+  @IsOptional()
   @IsBoolean()
   isNegotiable: boolean;
 
