@@ -11,7 +11,11 @@ export class CreateProductStoreDto {
 
   @IsNotEmpty()
   @IsString()
-  name: string;
+  name?: string;
+
+  @IsOptional()
+  @IsString()
+  campusId?: string;
 
   @IsOptional()
   @IsString()

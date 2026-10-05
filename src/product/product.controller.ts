@@ -2,10 +2,10 @@ import {
   Get,
   Post,
   Body,
+  Query,
   Patch,
   Param,
   Delete,
-  Query,
   Controller,
   UseGuards,
   UseInterceptors,
@@ -19,9 +19,10 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import IQuery from 'interfaces/query.Interface';
 import { CurrentUser } from 'src/auth/decorators/get-current-user.decorator';
 import { User } from 'src/auth/entities/user.entity';
+
 import { ProductUserDetailsInterceptor } from './interceptors/product-user-details.interceptor';
-import { ValidProductCategoryGuard } from './guards/valid-product-category.guard';
 import { ValidProductStoreGuard } from './guards/valid-product-store.guard';
+import { ValidProductCategoryGuard } from './guards/valid-product-category.guard';
 
 @Controller('products')
 export class ProductController {
@@ -59,7 +60,7 @@ export class ProductController {
     query.status = 'active';
 
     if (query.search) {
-      query.search = `name,${query.search}-abbreviation,${query.search}`;
+      query.search = `name,${query.search}-description,${query.search}`;
     }
     return this.productService.findAll(query);
   }

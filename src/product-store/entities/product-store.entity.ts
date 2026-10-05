@@ -13,6 +13,9 @@ export class ProductStore extends BaseEntity {
   categoryId: string;
 
   @Column()
+  campusId: string;
+
+  @Column()
   name: string;
 
   @Column({ default: 0 })

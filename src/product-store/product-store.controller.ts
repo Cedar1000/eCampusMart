@@ -8,6 +8,7 @@ import {
   Post,
   Query,
   UseGuards,
+  UseInterceptors,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -19,6 +20,7 @@ import { CreateProductStoreDto } from './dto/create-product-store.dto';
 import { UpdateProductStoreDto } from './dto/update-product-store.dto';
 import { ValidProductCategoryGuard } from 'src/product/guards/valid-product-category.guard';
 import { UniqueProductStoreGuard } from './guards/unique-product-store.guard';
+import { IncludeCampusInterceptor } from './interceptors/include-campus.interceptor';
 
 @Controller('product-stores')
 export class ProductStoreController {
@@ -32,6 +34,7 @@ export class ProductStoreController {
     @CurrentUser() user: User,
   ) {
     createProductStoreDto.userId = user.id;
+    createProductStoreDto.campusId = user.campusId;
 
     return this.productStoreService.create(createProductStoreDto);
   }
@@ -44,6 +47,7 @@ export class ProductStoreController {
   }
 
   @Get(':id')
+  @UseInterceptors(IncludeCampusInterceptor)
   findOne(@Param('id') id: string, @Query() query: Partial<IQuery>) {
     return this.productStoreService.findOne(id, query);
   }
