@@ -25,7 +25,11 @@ export class Product extends BaseEntity {
   @Column({ nullable: true })
   campusId: string;
 
-  @Column()
+  @Column({
+    type: 'numeric',
+    precision: 12,
+    scale: 2,
+  })
   price: number;
 
   @Column({ default: 1 })

@@ -50,7 +50,12 @@ export class ServiceStore extends BaseEntity {
   @Column({ default: 0 })
   servicesCount: number;
 
-  @Column({ default: 15000 })
+  @Column({
+    type: 'numeric',
+    precision: 12,
+    scale: 2,
+    nullable: true,
+  })
   basePrice: number;
 
   @Column({ default: 0 })

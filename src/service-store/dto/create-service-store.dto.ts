@@ -4,6 +4,7 @@ import {
   IsString,
   IsOptional,
   IsNotEmpty,
+  IsNumber,
 } from 'class-validator';
 
 import type { ServiceAvailability } from '../entities/service-store.entity';
@@ -16,6 +17,10 @@ export class CreateServiceStoreDto {
   @IsNotEmpty()
   @IsUUID()
   categoryId: string;
+
+  @IsNotEmpty()
+  @IsNumber()
+  basePrice: number;
 
   @IsOptional()
   @IsUUID()
@@ -45,7 +50,7 @@ export class CreateServiceStoreDto {
   @IsString()
   bannerKey: string;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsObject()
   availability?: ServiceAvailability;
 }

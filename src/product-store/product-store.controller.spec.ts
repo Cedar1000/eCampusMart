@@ -4,6 +4,7 @@ import { ProductStoreController } from './product-store.controller';
 import { ProductStoreService } from './product-store.service';
 import { ProductStore } from './entities/product-store.entity';
 import { ProductCategory } from 'src/product-category/entities/product-category.entity';
+import { UniqueProductStoreGuard } from './guards/unique-product-store.guard';
 
 describe('ProductStoreController', () => {
   let controller: ProductStoreController;
@@ -21,6 +22,7 @@ describe('ProductStoreController', () => {
           provide: getRepositoryToken(ProductCategory),
           useValue: {},
         },
+        UniqueProductStoreGuard,
       ],
     }).compile();
 

@@ -34,7 +34,11 @@ export class Service extends BaseEntity {
   @Column()
   listingId: string;
 
-  @Column({ type: 'float' })
+  @Column({
+    type: 'numeric',
+    precision: 12,
+    scale: 2,
+  })
   price: number;
 
   @Column({ type: 'enum', enum: PriceUnit })
@@ -43,7 +47,9 @@ export class Service extends BaseEntity {
   @ManyToOne(() => ServiceCategory, (category) => category.services)
   category: ServiceCategory;
 
-  @ManyToOne(() => ServiceStore, (store) => store.services)
+  @ManyToOne(() => ServiceStore, (store) => store.services, {
+    onDelete: 'CASCADE',
+  })
   store: ServiceStore;
 
   @OneToMany(() => ServiceImage, (image) => image.service)

@@ -18,13 +18,14 @@ import { ProductStoreService } from './product-store.service';
 import { CreateProductStoreDto } from './dto/create-product-store.dto';
 import { UpdateProductStoreDto } from './dto/update-product-store.dto';
 import { ValidProductCategoryGuard } from 'src/product/guards/valid-product-category.guard';
+import { UniqueProductStoreGuard } from './guards/unique-product-store.guard';
 
 @Controller('product-stores')
 export class ProductStoreController {
   constructor(private readonly productStoreService: ProductStoreService) {}
 
   @Post()
-  @UseGuards(ValidProductCategoryGuard)
+  @UseGuards(UniqueProductStoreGuard, ValidProductCategoryGuard)
   @UsePipes(ValidationPipe)
   create(
     @Body() createProductStoreDto: CreateProductStoreDto,

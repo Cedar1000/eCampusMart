@@ -20,6 +20,7 @@ import { ServiceStoreService } from './service-store.service';
 import { CreateServiceStoreDto } from './dto/create-service-store.dto';
 import { UpdateServiceStoreDto } from './dto/update-service-store.dto';
 import { ValidServiceCategoryGuard } from './guards/valid-service-category.guard';
+import { UniqueServiceStoreGuard } from './guards/unique-service-store.guard';
 
 @Controller('service-stores')
 export class ServiceStoreController {

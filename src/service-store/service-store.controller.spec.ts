@@ -5,6 +5,8 @@ import { ServiceCategory } from 'src/service-category/entities/service-category.
 import { ServiceStoreController } from './service-store.controller';
 import { CreateServiceStoreDto } from './dto/create-service-store.dto';
 import { ServiceStoreService } from './service-store.service';
+import { ServiceStore } from './entities/service-store.entity';
+import { UniqueServiceStoreGuard } from './guards/unique-service-store.guard';
 
 describe('ServiceStoreController', () => {
   let controller: ServiceStoreController;
@@ -24,6 +26,11 @@ describe('ServiceStoreController', () => {
           provide: getRepositoryToken(ServiceCategory),
           useValue: {},
         },
+        {
+          provide: getRepositoryToken(ServiceStore),
+          useValue: {},
+        },
+        UniqueServiceStoreGuard,
       ],
     }).compile();
 
