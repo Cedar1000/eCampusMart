@@ -29,6 +29,13 @@ export class ServiceStoreService {
     return await factory.getOne(this.serviceStoreRepo, id, query);
   }
 
+  async findByOwnerId(ownerId: string): Promise<ServiceStore | null> {
+    return this.serviceStoreRepo.findOne({
+      where: { ownerId },
+      select: ['id', 'name', 'logo'],
+    });
+  }
+
   async updateServiceStore(
     id: string,
     updateServiceStoreDto: UpdateServiceStoreDto,

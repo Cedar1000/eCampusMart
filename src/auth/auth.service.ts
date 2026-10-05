@@ -32,10 +32,19 @@ import { generateRandomNumber } from 'utils/generate-random-number';
 import { UpdateUserDto } from './dto/update-user.dto';
 // import { sendOtpEmail } from 'src/email-templates/send-otp-email';
 import sendEmail from 'utils/sendEmail';
+import { WalletService } from 'src/wallet/wallet.service';
+import { ProductStoreService } from 'src/product-store/product-store.service';
+import { ServiceStoreService } from 'src/service-store/service-store.service';
+import { Wallet } from 'src/wallet/entities/wallet.entity';
 
 @Injectable()
 export class AuthService {
-  constructor(@InjectRepository(User) private userRepo: Repository<User>) {}
+  constructor(
+    @InjectRepository(User) private userRepo: Repository<User>,
+    private readonly walletService: WalletService,
+    private readonly productStoreService: ProductStoreService,
+    private readonly serviceStoreService: ServiceStoreService,
+  ) {}
 
   async signUp(signUpDto: SignUpDto) {
     const { email, lastName, firstName, phoneNumber, countryCode } = signUpDto;
@@ -60,6 +69,8 @@ export class AuthService {
     const result = await factory.createOne(this.userRepo, payload);
 
     const user: User = result.data;
+
+    await this.walletService.createForUser(user.id);
 
     await this.sendOtp({ email });
 
@@ -236,7 +247,15 @@ export class AuthService {
       status: 'success',
       token: accessToken,
       refreshToken,
-      user: userClone,
+      user: await this.withRelatedAccounts(userClone),
+    };
+  }
+
+  async getMe(user: User) {
+    return {
+      status: 'success',
+      message: 'Get user successful!',
+      user: await this.withRelatedAccounts(user),
     };
   }
 
@@ -405,5 +424,23 @@ export class AuthService {
 
   async updateAuthUser(id: string, payload: UpdateUserDto) {
     return await factory.updateOne(this.userRepo, id, payload);
+  }
+
+  private async withRelatedAccounts<T extends { id: string }>(user: T) {
+    const [wallet, productStore, serviceStore] = await Promise.all([
+      this.walletService.findByUserId(user.id),
+      this.productStoreService.findByUserId(user.id),
+      this.serviceStoreService.findByOwnerId(user.id),
+    ]);
+
+    return {
+      ...user,
+      wallet: {
+        ...wallet,
+        balance: wallet?.balance ? wallet.balance / 100 : 0,
+      } as Wallet,
+      productStore,
+      serviceStore,
+    };
   }
 }

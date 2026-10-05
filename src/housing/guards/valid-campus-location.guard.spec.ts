@@ -44,8 +44,8 @@ describe('ValidCampusLocationGuard', () => {
   it('rejects a location that does not exist', async () => {
     repository.findOne.mockResolvedValue(null);
 
-    await expect(guard.canActivate(contextFor('location-id').context)).rejects.toThrow(
-      new NotFoundException('Campus location not found'),
-    );
+    await expect(
+      guard.canActivate(contextFor('location-id').context),
+    ).rejects.toThrow(new NotFoundException('Campus location not found'));
   });
 });

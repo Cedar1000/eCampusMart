@@ -15,5 +15,6 @@ import { UniqueProductStoreGuard } from './guards/unique-product-store.guard';
     ValidProductCategoryGuard,
     UniqueProductStoreGuard,
   ],
+  exports: [ProductStoreService],
 })
 export class ProductStoreModule {}

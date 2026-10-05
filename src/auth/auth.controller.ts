@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   Get,
   Body,
@@ -137,12 +135,8 @@ export class AuthController {
   }
 
   @Get('/me')
-  getMe(@CurrentUser() user: User) {
-    return {
-      status: 'success',
-      message: 'Get user successful!',
-      user,
-    };
+  async getMe(@CurrentUser() user: User) {
+    return this.authService.getMe(user);
   }
 
   @Patch('/update-me')

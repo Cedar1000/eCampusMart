@@ -16,7 +16,10 @@ export class ProductStoreCategoryService {
     return `This action returns a #${id} productStoreCategory`;
   }
 
-  update(id: number, updateProductStoreCategoryDto: UpdateProductStoreCategoryDto) {
+  update(
+    id: number,
+    updateProductStoreCategoryDto: UpdateProductStoreCategoryDto,
+  ) {
     return `This action updates a #${id} productStoreCategory`;
   }
 

@@ -1,7 +1,4 @@
-import {
-  ForbiddenException,
-  NotFoundException,
-} from '@nestjs/common';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import type { ExecutionContext } from '@nestjs/common';
 import { ValidServiceCategoryGuard } from './valid-service-category.guard';
 
@@ -11,11 +8,7 @@ describe('ValidServiceCategoryGuard', () => {
   };
   const guard = new ValidServiceCategoryGuard(repository as never);
 
-  const contextFor = (
-    categoryId?: string,
-    storeId?: string,
-    userId?: string,
-  ) =>
+  const contextFor = (categoryId?: string, storeId?: string, userId?: string) =>
     ({
       switchToHttp: () => ({
         getRequest: () => ({

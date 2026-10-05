@@ -8,6 +8,7 @@ interface IQuery {
   limit?: string;
   search?: string;
   relations?: string;
+  walletId?: string;
 }
 
 export default IQuery;

@@ -1,7 +1,4 @@
-import {
-  ForbiddenException,
-  NotFoundException,
-} from '@nestjs/common';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import type { ExecutionContext } from '@nestjs/common';
 import { ValidServiceStoreGuard } from './valid-service-store.guard';
 
@@ -19,9 +16,9 @@ describe('ValidServiceStoreGuard', () => {
       };
 
       return {
-      switchToHttp: () => ({
-        getRequest: () => request,
-      }),
+        switchToHttp: () => ({
+          getRequest: () => request,
+        }),
       };
     })() as ExecutionContext;
 

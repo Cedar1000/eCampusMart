@@ -8,9 +8,17 @@ import { Campus } from 'src/campus/entities/campus.entity';
 import { DuplicateEmailGuard } from './guards/duplicate-email.guard';
 import { ValidCampusGuard } from './guards/valid-campus.guard';
 import { UniquePhoneNumberGuard } from './guards/unique-phone-number.guard';
+import { WalletModule } from 'src/wallet/wallet.module';
+import { ProductStoreModule } from 'src/product-store/product-store.module';
+import { ServiceStoreModule } from 'src/service-store/service-store.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Campus])],
+  imports: [
+    TypeOrmModule.forFeature([User, Campus]),
+    WalletModule,
+    ProductStoreModule,
+    ServiceStoreModule,
+  ],
   controllers: [AuthController],
   providers: [
     AuthService,

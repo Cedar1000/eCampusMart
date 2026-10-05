@@ -27,10 +27,7 @@ export class HousingUserDetailsInterceptor implements NestInterceptor {
     private readonly userRepo: Repository<User>,
   ) {}
 
-  intercept(
-    context: ExecutionContext,
-    next: CallHandler,
-  ): Observable<unknown> {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     return next.handle().pipe(
       mergeMap(async (response: HousingResponse) => {
         const responseData = response.data;

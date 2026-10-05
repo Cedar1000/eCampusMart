@@ -57,6 +57,10 @@ export class ProductController {
   findAll(@Query() query: Partial<IQuery>) {
     query.relations = 'images';
     query.status = 'active';
+
+    if (query.search) {
+      query.search = `name,${query.search}-abbreviation,${query.search}`;
+    }
     return this.productService.findAll(query);
   }
 

@@ -52,13 +52,15 @@ describe('ValidProductStoreGuard', () => {
   it('rejects a missing store', async () => {
     repository.findOne.mockResolvedValue(null);
 
-    await expect(guard.canActivate(contextFor('store-id', 'user-id').context)).rejects.toThrow(
-      new NotFoundException('Product store not found'),
-    );
+    await expect(
+      guard.canActivate(contextFor('store-id', 'user-id').context),
+    ).rejects.toThrow(new NotFoundException('Product store not found'));
   });
 
   it('requires a store ID', async () => {
-    await expect(guard.canActivate(contextFor(undefined, 'user-id').context)).rejects.toThrow(
+    await expect(
+      guard.canActivate(contextFor(undefined, 'user-id').context),
+    ).rejects.toThrow(
       new BadRequestException(
         'storeId is required when creating a store product',
       ),
@@ -72,7 +74,9 @@ describe('ValidProductStoreGuard', () => {
       categoryId: 'category-id',
     });
 
-    await expect(guard.canActivate(contextFor('store-id', 'user-id').context)).rejects.toThrow(
+    await expect(
+      guard.canActivate(contextFor('store-id', 'user-id').context),
+    ).rejects.toThrow(
       new ForbiddenException('You can only create products in your own store'),
     );
   });
@@ -84,8 +88,8 @@ describe('ValidProductStoreGuard', () => {
       categoryId: null,
     });
 
-    await expect(guard.canActivate(contextFor('store-id', 'user-id').context)).rejects.toThrow(
-      new BadRequestException('Product store has no category'),
-    );
+    await expect(
+      guard.canActivate(contextFor('store-id', 'user-id').context),
+    ).rejects.toThrow(new BadRequestException('Product store has no category'));
   });
 });

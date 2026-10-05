@@ -29,6 +29,13 @@ export class ProductStoreService {
     return await factory.getOne(this.productStoreRepo, id, query);
   }
 
+  async findByUserId(userId: string): Promise<ProductStore | null> {
+    return this.productStoreRepo.findOne({
+      where: { userId },
+      select: ['id', 'name', 'logo'],
+    });
+  }
+
   async update(id: string, updateProductStoreDto: UpdateProductStoreDto) {
     return await factory.updateOne(
       this.productStoreRepo,

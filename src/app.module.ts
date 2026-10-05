@@ -25,6 +25,8 @@ import { ServiceStoreModule } from './service-store/service-store.module';
 import { ServiceModule } from './service/service.module';
 import { CampusLocationModule } from './campus-location/campus-location.module';
 import { HousingModule } from './housing/housing.module';
+import { WalletModule } from './wallet/wallet.module';
+import { TransactionModule } from './transaction/transaction.module';
 
 @Module({
   imports: [
@@ -42,6 +44,8 @@ import { HousingModule } from './housing/housing.module';
     ServiceModule,
     CampusLocationModule,
     HousingModule,
+    WalletModule,
+    TransactionModule,
   ],
   controllers: [AppController],
   providers: [AppService],
@@ -62,7 +66,7 @@ export class AppModule implements NestModule {
         { path: 'auth/reset-password/:token', method: RequestMethod.PATCH },
         { path: 'auth/create-password/:token', method: RequestMethod.PATCH },
         { path: 'subscription/webhook', method: RequestMethod.POST },
-        { path: 'webhook/stripe', method: RequestMethod.ALL },
+        { path: 'wallet/webhook/paystack', method: RequestMethod.ALL },
       )
       .forRoutes('*');
   }

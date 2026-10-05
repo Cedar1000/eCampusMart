@@ -15,29 +15,29 @@ export class EmailLoginDto {
     typeof value === 'string' ? value.toLowerCase().trim() : value,
   )
   @IsLowercase()
-  email: string;
+  email!: string;
 
   @IsNotEmpty()
   @IsString()
-  password: string;
+  password!: string;
 
   @IsOptional()
-  payload: { email: string };
+  payload?: { email: string };
 }
 
 export class PhoneNumberLoginDto {
   @IsString()
   @IsNotEmpty()
-  countryCode: string;
+  countryCode!: string;
 
   @IsNotEmpty()
   @IsString()
-  phoneNumber: string;
+  phoneNumber!: string;
 
   @IsNotEmpty()
   @IsString()
-  password: string;
+  password!: string;
 
   @IsOptional()
-  payload: { countryCode: string; phoneNumber: string };
+  payload?: { countryCode: string; phoneNumber: string };
 }

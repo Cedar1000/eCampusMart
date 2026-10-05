@@ -15,5 +15,6 @@ import { UniqueServiceStoreGuard } from './guards/unique-service-store.guard';
     ValidServiceCategoryGuard,
     UniqueServiceStoreGuard,
   ],
+  exports: [ServiceStoreService],
 })
 export class ServiceStoreModule {}
