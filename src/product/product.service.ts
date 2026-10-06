@@ -46,7 +46,16 @@ export class ProductService {
   }
 
   async update(id: string, updateProductDto: UpdateProductDto) {
-    return await factory.updateOne(this.productRepo, id, updateProductDto);
+    const { images, ...productData } = updateProductDto;
+
+    const data = await factory.updateOne(this.productRepo, id, productData);
+
+    if (images?.length) {
+      await this.productImageRepo.delete({ productId: id });
+      await this.createProductImage(images, id);
+    }
+
+    return data;
   }
 
   async remove(id: string) {

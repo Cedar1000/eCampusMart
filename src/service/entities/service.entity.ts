@@ -11,49 +11,55 @@ import { ServiceStore } from 'src/service-store/entities/service-store.entity';
 @Entity()
 export class Service extends BaseEntity {
   @Column()
-  title: string;
+  title?: string;
 
   @Column()
-  ownerId: string;
+  ownerId?: string;
 
   @Column()
-  categoryId: string;
+  categoryId?: string;
 
   @Column({ nullable: true })
-  description: string;
+  locationId?: string;
+
+  @Column({ nullable: true })
+  location?: string;
+
+  @Column({ nullable: true })
+  description?: string;
 
   @Column({ default: true })
-  isNegotiable: boolean;
+  isNegotiable?: boolean;
 
   @Column()
-  campusId: string;
+  campusId?: string;
 
   @Column()
-  storeId: string;
+  storeId?: string;
 
   @Column()
-  listingId: string;
+  listingId?: string;
 
   @Column({
     type: 'numeric',
     precision: 12,
     scale: 2,
   })
-  price: number;
+  price?: number;
 
   @Column({ type: 'enum', enum: PriceUnit })
-  priceUnit: PriceUnit;
+  priceUnit?: PriceUnit;
 
   @ManyToOne(() => ServiceCategory, (category) => category.services)
-  category: ServiceCategory;
+  category?: ServiceCategory;
 
   @ManyToOne(() => ServiceStore, (store) => store.services, {
     onDelete: 'CASCADE',
   })
-  store: ServiceStore;
+  store?: ServiceStore;
 
   @OneToMany(() => ServiceImage, (image) => image.service)
-  images: ServiceImage[];
+  images?: ServiceImage[];
 
   @BeforeInsert()
   generateSlug() {

@@ -7,38 +7,38 @@ import { ProductStoreCategory } from 'src/product-store-category/entities/produc
 @Entity()
 export class ProductStore extends BaseEntity {
   @Column()
-  userId: string;
+  userId?: string;
 
   @Column({ nullable: true })
-  categoryId: string;
+  categoryId?: string;
 
   @Column()
-  campusId: string;
+  campusId?: string;
 
   @Column()
-  name: string;
+  name?: string;
 
   @Column({ default: 0 })
-  ratingsCount: number;
+  ratingsCount?: number;
 
   @Column({ nullable: true, type: 'float', default: 0 })
-  ratingsAverage: number;
+  ratingsAverage?: number;
 
   @Column({ nullable: true })
-  description: string;
+  description?: string;
 
   @Column({ nullable: true })
-  logo: string;
+  logo?: string;
 
   @Column({ nullable: true })
-  logoKey: string;
+  logoKey?: string;
 
   @Column({ nullable: true })
-  banner: string;
+  banner?: string;
 
   @Column({ nullable: true })
-  bannerKey: string;
+  bannerKey?: string;
 
   @OneToMany(() => ProductStoreCategory, (category) => category.store)
-  categories: ProductStoreCategory[];
+  categories?: ProductStoreCategory[];
 }

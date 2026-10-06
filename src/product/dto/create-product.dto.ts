@@ -17,47 +17,47 @@ export class CreateProductDto {
   @IsNotEmpty()
   @IsString()
   @Transform(({ value }) => (value as string).toLowerCase())
-  name: string;
+  name?: string;
 
   @IsNotEmpty()
   @IsString()
-  description: string;
+  description?: string;
 
   @IsNotEmpty()
   @IsString()
-  categoryId: string;
+  categoryId?: string;
 
   @IsNotEmpty()
   @IsNumber()
-  price: number;
+  price?: number;
 
   @IsOptional()
   @IsNumber()
-  quantity: number;
+  quantity?: number;
 
   @IsOptional()
   @IsUUID()
-  userId: string;
+  userId?: string;
 
   @IsOptional()
   @IsUUID()
-  campusId: string;
+  campusId?: string;
 
   @IsOptional()
   @IsUUID()
-  storeId: string;
+  storeId?: string;
 
   @IsOptional()
   @IsBoolean()
-  isStoreProduct: boolean;
+  isStoreProduct?: boolean;
 
   @IsOptional()
   @IsString()
-  storeCategoryId: string;
+  storeCategoryId?: string;
 
   @IsOptional()
   @IsEnum(ProductCondition)
-  condition: ProductCondition;
+  condition?: ProductCondition;
 
   @IsNotEmpty()
   @IsArray()

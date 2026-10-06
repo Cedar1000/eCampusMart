@@ -16,19 +16,27 @@ import { ServiceImage } from '../entities/service-image.entity';
 export class CreateServiceDto {
   @IsNotEmpty()
   @IsString()
-  title: string;
+  title?: string;
 
   @IsNotEmpty()
   @IsUUID()
-  storeId: string;
+  storeId?: string;
 
   @IsOptional()
   @IsUUID()
-  categoryId: string;
+  categoryId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  locationId?: string;
+
+  @IsOptional()
+  @IsString()
+  location?: string;
 
   @IsOptional()
   @IsBoolean()
-  isNegotiable: boolean;
+  isNegotiable?: boolean;
 
   @IsOptional()
   @IsString()
@@ -36,11 +44,11 @@ export class CreateServiceDto {
 
   @IsNotEmpty()
   @IsNumber()
-  price: number;
+  price?: number;
 
   @IsNotEmpty()
   @IsEnum(PriceUnit)
-  priceUnit: PriceUnit;
+  priceUnit?: PriceUnit;
 
   @IsOptional()
   @IsUUID()

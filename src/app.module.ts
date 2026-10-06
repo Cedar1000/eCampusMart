@@ -27,6 +27,9 @@ import { CampusLocationModule } from './campus-location/campus-location.module';
 import { HousingModule } from './housing/housing.module';
 import { WalletModule } from './wallet/wallet.module';
 import { TransactionModule } from './transaction/transaction.module';
+import { ProductFavouriteModule } from './product-favourite/product-favourite.module';
+import { RedisModule } from './redis/redis.module';
+import { ServiceFavouriteModule } from './service-favourite/service-favourite.module';
 
 @Module({
   imports: [
@@ -46,6 +49,9 @@ import { TransactionModule } from './transaction/transaction.module';
     HousingModule,
     WalletModule,
     TransactionModule,
+    ProductFavouriteModule,
+    RedisModule,
+    ServiceFavouriteModule,
   ],
   controllers: [AppController],
   providers: [AppService],

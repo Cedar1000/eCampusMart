@@ -10,6 +10,7 @@ import { ProductCategory } from 'src/product-category/entities/product-category.
 import { ValidProductCategoryGuard } from './guards/valid-product-category.guard';
 import { ProductStore } from 'src/product-store/entities/product-store.entity';
 import { ValidProductStoreGuard } from './guards/valid-product-store.guard';
+import { IncludeIsLikedInterceptor } from './interceptors/has-liked-product.interceptor';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { ValidProductStoreGuard } from './guards/valid-product-store.guard';
   providers: [
     ProductService,
     ProductUserDetailsInterceptor,
+    IncludeIsLikedInterceptor,
     ValidProductCategoryGuard,
     ValidProductStoreGuard,
   ],

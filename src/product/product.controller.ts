@@ -23,6 +23,7 @@ import { User } from 'src/auth/entities/user.entity';
 import { ProductUserDetailsInterceptor } from './interceptors/product-user-details.interceptor';
 import { ValidProductStoreGuard } from './guards/valid-product-store.guard';
 import { ValidProductCategoryGuard } from './guards/valid-product-category.guard';
+import { IncludeIsLikedInterceptor } from './interceptors/has-liked-product.interceptor';
 
 @Controller('products')
 export class ProductController {
@@ -54,7 +55,7 @@ export class ProductController {
   }
 
   @Get()
-  @UseInterceptors(ProductUserDetailsInterceptor)
+  @UseInterceptors(ProductUserDetailsInterceptor, IncludeIsLikedInterceptor)
   findAll(@Query() query: Partial<IQuery>) {
     query.relations = 'images';
     query.status = 'active';
@@ -75,7 +76,7 @@ export class ProductController {
   }
 
   @Get(':id')
-  @UseInterceptors(ProductUserDetailsInterceptor)
+  @UseInterceptors(ProductUserDetailsInterceptor, IncludeIsLikedInterceptor)
   findOne(@Param('id') id: string, @Query() query: Partial<IQuery>) {
     query.relations = 'images';
     return this.productService.findOne(id, query);
