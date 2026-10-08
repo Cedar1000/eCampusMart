@@ -337,6 +337,13 @@ export class AuthService {
       throw new BadRequestException('Please create your password first');
     }
 
+    const passwordCheck = await bcrypt.compare(password, user.password);
+
+    // Checks if the current password matches the one in the database
+    if (passwordCheck) {
+      throw new UnauthorizedException(`You can't use your old password`);
+    }
+
     const passwordHash = await bcrypt.hash(password, 12);
 
     await this.userRepo.update(
