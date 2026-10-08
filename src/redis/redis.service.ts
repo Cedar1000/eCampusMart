@@ -34,6 +34,7 @@ export class RedisService {
   }
 
   async smismember(key: string, values: string[]) {
+    console.log({ key, values });
     return this.redis.smismember(key, values);
   }
 }

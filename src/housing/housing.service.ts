@@ -74,13 +74,13 @@ export class HousingService {
   }
 
   async createHousingImages(images: HousingImage[], housingId: string) {
-    console.log({ images, housingId });
-
-    const housingImages = images.map((image) => {
+    const housingImages = images.map((image, index) => {
       const housingImage = new HousingImage();
       housingImage.housingId = housingId;
       housingImage.url = image.url;
       housingImage.key = image.key;
+
+      housingImage.isCoverImage = index === 0 ? true : false;
 
       return housingImage;
     });

@@ -9,8 +9,11 @@ import { Observable, mergeMap } from 'rxjs';
 
 import { RedisService } from 'src/redis/redis.service';
 
+import { ServiceImage } from '../entities/service-image.entity';
+
 type Service = {
   id: string;
+  images: ServiceImage[];
   [key: string]: unknown;
 };
 
@@ -57,15 +60,21 @@ export class IncludeIsLikedServiceInterceptor implements NestInterceptor {
         if (Array.isArray(responseData)) {
           const serviceIds = responseData.map((service) => service.id);
 
-          const liked = await this.redisService.smismember(
-            redisKey,
-            serviceIds,
-          );
+          let liked: any[];
+
+          if (!serviceIds.length) {
+            liked = [];
+          } else {
+            liked = await this.redisService.smismember(redisKey, serviceIds);
+          }
 
           return {
             ...response,
-            data: responseData.map((service, index) => ({
+            data: responseData.map((service: Service, index) => ({
               ...service,
+              images: service.images.sort(
+                (a, b) => Number(b.isCoverImage) - Number(a.isCoverImage),
+              ),
               isLiked: Boolean(liked[index]),
             })),
           };
@@ -77,7 +86,13 @@ export class IncludeIsLikedServiceInterceptor implements NestInterceptor {
 
         return {
           ...response,
-          data: { ...responseData, isLiked: Boolean(isLiked) },
+          data: {
+            ...responseData,
+            isLiked: Boolean(isLiked),
+            images: responseData.images.sort(
+              (a, b) => Number(b.isCoverImage) - Number(a.isCoverImage),
+            ),
+          },
         };
       }),
     );

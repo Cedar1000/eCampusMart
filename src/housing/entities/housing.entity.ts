@@ -1,8 +1,9 @@
 import { BaseEntity } from 'src/common/base.entity';
-import { Column, Entity, OneToMany } from 'typeorm';
+import { BeforeInsert, Column, Entity, OneToMany } from 'typeorm';
 
 import { HouseType } from '../enums/house-type.enum';
 import { HousingImage } from './housing-image.entity';
+import { randomInt } from 'crypto';
 
 @Entity()
 export class Housing extends BaseEntity {
@@ -14,6 +15,9 @@ export class Housing extends BaseEntity {
 
   @Column()
   locationId: string;
+
+  @Column()
+  listingId: string;
 
   @Column()
   campusId: string;
@@ -38,4 +42,18 @@ export class Housing extends BaseEntity {
 
   @OneToMany(() => HousingImage, (image) => image.housing)
   images: HousingImage[];
+
+  @BeforeInsert()
+  generateSlug() {
+    this.listingId = `LST-${this.generateListingSegment(4)}-${this.generateListingSegment(2)}`;
+  }
+
+  private generateListingSegment(length: number): string {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+
+    return Array.from(
+      { length },
+      () => characters[randomInt(characters.length)],
+    ).join('');
+  }
 }

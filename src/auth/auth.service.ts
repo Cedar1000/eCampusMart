@@ -36,11 +36,26 @@ import { WalletService } from 'src/wallet/wallet.service';
 import { ProductStoreService } from 'src/product-store/product-store.service';
 import { ServiceStoreService } from 'src/service-store/service-store.service';
 import { Wallet } from 'src/wallet/entities/wallet.entity';
+import { Product } from 'src/product/entities/product.entity';
+import { ProductStore } from 'src/product-store/entities/product-store.entity';
+import { Service } from 'src/service/entities/service.entity';
+import { ServiceStore } from 'src/service-store/entities/service-store.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User) private userRepo: Repository<User>,
+
+    @InjectRepository(Product) private productRepo: Repository<Product>,
+
+    @InjectRepository(ProductStore)
+    private productStoreRepo: Repository<ProductStore>,
+
+    @InjectRepository(Service) private serviceRepo: Repository<Service>,
+
+    @InjectRepository(ServiceStore)
+    private serviceStoreRepo: Repository<ServiceStore>,
+
     private readonly walletService: WalletService,
     private readonly productStoreService: ProductStoreService,
     private readonly serviceStoreService: ServiceStoreService,
@@ -423,7 +438,13 @@ export class AuthService {
   }
 
   async updateAuthUser(id: string, payload: UpdateUserDto) {
-    return await factory.updateOne(this.userRepo, id, payload);
+    const { campusId } = payload;
+
+    const data = await factory.updateOne(this.userRepo, id, payload);
+
+    if (campusId) this.updateUserUploads(id, campusId);
+
+    return data;
   }
 
   private async withRelatedAccounts<T extends { id: string }>(user: T) {
@@ -442,5 +463,19 @@ export class AuthService {
       productStore,
       serviceStore,
     };
+  }
+
+  private async updateUserUploads(userId: string, campusId: string) {
+    // update products
+    await this.productRepo.update({ userId }, { campusId });
+
+    // update product stores
+    await this.productStoreRepo.update({ userId }, { campusId });
+
+    // update services
+    await this.serviceRepo.update({ ownerId: userId }, { campusId });
+
+    // update service store
+    await this.serviceStoreRepo.update({ ownerId: userId }, { campusId });
   }
 }

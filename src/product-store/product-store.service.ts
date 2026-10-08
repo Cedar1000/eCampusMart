@@ -2,16 +2,23 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import type IQuery from 'interfaces/query.Interface';
 import * as factory from 'utils/handlerFactory';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
+
 import { CreateProductStoreDto } from './dto/create-product-store.dto';
 import { UpdateProductStoreDto } from './dto/update-product-store.dto';
 import { ProductStore } from './entities/product-store.entity';
+import { Product } from 'src/product/entities/product.entity';
 
 @Injectable()
 export class ProductStoreService {
   constructor(
     @InjectRepository(ProductStore)
     private readonly productStoreRepo: Repository<ProductStore>,
+
+    @InjectRepository(Product)
+    private readonly productRepo: Repository<Product>,
+
+    private readonly dataSource: DataSource,
   ) {}
 
   async create(createProductStoreDto: CreateProductStoreDto) {
@@ -45,6 +52,32 @@ export class ProductStoreService {
   }
 
   async remove(id: string) {
-    return await factory.deleteOne(this.productStoreRepo, id);
+    const queryRunner = this.dataSource.createQueryRunner();
+
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      // Delete all products belonging to the store
+      await queryRunner.manager.update(
+        Product,
+        {
+          storeId: id,
+        },
+        { storeId: undefined, isStoreProduct: false },
+      );
+
+      // Delete the store
+      const result = await queryRunner.manager.delete(ProductStore, id);
+
+      await queryRunner.commitTransaction();
+
+      return result;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
   }
 }

@@ -11,10 +11,21 @@ import { UniquePhoneNumberGuard } from './guards/unique-phone-number.guard';
 import { WalletModule } from 'src/wallet/wallet.module';
 import { ProductStoreModule } from 'src/product-store/product-store.module';
 import { ServiceStoreModule } from 'src/service-store/service-store.module';
+import { Product } from 'src/product/entities/product.entity';
+import { ProductStore } from 'src/product-store/entities/product-store.entity';
+import { Service } from 'src/service/entities/service.entity';
+import { ServiceStore } from 'src/service-store/entities/service-store.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Campus]),
+    TypeOrmModule.forFeature([
+      User,
+      Campus,
+      Product,
+      ProductStore,
+      Service,
+      ServiceStore,
+    ]),
     WalletModule,
     ProductStoreModule,
     ServiceStoreModule,

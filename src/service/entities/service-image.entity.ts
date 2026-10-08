@@ -14,6 +14,9 @@ export class ServiceImage extends BaseEntity {
   @Column()
   serviceId: string;
 
+  @Column({ default: false })
+  isCoverImage: boolean;
+
   @ManyToOne(() => Service, (service) => service.images, {
     onDelete: 'CASCADE',
   })

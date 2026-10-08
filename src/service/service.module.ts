@@ -8,9 +8,17 @@ import { ServiceCategory } from 'src/service-category/entities/service-category.
 import { ValidServiceCategoryGuard } from './guards/valid-service-category.guard';
 import { ValidServiceStoreGuard } from './guards/valid-service-store.guard';
 import { IncludeIsLikedServiceInterceptor } from './interceptors/has-liked-service.interceptor';
+import { ServiceImage } from './entities/service-image.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Service, ServiceStore, ServiceCategory])],
+  imports: [
+    TypeOrmModule.forFeature([
+      Service,
+      ServiceStore,
+      ServiceCategory,
+      ServiceImage,
+    ]),
+  ],
   controllers: [ServiceController],
   providers: [
     ServiceService,

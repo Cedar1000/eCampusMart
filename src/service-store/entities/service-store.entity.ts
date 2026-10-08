@@ -2,8 +2,8 @@ import { Column, Entity, OneToMany } from 'typeorm';
 
 import { BaseEntity } from 'src/common/base.entity';
 
-import { ServiceCategory } from 'src/service-category/entities/service-category.entity';
 import { Service } from 'src/service/entities/service.entity';
+import { ServiceCategory } from 'src/service-category/entities/service-category.entity';
 
 type ServiceAvailabilityDay = {
   active: boolean;

@@ -18,7 +18,7 @@ export class CreateServiceStoreDto {
   @IsUUID()
   categoryId: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsNumber()
   basePrice: number;
 

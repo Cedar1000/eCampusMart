@@ -14,6 +14,9 @@ export class HousingImage extends BaseEntity {
   @Column()
   housingId: string;
 
+  @Column({ default: false })
+  isCoverImage: boolean;
+
   @ManyToOne(() => Housing, (housing) => housing.images, {
     onDelete: 'CASCADE',
   })

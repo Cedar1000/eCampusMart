@@ -48,6 +48,17 @@ export class HousingController {
     return this.housingService.findAll(query);
   }
 
+  @Get('my-listings')
+  @UseInterceptors(HousingUserDetailsInterceptor)
+  getMyListings(@Query() query: IQuery, @CurrentUser() user: User) {
+    query.relations = 'images';
+    query.userId = user.id;
+
+    if (query.search) query.search = `title,${query.search}`;
+
+    return this.housingService.findAll(query);
+  }
+
   @Get(':id')
   @UseInterceptors(HousingUserDetailsInterceptor)
   findOne(@Param('id') id: string, @Query() query: Partial<IQuery>) {

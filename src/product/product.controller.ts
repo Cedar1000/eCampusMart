@@ -83,7 +83,12 @@ export class ProductController {
   }
 
   @Patch(':id')
+  @UseGuards(ValidProductStoreGuard)
   update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
+    const { storeId } = updateProductDto;
+
+    if (storeId) updateProductDto.isStoreProduct = true;
+
     return this.productService.update(id, updateProductDto);
   }
 

@@ -9,14 +9,30 @@ import {
 export class UpdateUserDto {
   @IsUUID()
   @IsOptional()
-  campusId: string;
+  campusId?: string;
 
   @IsString()
   @IsOptional()
-  phoneNumber: string;
+  phoneNumber?: string;
+
+  @IsString()
+  @IsOptional()
+  firstName?: string;
+
+  @IsString()
+  @IsOptional()
+  lastName?: string;
 
   @ValidateIf((payload: UpdateUserDto) => payload.phoneNumber !== undefined)
   @IsString()
   @IsNotEmpty()
-  countryCode: string;
+  countryCode?: string;
+
+  @IsString()
+  @IsOptional()
+  photo?: string;
+
+  @IsString()
+  @IsOptional()
+  photoKey?: string;
 }

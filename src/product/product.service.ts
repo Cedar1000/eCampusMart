@@ -63,11 +63,13 @@ export class ProductService {
   }
 
   async createProductImage(images: ProductImage[], productId: string) {
-    const productImages = images.map((image) => {
+    const productImages = images.map((image, index: number) => {
       const productImage = new ProductImage();
       productImage.productId = productId;
       productImage.url = image.url;
       productImage.key = image.key;
+
+      productImage.isCoverImage = index === 0 ? true : false;
 
       return productImage;
     });

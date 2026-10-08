@@ -8,14 +8,16 @@ import { Observable, mergeMap } from 'rxjs';
 import { Response } from 'express';
 
 import { RedisService } from 'src/redis/redis.service';
+import { ProductImage } from '../entities/product-image.entity';
 
-type Post = {
+type Product = {
   id: string;
+  images: ProductImage[];
   [key: string]: unknown;
 };
 
-type PostResponse = {
-  data?: Post | Post[];
+type ProductResponse = {
+  data?: Product | Product[];
   [key: string]: unknown;
 };
 
@@ -26,7 +28,7 @@ export class IncludeIsLikedInterceptor implements NestInterceptor {
   intercept(
     context: ExecutionContext,
     next: CallHandler,
-  ): Observable<PostResponse> {
+  ): Observable<ProductResponse> {
     const response = context
       .switchToHttp()
       .getResponse<Response & { locals: { user?: { id: string } } }>();
@@ -34,12 +36,12 @@ export class IncludeIsLikedInterceptor implements NestInterceptor {
     const userId = response.locals.user?.id;
 
     return next.handle().pipe(
-      mergeMap(async (response: PostResponse) => {
+      mergeMap(async (response: ProductResponse) => {
         const responseData = response.data;
 
         if (!responseData) return response;
         if (!userId) {
-          const withIsLiked = (product: Post) => ({
+          const withIsLiked = (product: Product) => ({
             ...product,
             isLiked: false,
           });
@@ -58,12 +60,22 @@ export class IncludeIsLikedInterceptor implements NestInterceptor {
         if (Array.isArray(responseData)) {
           const postIds = responseData.map((post) => post.id);
 
-          const liked = await this.redisService.smismember(redisKey, postIds);
+          let liked: any[];
+
+          if (!postIds.length) {
+            liked = [];
+          } else {
+            liked = await this.redisService.smismember(redisKey, postIds);
+          }
 
           return {
             ...response,
-            data: responseData.map((product, index) => ({
+            data: responseData.map((product: Product, index) => ({
               ...product,
+
+              images: product.images.sort(
+                (a, b) => Number(b.isCoverImage) - Number(a.isCoverImage),
+              ),
               isLiked: Boolean(liked[index]),
             })),
           };
@@ -76,7 +88,13 @@ export class IncludeIsLikedInterceptor implements NestInterceptor {
 
         return {
           ...response,
-          data: { ...responseData, isLiked: Boolean(isLiked) },
+          data: {
+            ...responseData,
+            isLiked: Boolean(isLiked),
+            images: responseData.images.sort(
+              (a, b) => Number(b.isCoverImage) - Number(a.isCoverImage),
+            ),
+          },
         };
       }),
     );
