@@ -125,6 +125,8 @@ export class WalletService {
           reference,
           description: TransactionDescription.FUND,
           currency,
+          beforeBalance: wallet.balance,
+          afterBalance: wallet.balance + payload.amount,
           expiresAt: new Date(Date.now() + 15 * 60 * 1000), // Expires in 15 mins
         }),
       );

@@ -28,6 +28,22 @@ export class Transaction extends BaseEntity {
   @Column()
   amount: number;
 
+  @Column({
+    type: 'numeric',
+    precision: 12,
+    scale: 2,
+    nullable: true,
+  })
+  beforeBalance?: number;
+
+  @Column({
+    type: 'numeric',
+    precision: 12,
+    scale: 2,
+    nullable: true,
+  })
+  afterBalance?: number;
+
   @Column({ type: 'enum', enum: TransactionType })
   type: TransactionType;
 
