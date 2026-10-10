@@ -28,6 +28,9 @@ export class Housing extends BaseEntity {
   @Column({ nullable: true })
   whoCanRent: string;
 
+  @Column({ default: 0 })
+  favoriteCount: number;
+
   @Column()
   description: string;
 

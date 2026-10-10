@@ -22,6 +22,8 @@ import { ValidCampusLocationGuard } from './guards/valid-campus-location.guard';
 import { CurrentUser } from 'src/auth/decorators/get-current-user.decorator';
 import { User } from 'src/auth/entities/user.entity';
 import { HousingUserDetailsInterceptor } from './interceptors/housing-user-details.interceptor';
+import { IncludeFavouriteHousingInterceptor } from 'src/housing-favourite/interceptors/include-favourite-housing.interceptor';
+import { IncludeIsLikedInterceptor } from './interceptors/has-liked-housing.interceptor';
 
 @Controller('housings')
 export class HousingController {
@@ -39,7 +41,7 @@ export class HousingController {
   }
 
   @Get()
-  @UseInterceptors(HousingUserDetailsInterceptor)
+  @UseInterceptors(IncludeIsLikedInterceptor, HousingUserDetailsInterceptor)
   findAll(@Query() query: Partial<IQuery>) {
     query.relations = 'images';
 

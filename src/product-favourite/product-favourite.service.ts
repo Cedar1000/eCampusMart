@@ -11,10 +11,12 @@ import IQuery from 'interfaces/query.Interface';
 import { User } from 'src/auth/entities/user.entity';
 import { Product } from 'src/product/entities/product.entity';
 import { InjectQueue } from '@nestjs/bullmq';
+
 import {
   PRODUCT_FAVOURITE_JOB,
   PRODUCT_FAVOURITE_QUEUE,
 } from 'src/product/product.constants';
+
 import { Queue } from 'bullmq';
 
 interface ProductFavJobData {
@@ -101,8 +103,6 @@ export class ProductFavouriteService {
     const { productId } = data;
 
     const favoriteCount = await this.productFavRepo.countBy({ productId });
-
-    console.log({ favoriteCount });
 
     await this.productRepo.update({ id: productId }, { favoriteCount });
   }

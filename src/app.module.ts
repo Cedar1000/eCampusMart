@@ -33,6 +33,7 @@ import { ProductFavouriteModule } from './product-favourite/product-favourite.mo
 import { RedisModule } from './redis/redis.module';
 import { ServiceFavouriteModule } from './service-favourite/service-favourite.module';
 import { ProductViewModule } from './product-view/product-view.module';
+import { HousingFavouriteModule } from './housing-favourite/housing-favourite.module';
 
 @Module({
   imports: [
@@ -66,6 +67,7 @@ import { ProductViewModule } from './product-view/product-view.module';
     RedisModule,
     ServiceFavouriteModule,
     ProductViewModule,
+    HousingFavouriteModule,
   ],
   controllers: [AppController],
   providers: [AppService],
