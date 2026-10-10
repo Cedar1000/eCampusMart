@@ -16,7 +16,7 @@ import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 
-import IQuery from 'interfaces/query.Interface';
+import type IQuery from 'interfaces/query.Interface';
 import { CurrentUser } from 'src/auth/decorators/get-current-user.decorator';
 import { User } from 'src/auth/entities/user.entity';
 
@@ -56,7 +56,7 @@ export class ProductController {
 
   @Get()
   @UseInterceptors(ProductUserDetailsInterceptor, IncludeIsLikedInterceptor)
-  findAll(@Query() query: Partial<IQuery>) {
+  findAll(@Query() query: IQuery) {
     query.relations = 'images';
     query.status = 'active';
 
@@ -68,7 +68,7 @@ export class ProductController {
 
   @Get('/my-listings')
   @UseInterceptors(ProductUserDetailsInterceptor)
-  myListings(@Query() query: Partial<IQuery>, @CurrentUser() user: User) {
+  myListings(@Query() query: IQuery, @CurrentUser() user: User) {
     query.relations = 'images';
     query.status = 'active';
     query.userId = user.id;
@@ -77,9 +77,13 @@ export class ProductController {
 
   @Get(':id')
   @UseInterceptors(ProductUserDetailsInterceptor, IncludeIsLikedInterceptor)
-  findOne(@Param('id') id: string, @Query() query: Partial<IQuery>) {
+  findOne(
+    @Param('id') id: string,
+    @Query() query: IQuery,
+    @CurrentUser() user: User,
+  ) {
     query.relations = 'images';
-    return this.productService.findOne(id, query);
+    return this.productService.findOne(id, query, user.id);
   }
 
   @Patch(':id')

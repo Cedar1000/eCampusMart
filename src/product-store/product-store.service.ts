@@ -61,9 +61,7 @@ export class ProductStoreService {
       // Delete all products belonging to the store
       await queryRunner.manager.update(
         Product,
-        {
-          storeId: id,
-        },
+        { storeId: id },
         { storeId: undefined, isStoreProduct: false },
       );
 

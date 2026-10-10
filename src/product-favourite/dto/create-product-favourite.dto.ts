@@ -3,9 +3,9 @@ import { IsNotEmpty, IsOptional, IsUUID } from 'class-validator';
 export class CreateProductFavouriteDto {
   @IsNotEmpty()
   @IsUUID()
-  productId?: string;
+  productId: string;
 
   @IsOptional()
   @IsUUID()
-  userId?: string;
+  userId: string;
 }

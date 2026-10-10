@@ -5,7 +5,9 @@ import {
   RequestMethod,
 } from '@nestjs/common';
 
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+
+import { BullModule } from '@nestjs/bullmq';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -30,10 +32,21 @@ import { TransactionModule } from './transaction/transaction.module';
 import { ProductFavouriteModule } from './product-favourite/product-favourite.module';
 import { RedisModule } from './redis/redis.module';
 import { ServiceFavouriteModule } from './service-favourite/service-favourite.module';
+import { ProductViewModule } from './product-view/product-view.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    BullModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        connection: {
+          host: configService.get('REDIS_HOST'),
+          port: configService.get('REDIS_PORT'),
+          password: configService.get('REDIS_PASSWORD'),
+        },
+      }),
+    }),
     DatabaseModule,
     AuthModule,
     CampusModule,
@@ -52,6 +65,7 @@ import { ServiceFavouriteModule } from './service-favourite/service-favourite.mo
     ProductFavouriteModule,
     RedisModule,
     ServiceFavouriteModule,
+    ProductViewModule,
   ],
   controllers: [AppController],
   providers: [AppService],

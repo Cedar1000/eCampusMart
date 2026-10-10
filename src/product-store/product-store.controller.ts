@@ -27,8 +27,8 @@ export class ProductStoreController {
   constructor(private readonly productStoreService: ProductStoreService) {}
 
   @Post()
-  @UseGuards(UniqueProductStoreGuard, ValidProductCategoryGuard)
   @UsePipes(ValidationPipe)
+  @UseGuards(UniqueProductStoreGuard, ValidProductCategoryGuard)
   create(
     @Body() createProductStoreDto: CreateProductStoreDto,
     @CurrentUser() user: User,

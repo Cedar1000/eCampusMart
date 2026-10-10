@@ -13,7 +13,7 @@ import { ProductStore } from '../entities/product-store.entity';
 export class UniqueProductStoreGuard implements CanActivate {
   constructor(
     @InjectRepository(ProductStore)
-    private readonly productStoreRepository: Repository<ProductStore>,
+    private readonly productStoreRepo: Repository<ProductStore>,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -24,7 +24,7 @@ export class UniqueProductStoreGuard implements CanActivate {
       throw new UnauthorizedException('Authenticated user not found');
     }
 
-    const existingStore = await this.productStoreRepository.findOne({
+    const existingStore = await this.productStoreRepo.findOne({
       where: { userId: currentUserId as string },
       select: ['id'],
     });
