@@ -6,6 +6,7 @@ import { ServiceStore } from './entities/service-store.entity';
 import { ServiceCategory } from 'src/service-category/entities/service-category.entity';
 import { ValidServiceCategoryGuard } from './guards/valid-service-category.guard';
 import { UniqueServiceStoreGuard } from './guards/unique-service-store.guard';
+import { ValidServiceStoreOwnerGuard } from './guards/valid-service-store-owner.guard';
 
 @Module({
   imports: [TypeOrmModule.forFeature([ServiceStore, ServiceCategory])],
@@ -14,6 +15,7 @@ import { UniqueServiceStoreGuard } from './guards/unique-service-store.guard';
     ServiceStoreService,
     ValidServiceCategoryGuard,
     UniqueServiceStoreGuard,
+    ValidServiceStoreOwnerGuard,
   ],
   exports: [ServiceStoreService],
 })

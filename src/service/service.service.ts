@@ -72,7 +72,16 @@ export class ServiceService {
   }
 
   async update(id: string, updateServiceDto: UpdateServiceDto) {
-    return await factory.updateOne(this.serviceRepo, id, updateServiceDto);
+    const { images, ...serviceData } = updateServiceDto;
+
+    const data = await factory.updateOne(this.serviceRepo, id, serviceData);
+
+    if (images?.length) {
+      await this.serviceImageRepo.delete({ serviceId: id });
+      await this.createProductImage(images, id);
+    }
+
+    return data;
   }
 
   async remove(id: string) {
@@ -95,8 +104,6 @@ export class ServiceService {
   }
 
   async calculateViews(data: { serviceId: string; userId: string }) {
-    console.log({ data });
-
     const viewCount = await this.serviceViewService.create(data);
 
     const { serviceId } = data;

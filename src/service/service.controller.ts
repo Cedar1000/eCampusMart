@@ -20,6 +20,7 @@ import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { ValidServiceStoreGuard } from './guards/valid-service-store.guard';
 import { IncludeIsLikedServiceInterceptor } from './interceptors/has-liked-service.interceptor';
+import { ValidServiceOwnerGuard } from './guards/valid-service-owner.guard';
 
 @Controller('services')
 export class ServiceController {
@@ -61,12 +62,14 @@ export class ServiceController {
   }
 
   @Patch(':id')
+  @UseGuards(ValidServiceStoreGuard)
   @UsePipes(ValidationPipe)
   update(@Param('id') id: string, @Body() updateServiceDto: UpdateServiceDto) {
     return this.serviceService.update(id, updateServiceDto);
   }
 
   @Delete(':id')
+  @UseGuards(ValidServiceOwnerGuard)
   remove(@Param('id') id: string) {
     return this.serviceService.remove(id);
   }

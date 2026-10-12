@@ -20,6 +20,7 @@ import { ServiceStoreService } from './service-store.service';
 import { CreateServiceStoreDto } from './dto/create-service-store.dto';
 import { UpdateServiceStoreDto } from './dto/update-service-store.dto';
 import { ValidServiceCategoryGuard } from './guards/valid-service-category.guard';
+import { ValidServiceStoreOwnerGuard } from './guards/valid-service-store-owner.guard';
 
 @Controller('service-stores')
 export class ServiceStoreController {
@@ -51,6 +52,7 @@ export class ServiceStoreController {
   }
 
   @Patch(':id')
+  @UseGuards(ValidServiceStoreOwnerGuard)
   @UsePipes(ValidationPipe)
   update(
     @Param('id') id: string,
@@ -63,6 +65,7 @@ export class ServiceStoreController {
   }
 
   @Delete(':id')
+  @UseGuards(ValidServiceStoreOwnerGuard)
   remove(@Param('id') id: string) {
     return this.serviceStoreService.deleteServiceStore(id);
   }

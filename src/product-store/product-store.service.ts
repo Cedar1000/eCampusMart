@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import type IQuery from 'interfaces/query.Interface';
 import * as factory from 'utils/handlerFactory';
@@ -68,9 +68,13 @@ export class ProductStoreService {
       // Delete the store
       const result = await queryRunner.manager.delete(ProductStore, id);
 
+      if (!result.affected) {
+        throw new NotFoundException('No resource with that ID');
+      }
+
       await queryRunner.commitTransaction();
 
-      return result;
+      return { status: 'success', message: 'delete successful!' };
     } catch (error) {
       await queryRunner.rollbackTransaction();
       throw error;

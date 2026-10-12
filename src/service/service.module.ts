@@ -17,6 +17,7 @@ import { ServiceProcessor } from './processors/service.processor';
 import { ServiceViewService } from 'src/service-view/service-view.service';
 import { ServiceFavourite } from 'src/service-favourite/entities/service-favourite.entity';
 import { ServiceFavouriteService } from 'src/service-favourite/service-favourite.service';
+import { ValidServiceOwnerGuard } from './guards/valid-service-owner.guard';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { ServiceFavouriteService } from 'src/service-favourite/service-favourite
     ServiceService,
     IncludeIsLikedServiceInterceptor,
     ValidServiceStoreGuard,
+    ValidServiceOwnerGuard,
     ValidServiceCategoryGuard,
     ServiceProcessor,
     ServiceViewService,
