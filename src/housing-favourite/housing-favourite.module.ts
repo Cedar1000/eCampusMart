@@ -5,7 +5,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { HousingFavourite } from './entities/housing-favourite.entity';
 import { Housing } from 'src/housing/entities/housing.entity';
 import { BullModule } from '@nestjs/bullmq';
-import { HOUSING_FAVOURITE_QUEUE } from './housing.constants';
+import { HOUSING_FAVOURITE_QUEUE } from '../housing/housing.constants';
+import { HousingFavouriteProcessor } from './processor/housing-favourite.processor';
 
 @Module({
   imports: [
@@ -13,6 +14,6 @@ import { HOUSING_FAVOURITE_QUEUE } from './housing.constants';
     BullModule.registerQueue({ name: HOUSING_FAVOURITE_QUEUE }),
   ],
   controllers: [HousingFavouriteController],
-  providers: [HousingFavouriteService],
+  providers: [HousingFavouriteService, HousingFavouriteProcessor],
 })
 export class HousingFavouriteModule {}

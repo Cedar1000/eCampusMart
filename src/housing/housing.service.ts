@@ -7,14 +7,30 @@ import { CreateHousingDto } from './dto/create-housing.dto';
 import { UpdateHousingDto } from './dto/update-housing.dto';
 import { HousingImage } from './entities/housing-image.entity';
 import { Housing } from './entities/housing.entity';
+import { InjectQueue } from '@nestjs/bullmq';
+
+import { HOUSING_VIEW_JOB, HOUSING_VIEW_QUE } from './housing.constants';
+import { Queue } from 'bullmq';
+import { HousingViewService } from 'src/housing-view/housing-view.service';
+
+interface HousingViewJobData {
+  userId: string;
+  housingId: string;
+}
 
 @Injectable()
 export class HousingService {
   constructor(
     @InjectRepository(Housing)
     private readonly housingRepo: Repository<Housing>,
+
     @InjectRepository(HousingImage)
     private readonly housingImageRepo: Repository<HousingImage>,
+
+    @InjectQueue(HOUSING_VIEW_QUE)
+    private readonly housingViewingQueue: Queue<HousingViewJobData>,
+
+    private readonly housingViewService: HousingViewService,
   ) {}
 
   async create(createHousingDto: CreateHousingDto) {
@@ -35,8 +51,25 @@ export class HousingService {
     return await factory.getAll(this.housingRepo, query);
   }
 
-  async findOne(id: string, query: Partial<IQuery>) {
-    return await factory.getOne(this.housingRepo, id, query);
+  async findOne(id: string, query: IQuery, userId: string) {
+    const data = await factory.getOne(this.housingRepo, id, query);
+
+    const housing = data.data as Housing;
+
+    if (housing.userId !== userId) {
+      await this.housingViewingQueue.add(
+        HOUSING_VIEW_JOB,
+        { housingId: housing.id, userId },
+        {
+          attempts: 3,
+          backoff: { type: 'exponential', delay: 5000 },
+          removeOnComplete: 100,
+          removeOnFail: 500,
+        },
+      );
+    }
+
+    return data;
   }
 
   async update(id: string, updateHousingDto: UpdateHousingDto) {
@@ -86,5 +119,12 @@ export class HousingService {
     });
 
     return await this.housingImageRepo.save(housingImages);
+  }
+
+  async creatAndCalculateViews(data: { housingId: string; userId: string }) {
+    console.log({ data });
+    const viewCount = await this.housingViewService.create(data);
+
+    await this.housingRepo.update({ id: data.housingId }, { viewCount });
   }
 }

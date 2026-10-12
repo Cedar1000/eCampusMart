@@ -6,9 +6,15 @@ import { ServiceFavourite } from './entities/service-favourite.entity';
 import { Service } from 'src/service/entities/service.entity';
 import { ValidServiceGuard } from './guards/validate-service.guard';
 import { IncludeFavouriteServiceInterceptor } from './interceptors/include-favourite-service.interceptor';
+import { BullModule } from '@nestjs/bullmq';
+import { SERVICE_QUE } from 'src/service/service.constant';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ServiceFavourite, Service])],
+  imports: [
+    TypeOrmModule.forFeature([Service, ServiceFavourite]),
+
+    BullModule.registerQueue({ name: SERVICE_QUE }),
+  ],
   controllers: [ServiceFavouriteController],
   providers: [
     ServiceFavouriteService,

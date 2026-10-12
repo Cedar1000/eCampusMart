@@ -37,6 +37,12 @@ export class Service extends BaseEntity {
   @Column()
   storeId?: string;
 
+  @Column({ default: 0 })
+  favoriteCount?: number;
+
+  @Column({ default: 0 })
+  viewCount?: number;
+
   @Column()
   listingId?: string;
 

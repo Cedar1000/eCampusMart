@@ -34,6 +34,8 @@ import { RedisModule } from './redis/redis.module';
 import { ServiceFavouriteModule } from './service-favourite/service-favourite.module';
 import { ProductViewModule } from './product-view/product-view.module';
 import { HousingFavouriteModule } from './housing-favourite/housing-favourite.module';
+import { HousingViewModule } from './housing-view/housing-view.module';
+import { ServiceViewModule } from './service-view/service-view.module';
 
 @Module({
   imports: [
@@ -68,6 +70,8 @@ import { HousingFavouriteModule } from './housing-favourite/housing-favourite.mo
     ServiceFavouriteModule,
     ProductViewModule,
     HousingFavouriteModule,
+    HousingViewModule,
+    ServiceViewModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -31,6 +31,9 @@ export class Housing extends BaseEntity {
   @Column({ default: 0 })
   favoriteCount: number;
 
+  @Column({ default: 0 })
+  viewCount: number;
+
   @Column()
   description: string;
 

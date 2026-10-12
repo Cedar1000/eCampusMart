@@ -3,9 +3,9 @@ import { IsNotEmpty, IsOptional, IsUUID } from 'class-validator';
 export class CreateServiceFavouriteDto {
   @IsNotEmpty()
   @IsUUID()
-  serviceId?: string;
+  serviceId: string;
 
   @IsOptional()
   @IsUUID()
-  userId?: string;
+  userId: string;
 }

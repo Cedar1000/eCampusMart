@@ -24,6 +24,7 @@ import { ProductUserDetailsInterceptor } from './interceptors/product-user-detai
 import { ValidProductStoreGuard } from './guards/valid-product-store.guard';
 import { ValidProductCategoryGuard } from './guards/valid-product-category.guard';
 import { IncludeIsLikedInterceptor } from './interceptors/has-liked-product.interceptor';
+import { ValidProductOwnerGuard } from './guards/valid-product-owner.guard';
 
 @Controller('products')
 export class ProductController {
@@ -87,7 +88,7 @@ export class ProductController {
   }
 
   @Patch(':id')
-  @UseGuards(ValidProductStoreGuard)
+  @UseGuards(ValidProductOwnerGuard, ValidProductStoreGuard)
   update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
     const { storeId } = updateProductDto;
 

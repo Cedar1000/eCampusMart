@@ -13,7 +13,7 @@ import { Housing } from 'src/housing/entities/housing.entity';
 import {
   HOUSING_FAVOURITE_JOB,
   HOUSING_FAVOURITE_QUEUE,
-} from 'src/housing-favourite/housing.constants';
+} from 'src/housing/housing.constants';
 
 import { CreateHousingFavouriteDto } from './dto/create-housing-favourite.dto';
 import { HousingFavourite } from './entities/housing-favourite.entity';
@@ -46,6 +46,8 @@ export class HousingFavouriteService {
       housingId,
     });
 
+    console.log({ check });
+
     if (check && housingId) {
       await this.redisService.sadd(`user:${user.id}:liked-housing`, housingId);
 
@@ -67,6 +69,8 @@ export class HousingFavouriteService {
         favouriteHousingId,
       );
     }
+
+    console.log('about to add housing fav to que...');
 
     await this.housingFavQueue.add(
       HOUSING_FAVOURITE_JOB,
@@ -117,6 +121,8 @@ export class HousingFavouriteService {
     const { housingId } = data;
 
     const favoriteCount = await this.housingFavRepo.countBy({ housingId });
+
+    console.log({ houseFavoriteCount: favoriteCount });
 
     await this.housingRepo.update({ id: housingId }, { favoriteCount });
   }

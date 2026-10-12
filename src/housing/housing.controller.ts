@@ -22,7 +22,6 @@ import { ValidCampusLocationGuard } from './guards/valid-campus-location.guard';
 import { CurrentUser } from 'src/auth/decorators/get-current-user.decorator';
 import { User } from 'src/auth/entities/user.entity';
 import { HousingUserDetailsInterceptor } from './interceptors/housing-user-details.interceptor';
-import { IncludeFavouriteHousingInterceptor } from 'src/housing-favourite/interceptors/include-favourite-housing.interceptor';
 import { IncludeIsLikedInterceptor } from './interceptors/has-liked-housing.interceptor';
 
 @Controller('housings')
@@ -42,7 +41,7 @@ export class HousingController {
 
   @Get()
   @UseInterceptors(IncludeIsLikedInterceptor, HousingUserDetailsInterceptor)
-  findAll(@Query() query: Partial<IQuery>) {
+  findAll(@Query() query: IQuery) {
     query.relations = 'images';
 
     if (query.search) query.search = `title,${query.search}`;
@@ -62,11 +61,15 @@ export class HousingController {
   }
 
   @Get(':id')
-  @UseInterceptors(HousingUserDetailsInterceptor)
-  findOne(@Param('id') id: string, @Query() query: Partial<IQuery>) {
+  @UseInterceptors(IncludeIsLikedInterceptor, HousingUserDetailsInterceptor)
+  findOne(
+    @Param('id') id: string,
+    @Query() query: IQuery,
+    @CurrentUser() user: User,
+  ) {
     query.relations = 'images';
 
-    return this.housingService.findOne(id, query);
+    return this.housingService.findOne(id, query, user.id);
   }
 
   @Patch(':id')

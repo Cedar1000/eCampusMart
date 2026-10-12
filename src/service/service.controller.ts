@@ -50,10 +50,14 @@ export class ServiceController {
 
   @Get(':id')
   @UseInterceptors(IncludeIsLikedServiceInterceptor)
-  findOne(@Param('id') id: string, @Query() query: Partial<IQuery>) {
+  findOne(
+    @Param('id') id: string,
+    @Query() query: IQuery,
+    @CurrentUser() user: User,
+  ) {
     query.relations = 'images';
 
-    return this.serviceService.findOne(id, query);
+    return this.serviceService.findOne(id, query, user.id);
   }
 
   @Patch(':id')

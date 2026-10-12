@@ -13,10 +13,7 @@ import { ProductFavouriteProcessor } from './processor/product-favourite.process
 @Module({
   imports: [
     TypeOrmModule.forFeature([ProductFavourite, Product]),
-
-    BullModule.registerQueue({
-      name: PRODUCT_FAVOURITE_QUEUE,
-    }),
+    BullModule.registerQueue({ name: PRODUCT_FAVOURITE_QUEUE }),
   ],
 
   controllers: [ProductFavouriteController],

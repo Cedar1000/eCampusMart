@@ -6,7 +6,7 @@ import { Job } from 'bullmq';
 import {
   HOUSING_FAVOURITE_JOB,
   HOUSING_FAVOURITE_QUEUE,
-} from '../../housing-favourite/housing.constants';
+} from '../../housing/housing.constants';
 
 import { HousingFavouriteService } from '../housing-favourite.service';
 
@@ -25,6 +25,7 @@ export class HousingFavouriteProcessor extends WorkerHost {
   }
 
   async process(job: Job<HousingFavouriteJobData>) {
+    console.log({ job: job.name });
     if (job.name !== HOUSING_FAVOURITE_JOB) {
       this.logger.warn(`Received unsupported job ${job.name}.`);
       return;

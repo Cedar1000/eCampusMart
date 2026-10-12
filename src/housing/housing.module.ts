@@ -8,16 +8,34 @@ import { CampusLocation } from 'src/campus-location/entities/campus-location.ent
 import { ValidCampusLocationGuard } from './guards/valid-campus-location.guard';
 import { User } from 'src/auth/entities/user.entity';
 import { HousingUserDetailsInterceptor } from './interceptors/housing-user-details.interceptor';
+import { BullModule } from '@nestjs/bullmq';
+import { HOUSING_FAVOURITE_QUEUE, HOUSING_VIEW_QUE } from './housing.constants';
+import { HousingViewService } from 'src/housing-view/housing-view.service';
+import { HousingView } from 'src/housing-view/entities/housing-view.entity';
+import { HousingViewProcessor } from './processors/housing-view.processor';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Housing, HousingImage, CampusLocation, User]),
+    TypeOrmModule.forFeature([
+      Housing,
+      HousingImage,
+      CampusLocation,
+      User,
+      HousingView,
+    ]),
+
+    BullModule.registerQueue(
+      { name: HOUSING_VIEW_QUE },
+      { name: HOUSING_FAVOURITE_QUEUE },
+    ),
   ],
   controllers: [HousingController],
   providers: [
     HousingService,
     ValidCampusLocationGuard,
     HousingUserDetailsInterceptor,
+    HousingViewService,
+    HousingViewProcessor,
   ],
 })
 export class HousingModule {}
