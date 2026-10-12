@@ -13,6 +13,9 @@ import { HOUSING_FAVOURITE_QUEUE, HOUSING_VIEW_QUE } from './housing.constants';
 import { HousingViewService } from 'src/housing-view/housing-view.service';
 import { HousingView } from 'src/housing-view/entities/housing-view.entity';
 import { HousingViewProcessor } from './processors/housing-view.processor';
+import { Wallet } from 'src/wallet/entities/wallet.entity';
+import { Transaction } from 'src/transaction/entities/transaction.entity';
+import { HasHousingUploadBalanceGuard } from './guards/has-housing-upload-balance.guard';
 
 @Module({
   imports: [
@@ -22,6 +25,8 @@ import { HousingViewProcessor } from './processors/housing-view.processor';
       CampusLocation,
       User,
       HousingView,
+      Wallet,
+      Transaction,
     ]),
 
     BullModule.registerQueue(
@@ -34,6 +39,7 @@ import { HousingViewProcessor } from './processors/housing-view.processor';
     HousingService,
     ValidCampusLocationGuard,
     HousingUserDetailsInterceptor,
+    HasHousingUploadBalanceGuard,
     HousingViewService,
     HousingViewProcessor,
   ],

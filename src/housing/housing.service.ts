@@ -1,8 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import type IQuery from 'interfaces/query.Interface';
 import * as factory from 'utils/handlerFactory';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { CreateHousingDto } from './dto/create-housing.dto';
 import { UpdateHousingDto } from './dto/update-housing.dto';
 import { HousingImage } from './entities/housing-image.entity';
@@ -12,11 +16,21 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { HOUSING_VIEW_JOB, HOUSING_VIEW_QUE } from './housing.constants';
 import { Queue } from 'bullmq';
 import { HousingViewService } from 'src/housing-view/housing-view.service';
+import { Wallet } from 'src/wallet/entities/wallet.entity';
+import {
+  Transaction,
+  TransactionDescription,
+  TransactionStatus,
+  TransactionType,
+} from 'src/transaction/entities/transaction.entity';
+import generateReference from 'utils/generateReference';
 
 interface HousingViewJobData {
   userId: string;
   housingId: string;
 }
+
+const HOUSING_LISTING_FEE = 500 * 100;
 
 @Injectable()
 export class HousingService {
@@ -31,20 +45,69 @@ export class HousingService {
     private readonly housingViewingQueue: Queue<HousingViewJobData>,
 
     private readonly housingViewService: HousingViewService,
+
+    private readonly dataSource: DataSource,
   ) {}
 
   async create(createHousingDto: CreateHousingDto) {
     const { images, ...housingData } = createHousingDto;
-    const data = await factory.createOne(this.housingRepo, housingData);
-    const housing = data.data as Housing;
 
-    if (images?.length) {
-      await this.createHousingImages(images, housing.id);
-    }
+    return await this.dataSource.transaction(async (manager) => {
+      const wallet = await manager.findOne(Wallet, {
+        where: { userId: housingData.userId },
+        lock: { mode: 'pessimistic_write' },
+      });
 
-    if (images) housing.images = images;
+      if (!wallet) throw new NotFoundException('User does not have a wallet');
 
-    return { ...data, data: housing };
+      const beforeBalance = Number(wallet.balance);
+
+      if (beforeBalance < HOUSING_LISTING_FEE) {
+        throw new ForbiddenException(
+          'Insufficient wallet balance to upload housing',
+        );
+      }
+
+      const housing = await manager.save(
+        Housing,
+        manager.create(Housing, housingData),
+      );
+
+      if (images?.length) {
+        const housingImages = this.buildHousingImages(images, housing.id);
+        await manager.save(HousingImage, housingImages);
+      }
+
+      const afterBalance = beforeBalance - HOUSING_LISTING_FEE;
+
+      wallet.balance = afterBalance;
+
+      await manager.save(Wallet, wallet);
+
+      await manager.save(
+        Transaction,
+        manager.create(Transaction, {
+          walletId: wallet.id,
+          amount: HOUSING_LISTING_FEE,
+          type: TransactionType.DEBIT,
+          status: TransactionStatus.SUCCESS,
+          reference: generateReference(),
+          description: TransactionDescription.HOUSING_UPLOAD,
+          currency: wallet.currency,
+          beforeBalance,
+          afterBalance,
+          expiresAt: new Date(),
+        }),
+      );
+
+      if (images) housing.images = images;
+
+      return {
+        status: 'success',
+        message: 'create successful!',
+        data: housing,
+      };
+    });
   }
 
   async findAll(query: Partial<IQuery>) {
@@ -107,7 +170,13 @@ export class HousingService {
   }
 
   async createHousingImages(images: HousingImage[], housingId: string) {
-    const housingImages = images.map((image, index) => {
+    const housingImages = this.buildHousingImages(images, housingId);
+
+    return await this.housingImageRepo.save(housingImages);
+  }
+
+  private buildHousingImages(images: HousingImage[], housingId: string) {
+    return images.map((image, index) => {
       const housingImage = new HousingImage();
       housingImage.housingId = housingId;
       housingImage.url = image.url;
@@ -117,8 +186,6 @@ export class HousingService {
 
       return housingImage;
     });
-
-    return await this.housingImageRepo.save(housingImages);
   }
 
   async creatAndCalculateViews(data: { housingId: string; userId: string }) {

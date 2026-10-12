@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   CanActivate,
   ExecutionContext,
   Injectable,
@@ -19,7 +20,15 @@ export class ValidHousingGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
 
-    const { housingId } = request.body;
+    const { housingId } = request.body ?? {};
+
+    if (!request.body) {
+      throw new BadRequestException('request body is required');
+    }
+
+    if (!housingId) {
+      throw new BadRequestException('housingId is required');
+    }
 
     const housing = await this.housingRepo.findOne({
       where: { id: String(housingId) },

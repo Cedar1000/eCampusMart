@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   CanActivate,
   ExecutionContext,
   Injectable,
@@ -19,7 +20,15 @@ export class ValidProductGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
 
-    const { productId } = request.body;
+    const { productId } = request.body ?? {};
+
+    if (!request.body) {
+      throw new BadRequestException('request body is required');
+    }
+
+    if (!request.body.productId) {
+      throw new BadRequestException('productId is required');
+    }
 
     const product = await this.productRepo.findOne({
       where: { id: String(productId) },

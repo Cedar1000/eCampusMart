@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   CanActivate,
   ExecutionContext,
   Injectable,
@@ -19,7 +20,15 @@ export class ValidServiceGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
 
-    const { serviceId } = request.body;
+    const { serviceId } = request.body ?? {};
+
+    if (!request.body) {
+      throw new BadRequestException('request body is required');
+    }
+
+    if (!serviceId) {
+      throw new BadRequestException('serviceId is required');
+    }
 
     const service = await this.serviceRepo.findOne({
       where: { id: String(serviceId) },

@@ -23,13 +23,14 @@ import { CurrentUser } from 'src/auth/decorators/get-current-user.decorator';
 import { User } from 'src/auth/entities/user.entity';
 import { HousingUserDetailsInterceptor } from './interceptors/housing-user-details.interceptor';
 import { IncludeIsLikedInterceptor } from './interceptors/has-liked-housing.interceptor';
+import { HasHousingUploadBalanceGuard } from './guards/has-housing-upload-balance.guard';
 
 @Controller('housings')
 export class HousingController {
   constructor(private readonly housingService: HousingService) {}
 
   @Post()
-  @UseGuards(ValidCampusLocationGuard)
+  @UseGuards(HasHousingUploadBalanceGuard, ValidCampusLocationGuard)
   @UsePipes(ValidationPipe)
   create(
     @Body() createHousingDto: CreateHousingDto,

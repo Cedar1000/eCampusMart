@@ -21,6 +21,10 @@ import { ProductViewService } from 'src/product-view/product-view.service';
 
 import { PRODUCT_VIEWING_QUEUE } from './product.constants';
 import { ProductViewProcessor } from './processor/product-view.processor';
+import { Wallet } from 'src/wallet/entities/wallet.entity';
+import { Transaction } from 'src/transaction/entities/transaction.entity';
+import { HasProductUploadBalanceGuard } from './guards/has-product-upload-balance.guard';
+import { ProductFavourite } from 'src/product-favourite/entities/product-favourite.entity';
 
 @Module({
   imports: [
@@ -31,6 +35,9 @@ import { ProductViewProcessor } from './processor/product-view.processor';
       ProductImage,
       ProductStore,
       ProductCategory,
+      Wallet,
+      Transaction,
+      ProductFavourite,
     ]),
 
     BullModule.registerQueue({
@@ -44,6 +51,7 @@ import { ProductViewProcessor } from './processor/product-view.processor';
     IncludeIsLikedInterceptor,
     ValidProductCategoryGuard,
     ValidProductStoreGuard,
+    HasProductUploadBalanceGuard,
     ProductViewService,
     ProductViewProcessor,
   ],

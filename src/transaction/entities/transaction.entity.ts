@@ -18,6 +18,8 @@ export enum TransactionDescription {
   FUND = 'fund',
   WITHDRAW = 'withdraw',
   TRANSFER = 'transfer',
+  PRODUCT_UPLOAD = 'product-upload',
+  HOUSING_UPLOAD = 'housing-upload',
 }
 
 @Entity()

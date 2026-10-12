@@ -25,13 +25,14 @@ import { ValidProductStoreGuard } from './guards/valid-product-store.guard';
 import { ValidProductCategoryGuard } from './guards/valid-product-category.guard';
 import { IncludeIsLikedInterceptor } from './interceptors/has-liked-product.interceptor';
 import { ValidProductOwnerGuard } from './guards/valid-product-owner.guard';
+import { HasProductUploadBalanceGuard } from './guards/has-product-upload-balance.guard';
 
 @Controller('products')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
   @Post()
-  @UseGuards(ValidProductCategoryGuard)
+  @UseGuards(HasProductUploadBalanceGuard, ValidProductCategoryGuard)
   create(
     @Body() createProductDto: CreateProductDto,
     @CurrentUser() user: User,
@@ -43,7 +44,7 @@ export class ProductController {
   }
 
   @Post('create-store-product')
-  @UseGuards(ValidProductStoreGuard)
+  @UseGuards(HasProductUploadBalanceGuard, ValidProductStoreGuard)
   createStoreProduct(
     @Body() createProductDto: CreateProductDto,
     @CurrentUser() user: User,

@@ -36,6 +36,7 @@ import { ProductViewModule } from './product-view/product-view.module';
 import { HousingFavouriteModule } from './housing-favourite/housing-favourite.module';
 import { HousingViewModule } from './housing-view/housing-view.module';
 import { ServiceViewModule } from './service-view/service-view.module';
+import { SubscriptionPlanModule } from './subscription-plan/subscription-plan.module';
 
 @Module({
   imports: [
@@ -72,6 +73,7 @@ import { ServiceViewModule } from './service-view/service-view.module';
     HousingFavouriteModule,
     HousingViewModule,
     ServiceViewModule,
+    SubscriptionPlanModule,
   ],
   controllers: [AppController],
   providers: [AppService],
