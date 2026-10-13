@@ -40,7 +40,7 @@ export class ProtectMiddleware implements NestMiddleware {
     const token = this.getToken(req);
 
     if (!token) {
-      throw new UnauthorizedException('No token provided');
+      throw new UnauthorizedException('No token provided UPDATE!!!');
     }
 
     try {
