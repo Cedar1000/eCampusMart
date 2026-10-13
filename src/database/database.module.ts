@@ -17,6 +17,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         autoLoadEntities: true,
         // ssl: { rejectUnauthorized: false },
 
+        // Each serverless instance opens its own pool, so keep it small there
+        extra: { max: Number(configService.get('DB_POOL_MAX') ?? 10) },
+
         subscribers: [],
       }),
       inject: [ConfigService],
