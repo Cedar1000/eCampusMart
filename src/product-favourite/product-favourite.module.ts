@@ -7,21 +7,16 @@ import { Product } from 'src/product/entities/product.entity';
 import { IncludeFavouriteProductInterceptor } from './interceptors/include-favourite-product.interceptor';
 
 import { BullModule } from '@nestjs/bullmq';
-import { PRODUCT_FAVOURITE_QUEUE } from 'src/product/product.constants';
-import { ProductFavouriteProcessor } from './processor/product-favourite.processor';
+import { PRODUCT_QUE } from 'src/product/product.constants';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([ProductFavourite, Product]),
-    BullModule.registerQueue({ name: PRODUCT_FAVOURITE_QUEUE }),
+    BullModule.registerQueue({ name: PRODUCT_QUE }),
   ],
 
   controllers: [ProductFavouriteController],
 
-  providers: [
-    ProductFavouriteService,
-    IncludeFavouriteProductInterceptor,
-    ProductFavouriteProcessor,
-  ],
+  providers: [ProductFavouriteService, IncludeFavouriteProductInterceptor],
 })
 export class ProductFavouriteModule {}

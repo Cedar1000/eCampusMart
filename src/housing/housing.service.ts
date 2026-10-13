@@ -13,7 +13,7 @@ import { HousingImage } from './entities/housing-image.entity';
 import { Housing } from './entities/housing.entity';
 import { InjectQueue } from '@nestjs/bullmq';
 
-import { HOUSING_VIEW_JOB, HOUSING_VIEW_QUE } from './housing.constants';
+import { HOUSING_QUE, HOUSING_VIEW_JOB } from './housing.constants';
 import { Queue } from 'bullmq';
 import { HousingViewService } from 'src/housing-view/housing-view.service';
 import { Wallet } from 'src/wallet/entities/wallet.entity';
@@ -41,7 +41,7 @@ export class HousingService {
     @InjectRepository(HousingImage)
     private readonly housingImageRepo: Repository<HousingImage>,
 
-    @InjectQueue(HOUSING_VIEW_QUE)
+    @InjectQueue(HOUSING_QUE)
     private readonly housingViewingQueue: Queue<HousingViewJobData>,
 
     private readonly housingViewService: HousingViewService,

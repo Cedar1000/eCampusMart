@@ -19,12 +19,13 @@ import { ValidProductStoreGuard } from './guards/valid-product-store.guard';
 import { ValidProductCategoryGuard } from './guards/valid-product-category.guard';
 import { ProductViewService } from 'src/product-view/product-view.service';
 
-import { PRODUCT_VIEWING_QUEUE } from './product.constants';
-import { ProductViewProcessor } from './processor/product-view.processor';
+import { PRODUCT_QUE } from './product.constants';
+import { ProductProcessor } from './processor/product.processor';
 import { Wallet } from 'src/wallet/entities/wallet.entity';
 import { Transaction } from 'src/transaction/entities/transaction.entity';
 import { HasProductUploadBalanceGuard } from './guards/has-product-upload-balance.guard';
 import { ProductFavourite } from 'src/product-favourite/entities/product-favourite.entity';
+import { ProductFavouriteService } from 'src/product-favourite/product-favourite.service';
 
 @Module({
   imports: [
@@ -40,9 +41,7 @@ import { ProductFavourite } from 'src/product-favourite/entities/product-favouri
       ProductFavourite,
     ]),
 
-    BullModule.registerQueue({
-      name: PRODUCT_VIEWING_QUEUE,
-    }),
+    BullModule.registerQueue({ name: PRODUCT_QUE }),
   ],
   controllers: [ProductController],
   providers: [
@@ -53,7 +52,8 @@ import { ProductFavourite } from 'src/product-favourite/entities/product-favouri
     ValidProductStoreGuard,
     HasProductUploadBalanceGuard,
     ProductViewService,
-    ProductViewProcessor,
+    ProductFavouriteService,
+    ProductProcessor,
   ],
 })
 export class ProductModule {}

@@ -19,10 +19,7 @@ import { ProductImage } from './entities/product-image.entity';
 import { ProductViewService } from 'src/product-view/product-view.service';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
-import {
-  PRODUCT_VIEWING_JOB,
-  PRODUCT_VIEWING_QUEUE,
-} from './product.constants';
+import { PRODUCT_QUE, PRODUCT_VIEWING_JOB } from './product.constants';
 import { Wallet } from 'src/wallet/entities/wallet.entity';
 import {
   Transaction,
@@ -48,7 +45,7 @@ export class ProductService {
 
     private readonly productViewService: ProductViewService,
 
-    @InjectQueue(PRODUCT_VIEWING_QUEUE)
+    @InjectQueue(PRODUCT_QUE)
     private readonly productViewingQueue: Queue<ProductViewJobData>,
 
     private readonly dataSource: DataSource,

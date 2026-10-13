@@ -12,7 +12,7 @@ import { RedisService } from 'src/redis/redis.service';
 import { Housing } from 'src/housing/entities/housing.entity';
 import {
   HOUSING_FAVOURITE_JOB,
-  HOUSING_FAVOURITE_QUEUE,
+  HOUSING_QUE,
 } from 'src/housing/housing.constants';
 
 import { CreateHousingFavouriteDto } from './dto/create-housing-favourite.dto';
@@ -34,7 +34,7 @@ export class HousingFavouriteService {
 
     private readonly redisService: RedisService,
 
-    @InjectQueue(HOUSING_FAVOURITE_QUEUE)
+    @InjectQueue(HOUSING_QUE)
     private readonly housingFavQueue: Queue<HousingFavJobData>,
   ) {}
 

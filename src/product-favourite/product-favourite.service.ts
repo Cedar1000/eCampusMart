@@ -14,7 +14,7 @@ import { InjectQueue } from '@nestjs/bullmq';
 
 import {
   PRODUCT_FAVOURITE_JOB,
-  PRODUCT_FAVOURITE_QUEUE,
+  PRODUCT_QUE,
 } from 'src/product/product.constants';
 
 import { Queue } from 'bullmq';
@@ -35,7 +35,7 @@ export class ProductFavouriteService {
 
     private readonly redisService: RedisService,
 
-    @InjectQueue(PRODUCT_FAVOURITE_QUEUE)
+    @InjectQueue(PRODUCT_QUE)
     private readonly productFavQueue: Queue<ProductFavJobData>,
   ) {}
 
