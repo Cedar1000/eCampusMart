@@ -1,26 +1,19 @@
 import { Injectable } from '@nestjs/common';
-import { CreateSubscriptionPlanDto } from './dto/create-subscription-plan.dto';
-import { UpdateSubscriptionPlanDto } from './dto/update-subscription-plan.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import type IQuery from 'interfaces/query.Interface';
+import * as factory from 'utils/handlerFactory';
+import { Repository } from 'typeorm';
+
+import { SubscriptionPlan } from './entities/subscription-plan.entity';
 
 @Injectable()
 export class SubscriptionPlanService {
-  create(createSubscriptionPlanDto: CreateSubscriptionPlanDto) {
-    return 'This action adds a new subscriptionPlan';
-  }
+  constructor(
+    @InjectRepository(SubscriptionPlan)
+    private readonly subscriptionPlanRepo: Repository<SubscriptionPlan>,
+  ) {}
 
-  findAll() {
-    return `This action returns all subscriptionPlan`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} subscriptionPlan`;
-  }
-
-  update(id: number, updateSubscriptionPlanDto: UpdateSubscriptionPlanDto) {
-    return `This action updates a #${id} subscriptionPlan`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} subscriptionPlan`;
+  async findAll(query: Partial<IQuery>) {
+    return await factory.getAll(this.subscriptionPlanRepo, query);
   }
 }

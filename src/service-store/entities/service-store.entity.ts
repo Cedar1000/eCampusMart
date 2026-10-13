@@ -47,6 +47,9 @@ export class ServiceStore extends BaseEntity {
   @Column({ default: 0 })
   ratingsCount: number;
 
+  @Column({ default: false })
+  hasActiveSubscription: boolean;
+
   @Column({ default: 0 })
   servicesCount: number;
 

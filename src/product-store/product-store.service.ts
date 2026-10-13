@@ -15,9 +15,6 @@ export class ProductStoreService {
     @InjectRepository(ProductStore)
     private readonly productStoreRepo: Repository<ProductStore>,
 
-    @InjectRepository(Product)
-    private readonly productRepo: Repository<Product>,
-
     private readonly dataSource: DataSource,
   ) {}
 

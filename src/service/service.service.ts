@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import type IQuery from 'interfaces/query.Interface';
 import * as factory from 'utils/handlerFactory';
@@ -7,6 +7,7 @@ import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { Service } from './entities/service.entity';
 import { ServiceImage } from './entities/service-image.entity';
+import { ServiceStore } from 'src/service-store/entities/service-store.entity';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { SERVICE_QUE, SERVICE_VIEW_JOB } from './service.constant';
@@ -26,6 +27,9 @@ export class ServiceService {
     @InjectRepository(ServiceImage)
     private readonly serviceImageRepo: Repository<ServiceImage>,
 
+    @InjectRepository(ServiceStore)
+    private readonly serviceStoreRepo: Repository<ServiceStore>,
+
     @InjectQueue(SERVICE_QUE)
     private readonly serviceQueue: Queue<ServiceViewJobData>,
 
@@ -34,8 +38,17 @@ export class ServiceService {
 
   async create(createServiceDto: CreateServiceDto) {
     const { images, ...rest } = createServiceDto;
+    const serviceStore = await this.serviceStoreRepo.findOne({
+      where: { id: rest.storeId },
+      select: ['id', 'hasActiveSubscription'],
+    });
 
-    const data = await factory.createOne(this.serviceRepo, rest);
+    if (!serviceStore) throw new NotFoundException('Service store not found');
+
+    const data = await factory.createOne(this.serviceRepo, {
+      ...rest,
+      isActive: serviceStore.hasActiveSubscription,
+    });
 
     const service = data.data as Service;
 
@@ -47,6 +60,7 @@ export class ServiceService {
   }
 
   async findAll(query: Partial<IQuery>) {
+    console.log({ query });
     return await factory.getAll(this.serviceRepo, query);
   }
 

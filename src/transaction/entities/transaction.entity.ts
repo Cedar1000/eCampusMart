@@ -20,6 +20,7 @@ export enum TransactionDescription {
   TRANSFER = 'transfer',
   PRODUCT_UPLOAD = 'product-upload',
   HOUSING_UPLOAD = 'housing-upload',
+  STORE_SUBSCRIPTION = 'store-subscription',
 }
 
 @Entity()

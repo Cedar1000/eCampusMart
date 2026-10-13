@@ -37,6 +37,8 @@ import { HousingFavouriteModule } from './housing-favourite/housing-favourite.mo
 import { HousingViewModule } from './housing-view/housing-view.module';
 import { ServiceViewModule } from './service-view/service-view.module';
 import { SubscriptionPlanModule } from './subscription-plan/subscription-plan.module';
+import { SubscriptionModule } from './subscription/subscription.module';
+import { WebhookModule } from './webhook/webhook.module';
 
 @Module({
   imports: [
@@ -74,6 +76,8 @@ import { SubscriptionPlanModule } from './subscription-plan/subscription-plan.mo
     HousingViewModule,
     ServiceViewModule,
     SubscriptionPlanModule,
+    SubscriptionModule,
+    WebhookModule,
   ],
   controllers: [AppController],
   providers: [AppService],
@@ -94,7 +98,7 @@ export class AppModule implements NestModule {
         { path: 'auth/reset-password/:token', method: RequestMethod.PATCH },
         { path: 'auth/create-password/:token', method: RequestMethod.PATCH },
         { path: 'subscription/webhook', method: RequestMethod.POST },
-        { path: 'wallet/webhook/paystack', method: RequestMethod.ALL },
+        { path: 'webhook/paystack', method: RequestMethod.POST },
       )
       .forRoutes('*');
   }

@@ -31,6 +31,9 @@ export class Service extends BaseEntity {
   @Column({ default: true })
   isNegotiable?: boolean;
 
+  @Column({ nullable: true })
+  isActive: boolean;
+
   @Column()
   campusId?: string;
 

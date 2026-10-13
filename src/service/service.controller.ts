@@ -41,8 +41,9 @@ export class ServiceController {
 
   @Get()
   @UseInterceptors(IncludeIsLikedServiceInterceptor)
-  findAll(@Query() query: Partial<IQuery>) {
+  findAll(@Query() query: IQuery & { isActive: boolean }) {
     query.relations = 'images';
+    query.isActive = true;
 
     if (query.search) query.search = `title,${query.search}`;
 

@@ -105,7 +105,7 @@ class APIFeatures implements APIFeaturesInterface {
           acc[field] = params[operator as keyof typeof params](String(value));
         } else {
           // Handle regular fields with In() operator
-          acc[key] = In((value as string).split(','));
+          acc[key] = In(String(value).split(','));
         }
 
         return acc;

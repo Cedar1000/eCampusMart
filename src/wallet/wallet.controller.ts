@@ -1,12 +1,9 @@
 import {
   Body,
   Controller,
-  HttpCode,
   Post,
-  Req,
   UsePipes,
   ValidationPipe,
-  Headers,
 } from '@nestjs/common';
 
 import { WalletService } from './wallet.service';
@@ -28,21 +25,6 @@ export class WalletController {
       ...initializeTransactionDto,
       userId: user.id,
       email: user.email,
-    });
-  }
-
-  @Post('webhook/paystack')
-  @HttpCode(200)
-  handlePaystackWebhook(
-    @Headers('x-paystack-signature') signature: string | undefined,
-    @Req() req: Request & { rawBody?: Buffer },
-    @Body() payload: Record<string, unknown>,
-  ) {
-    console.log({ signature, payload, rawBody: req.rawBody });
-    return this.walletService.handlePaystackWebhook({
-      signature,
-      payload,
-      rawBody: req.rawBody,
     });
   }
 }
