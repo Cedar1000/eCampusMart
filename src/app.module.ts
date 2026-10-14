@@ -8,6 +8,7 @@ import {
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { BullModule } from '@nestjs/bullmq';
+import { getRedisOptions } from './redis/redis.config';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -44,14 +45,9 @@ import { WebhookModule } from './webhook/webhook.module';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     BullModule.forRootAsync({
+      // Injecting ConfigService makes sure .env is loaded before reading it
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        connection: {
-          host: configService.get('REDIS_HOST'),
-          port: configService.get('REDIS_PORT'),
-          password: configService.get('REDIS_PASSWORD'),
-        },
-      }),
+      useFactory: () => ({ connection: getRedisOptions() }),
     }),
     DatabaseModule,
     AuthModule,
