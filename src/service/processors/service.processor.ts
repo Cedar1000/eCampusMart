@@ -8,6 +8,7 @@ import { ServiceService } from '../service.service';
 import {
   SERVICE_FAVOURITE_JOB,
   SERVICE_QUE,
+  SERVICE_STORE_COUNT_JOB,
   SERVICE_VIEW_JOB,
 } from '../service.constant';
 
@@ -17,6 +18,12 @@ interface ServiceViewJobData {
   serviceId: string;
   userId: string;
 }
+
+interface ServiceStoreCountJobData {
+  storeId: string;
+}
+
+type ServiceJobData = ServiceViewJobData | ServiceStoreCountJobData;
 
 @Injectable()
 @Processor(SERVICE_QUE)
@@ -30,16 +37,24 @@ export class ServiceProcessor extends WorkerHost {
     super();
   }
 
-  async process(job: Job<ServiceViewJobData>) {
-    console.log('processing service view....');
-
+  async process(job: Job<ServiceJobData>) {
     switch (job.name) {
       case SERVICE_VIEW_JOB:
-        await this.serviceService.calculateViews(job.data);
+        await this.serviceService.calculateViews(
+          job.data as ServiceViewJobData,
+        );
         break;
 
       case SERVICE_FAVOURITE_JOB:
-        await this.serviceFavService.calculateFavourite(job.data);
+        await this.serviceFavService.calculateFavourite(
+          job.data as ServiceViewJobData,
+        );
+        break;
+
+      case SERVICE_STORE_COUNT_JOB:
+        await this.serviceService.calculateStoreServicesCount(
+          job.data as ServiceStoreCountJobData,
+        );
         break;
 
       default:
@@ -49,18 +64,14 @@ export class ServiceProcessor extends WorkerHost {
   }
 
   @OnWorkerEvent('completed')
-  onCompleted(job: Job<ServiceViewJobData>) {
-    this.logger.log(
-      `Completed calculating view for service ${job.data.userId}.`,
-    );
+  onCompleted(job: Job<ServiceJobData>) {
+    this.logger.log(`Completed ${job.name} ${JSON.stringify(job.data)}.`);
   }
 
   @OnWorkerEvent('failed')
-  onFailed(job: Job<ServiceViewJobData> | undefined, error: Error) {
-    const serviceId = job?.data?.serviceId || 'unknown';
-
+  onFailed(job: Job<ServiceJobData> | undefined, error: Error) {
     this.logger.error(
-      `Failed calculating view for service ${serviceId}: ${error.message}`,
+      `Failed ${job?.name ?? 'job'} ${JSON.stringify(job?.data)}: ${error.message}`,
       error.stack,
     );
   }

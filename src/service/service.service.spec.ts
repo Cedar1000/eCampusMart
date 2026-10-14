@@ -7,7 +7,7 @@ import { Service } from './entities/service.entity';
 import { ServiceImage } from './entities/service-image.entity';
 import { ServiceStore } from 'src/service-store/entities/service-store.entity';
 import { ServiceViewService } from 'src/service-view/service-view.service';
-import { SERVICE_QUE } from './service.constant';
+import { SERVICE_QUE, SERVICE_STORE_COUNT_JOB } from './service.constant';
 import { PriceUnit } from './enums/price.enum';
 
 describe('ServiceService', () => {
@@ -15,10 +15,13 @@ describe('ServiceService', () => {
   let serviceRepo: {
     create: jest.Mock;
     save: jest.Mock;
+    countBy?: jest.Mock;
   };
   let serviceStoreRepo: {
     findOne: jest.Mock;
+    update: jest.Mock;
   };
+  let serviceQueue: { add: jest.Mock };
 
   beforeEach(async () => {
     serviceRepo = {
@@ -27,7 +30,9 @@ describe('ServiceService', () => {
     };
     serviceStoreRepo = {
       findOne: jest.fn(),
+      update: jest.fn(),
     };
+    serviceQueue = { add: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -46,7 +51,7 @@ describe('ServiceService', () => {
         },
         {
           provide: getQueueToken(SERVICE_QUE),
-          useValue: {},
+          useValue: serviceQueue,
         },
         { provide: ListingCleanupService, useValue: {} },
         {
@@ -85,6 +90,23 @@ describe('ServiceService', () => {
     );
     expect(result.data).toEqual(
       expect.objectContaining({ id: 'service-id', isActive: true }),
+    );
+    expect(serviceQueue.add).toHaveBeenCalledWith(
+      SERVICE_STORE_COUNT_JOB,
+      { storeId: 'store-id' },
+      expect.any(Object),
+    );
+  });
+
+  it("recounts the store's services", async () => {
+    serviceRepo.countBy = jest.fn().mockResolvedValue(4);
+
+    await service.calculateStoreServicesCount({ storeId: 'store-id' });
+
+    expect(serviceRepo.countBy).toHaveBeenCalledWith({ storeId: 'store-id' });
+    expect(serviceStoreRepo.update).toHaveBeenCalledWith(
+      { id: 'store-id' },
+      { servicesCount: 4 },
     );
   });
 });

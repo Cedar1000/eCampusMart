@@ -10,13 +10,21 @@ import { ServiceImage } from './entities/service-image.entity';
 import { ServiceStore } from 'src/service-store/entities/service-store.entity';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
-import { SERVICE_QUE, SERVICE_VIEW_JOB } from './service.constant';
+import {
+  SERVICE_QUE,
+  SERVICE_STORE_COUNT_JOB,
+  SERVICE_VIEW_JOB,
+} from './service.constant';
 import { ServiceViewService } from 'src/service-view/service-view.service';
 import { ListingCleanupService } from 'src/common/listing-cleanup/listing-cleanup.service';
 
 interface ServiceViewJobData {
   userId: string;
   serviceId: string;
+}
+
+interface ServiceStoreCountJobData {
+  storeId: string;
 }
 
 @Injectable()
@@ -32,7 +40,9 @@ export class ServiceService {
     private readonly serviceStoreRepo: Repository<ServiceStore>,
 
     @InjectQueue(SERVICE_QUE)
-    private readonly serviceQueue: Queue<ServiceViewJobData>,
+    private readonly serviceQueue: Queue<
+      ServiceViewJobData | ServiceStoreCountJobData
+    >,
 
     private readonly serviceViewService: ServiceViewService,
 
@@ -58,6 +68,8 @@ export class ServiceService {
     if (images) {
       await this.createProductImage(images, service.id);
     }
+
+    await this.queueStoreCount(serviceStore.id);
 
     return data;
   }
@@ -111,13 +123,38 @@ export class ServiceService {
   }
 
   async remove(id: string) {
-    const deleted = await this.listingCleanupService.deleteListings('service', {
-      id,
+    const service = await this.serviceRepo.findOne({
+      where: { id },
+      select: ['id', 'storeId'],
     });
 
-    if (!deleted) throw new NotFoundException('No resource with that ID');
+    if (!service) throw new NotFoundException('No resource with that ID');
+
+    await this.listingCleanupService.deleteListings('service', { id });
+
+    if (service.storeId) await this.queueStoreCount(service.storeId);
 
     return { status: 'success', message: 'delete successful!' };
+  }
+
+  // Recounts instead of incrementing, so retries or out-of-order jobs can't skew it
+  async calculateStoreServicesCount({ storeId }: ServiceStoreCountJobData) {
+    const servicesCount = await this.serviceRepo.countBy({ storeId });
+
+    await this.serviceStoreRepo.update({ id: storeId }, { servicesCount });
+  }
+
+  private async queueStoreCount(storeId: string) {
+    await this.serviceQueue.add(
+      SERVICE_STORE_COUNT_JOB,
+      { storeId },
+      {
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 5000 },
+        removeOnComplete: 100,
+        removeOnFail: 500,
+      },
+    );
   }
 
   async createProductImage(images: ServiceImage[], serviceId: string) {
