@@ -46,6 +46,11 @@ export class ServiceStoreController {
     return this.serviceStoreService.findAllServiceStores(query);
   }
 
+  @Get('my-store')
+  findMine(@CurrentUser() user: User) {
+    return this.serviceStoreService.findMine(user.id);
+  }
+
   @Get(':id')
   findOneById(@Param('id') id: string, @Query() query: Partial<IQuery>) {
     return this.serviceStoreService.findServiceStoreById(id, query);

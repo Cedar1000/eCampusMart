@@ -13,8 +13,9 @@ export class Housing extends BaseEntity {
   @Column({ type: 'enum', enum: HouseType })
   houseType: HouseType;
 
-  @Column()
-  locationId: string;
+  // Optional: some campuses have no areas set up
+  @Column({ nullable: true })
+  locationId?: string;
 
   @Column()
   listingId: string;

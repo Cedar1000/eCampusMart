@@ -68,6 +68,9 @@ export class ServiceStore extends BaseEntity {
   ratingsAverage: number;
 
   @Column({ nullable: true })
+  address?: string;
+
+  @Column({ nullable: true })
   description: string;
 
   @Column({ nullable: true })

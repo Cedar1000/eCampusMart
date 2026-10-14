@@ -18,6 +18,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 
 import type IQuery from 'interfaces/query.Interface';
 import { CurrentUser } from 'src/auth/decorators/get-current-user.decorator';
+import { withRelations } from 'utils/withRelations';
 import { User } from 'src/auth/entities/user.entity';
 
 import { ProductUserDetailsInterceptor } from './interceptors/product-user-details.interceptor';
@@ -59,7 +60,7 @@ export class ProductController {
   @Get()
   @UseInterceptors(ProductUserDetailsInterceptor, IncludeIsLikedInterceptor)
   findAll(@Query() query: IQuery) {
-    query.relations = 'images';
+    query.relations = withRelations(query.relations, ['images'], ['store']);
     query.status = 'active';
 
     if (query.search) {
@@ -71,7 +72,7 @@ export class ProductController {
   @Get('/my-listings')
   @UseInterceptors(ProductUserDetailsInterceptor)
   myListings(@Query() query: IQuery, @CurrentUser() user: User) {
-    query.relations = 'images';
+    query.relations = withRelations(query.relations, ['images'], ['store']);
     query.status = 'active';
     query.userId = user.id;
     return this.productService.findAll(query);
@@ -84,7 +85,7 @@ export class ProductController {
     @Query() query: IQuery,
     @CurrentUser() user: User,
   ) {
-    query.relations = 'images';
+    query.relations = withRelations(query.relations, ['images'], ['store']);
     return this.productService.findOne(id, query, user.id);
   }
 
@@ -99,6 +100,7 @@ export class ProductController {
   }
 
   @Delete(':id')
+  @UseGuards(ValidProductOwnerGuard)
   remove(@Param('id') id: string) {
     return this.productService.remove(id);
   }

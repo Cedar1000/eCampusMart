@@ -51,8 +51,13 @@ export class WebhookService {
       throw new UnauthorizedException('Invalid Paystack webhook signature');
     }
 
-    const event = asString(payload.event);
-    const data = asRecord(payload.data);
+    await this.processEvent(asString(payload.event), asRecord(payload.data));
+
+    return { status: true, message: 'Webhook processed' };
+  }
+
+  // Also used to settle payments verified directly with Paystack; every handler is idempotent
+  async processEvent(event: string, data: PaystackEventData) {
     const description = this.getDescription(event, data);
 
     switch (description) {
@@ -68,8 +73,6 @@ export class WebhookService {
         // Acknowledge so Paystack does not keep retrying an event we can't route
         console.error('Unhandled Paystack webhook', { event, description });
     }
-
-    return { status: true, message: 'Webhook processed' };
   }
 
   private getDescription(event: string, data: PaystackEventData) {

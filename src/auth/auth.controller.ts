@@ -28,6 +28,8 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { DuplicateEmailGuard } from './guards/duplicate-email.guard';
 import { CreatePasswordDto } from './dto/create-password.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { VerifyPasswordDto } from './dto/verify-password.dto';
+import { ChangeEmailDto, VerifyChangeEmailDto } from './dto/change-email.dto';
 import { ValidCampusGuard } from './guards/valid-campus.guard';
 import { UniquePhoneNumberGuard } from './guards/unique-phone-number.guard';
 
@@ -119,6 +121,40 @@ export class AuthController {
       newPassword,
       user.id,
     );
+  }
+
+  @Post('/verify-password')
+  @HttpCode(200)
+  @UsePipes(ValidationPipe)
+  async verifyPassword(
+    @Body() payload: VerifyPasswordDto,
+    @CurrentUser() user: User,
+  ) {
+    return this.authService.verifyPassword(user.id, payload.password);
+  }
+
+  @Post('/change-email')
+  @HttpCode(200)
+  @UsePipes(ValidationPipe)
+  async requestEmailChange(
+    @Body() payload: ChangeEmailDto,
+    @CurrentUser() user: User,
+  ) {
+    return this.authService.requestEmailChange(
+      user,
+      payload.email,
+      payload.password,
+    );
+  }
+
+  @Post('/change-email/verify')
+  @HttpCode(200)
+  @UsePipes(ValidationPipe)
+  async verifyEmailChange(
+    @Body() payload: VerifyChangeEmailDto,
+    @CurrentUser() user: User,
+  ) {
+    return this.authService.verifyEmailChange(user.id, payload.otp);
   }
 
   @Get('/users')

@@ -1,13 +1,18 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import type IQuery from 'interfaces/query.Interface';
 import * as factory from 'utils/handlerFactory';
-import { DataSource, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 
 import { CreateProductStoreDto } from './dto/create-product-store.dto';
 import { UpdateProductStoreDto } from './dto/update-product-store.dto';
 import { ProductStore } from './entities/product-store.entity';
-import { Product } from 'src/product/entities/product.entity';
+import { ProductStoreCategory } from 'src/product-store-category/entities/product-store-category.entity';
+import { ListingCleanupService } from 'src/common/listing-cleanup/listing-cleanup.service';
 
 @Injectable()
 export class ProductStoreService {
@@ -15,7 +20,7 @@ export class ProductStoreService {
     @InjectRepository(ProductStore)
     private readonly productStoreRepo: Repository<ProductStore>,
 
-    private readonly dataSource: DataSource,
+    private readonly listingCleanupService: ListingCleanupService,
   ) {}
 
   async create(createProductStoreDto: CreateProductStoreDto) {
@@ -40,7 +45,21 @@ export class ProductStoreService {
     });
   }
 
-  async update(id: string, updateProductStoreDto: UpdateProductStoreDto) {
+  async findMine(userId: string) {
+    const store = await this.productStoreRepo.findOne({ where: { userId } });
+
+    if (!store) throw new NotFoundException('You do not have a product store');
+
+    return { status: 'success', message: 'Get One successful!', data: store };
+  }
+
+  async update(
+    id: string,
+    updateProductStoreDto: UpdateProductStoreDto,
+    userId: string,
+  ) {
+    await this.assertOwner(id, userId);
+
     return await factory.updateOne(
       this.productStoreRepo,
       id,
@@ -48,35 +67,38 @@ export class ProductStoreService {
     );
   }
 
-  async remove(id: string) {
-    const queryRunner = this.dataSource.createQueryRunner();
+  // Deleting a store deletes its products, their photos and favourites with it
+  async remove(id: string, userId: string) {
+    const store = await this.assertOwner(id, userId);
 
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+    await this.listingCleanupService.deleteListings(
+      'product',
+      { storeId: id },
+      async (manager) => {
+        await manager.delete(ProductStoreCategory, { storeId: id });
+        await manager.delete(ProductStore, id);
 
-    try {
-      // Delete all products belonging to the store
-      await queryRunner.manager.update(
-        Product,
-        { storeId: id },
-        { storeId: undefined, isStoreProduct: false },
-      );
+        return [store.logoKey, store.bannerKey].filter(
+          (key): key is string => !!key,
+        );
+      },
+    );
 
-      // Delete the store
-      const result = await queryRunner.manager.delete(ProductStore, id);
+    return { status: 'success', message: 'delete successful!' };
+  }
 
-      if (!result.affected) {
-        throw new NotFoundException('No resource with that ID');
-      }
+  private async assertOwner(id: string, userId: string) {
+    const store = await this.productStoreRepo.findOne({
+      where: { id },
+      select: ['id', 'userId', 'logoKey', 'bannerKey'],
+    });
 
-      await queryRunner.commitTransaction();
+    if (!store) throw new NotFoundException('No resource with that ID');
 
-      return { status: 'success', message: 'delete successful!' };
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw error;
-    } finally {
-      await queryRunner.release();
+    if (store.userId !== userId) {
+      throw new ForbiddenException('You can only modify your own store');
     }
+
+    return store;
   }
 }

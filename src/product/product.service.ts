@@ -7,6 +7,7 @@ import {
 
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { ListingCleanupService } from 'src/common/listing-cleanup/listing-cleanup.service';
 
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
@@ -49,6 +50,8 @@ export class ProductService {
     private readonly productViewingQueue: Queue<ProductViewJobData>,
 
     private readonly dataSource: DataSource,
+
+    private readonly listingCleanupService: ListingCleanupService,
   ) {}
 
   async create(createProductDto: CreateProductDto) {
@@ -144,15 +147,30 @@ export class ProductService {
     const data = await factory.updateOne(this.productRepo, id, productData);
 
     if (images?.length) {
+      const previous = await this.productImageRepo.find({
+        where: { productId: id },
+        select: ['key'],
+      });
+
       await this.productImageRepo.delete({ productId: id });
       await this.createProductImage(images, id);
+      await this.listingCleanupService.deleteReplacedImages(
+        previous.map(({ key }) => key),
+        images,
+      );
     }
 
     return data;
   }
 
   async remove(id: string) {
-    return await factory.deleteOne(this.productRepo, id);
+    const deleted = await this.listingCleanupService.deleteListings('product', {
+      id,
+    });
+
+    if (!deleted) throw new NotFoundException('No resource with that ID');
+
+    return { status: 'success', message: 'delete successful!' };
   }
 
   async createProductImage(images: ProductImage[], productId: string) {

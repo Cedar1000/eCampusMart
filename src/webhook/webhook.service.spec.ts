@@ -4,6 +4,10 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { createHmac } from 'crypto';
 import { DataSource } from 'typeorm';
 import sendEmail from 'utils/sendEmail';
+import {
+  createPaystackSubscription,
+  refundPaystackTransaction,
+} from 'utils/paystack';
 import { User } from 'src/auth/entities/user.entity';
 import { Service } from 'src/service/entities/service.entity';
 import { ServiceStore } from 'src/service-store/entities/service-store.entity';
@@ -15,6 +19,7 @@ import { WalletWebhookService } from './wallet-webhook.service';
 import { WebhookService } from './webhook.service';
 
 jest.mock('utils/sendEmail');
+jest.mock('utils/paystack');
 
 const SECRET = 'sk_test';
 
@@ -139,6 +144,50 @@ describe('WebhookService', () => {
       { storeId: 'store-1' },
       { isActive: true },
     );
+  });
+
+  describe('trial card check', () => {
+    const charge = (reusable: boolean) =>
+      send('charge.success', {
+        reference: 'ref-1',
+        metadata: { description: 'store-subscription' },
+        customer: { customer_code: 'CUS_1' },
+        authorization: { authorization_code: 'AUTH_1', reusable },
+      });
+
+    beforeEach(() => {
+      Object.assign(subscription, { isTrial: true, paystackId: 'PLN_1' });
+      jest.mocked(createPaystackSubscription).mockReset();
+      jest.mocked(refundPaystackTransaction).mockReset();
+    });
+
+    it('starts billing on Paystack when the trial ends and refunds the check', async () => {
+      await charge(true);
+
+      const startDate = new Date(
+        jest.mocked(createPaystackSubscription).mock.calls[0][0].start_date,
+      );
+      const days = (startDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000);
+
+      expect(createPaystackSubscription).toHaveBeenCalledWith(
+        expect.objectContaining({
+          customer: 'CUS_1',
+          plan: 'PLN_1',
+          authorization: 'AUTH_1',
+        }),
+      );
+      expect(Math.round(days)).toBe(30);
+      expect(subscription.expiresAt).toEqual(startDate);
+      expect(subscription.status).toBe(SubscriptionStatus.ACTIVE);
+      expect(refundPaystackTransaction).toHaveBeenCalledWith('ref-1');
+    });
+
+    it('fails, so Paystack retries, when the card cannot be charged again', async () => {
+      await expect(charge(false)).rejects.toThrow();
+
+      expect(createPaystackSubscription).not.toHaveBeenCalled();
+      expect(refundPaystackTransaction).not.toHaveBeenCalled();
+    });
   });
 
   it('ignores renewal charges, which carry a plan but no metadata', async () => {

@@ -80,6 +80,22 @@ export class User extends BaseEntity {
   @Column({ nullable: true, select: false, type: 'timestamptz' })
   otpExpiration?: Date | null;
 
+  @Column({ default: 0, select: false })
+  otpAttempts?: number;
+
+  // Email change waiting for confirmation; its OTP is kept apart from the signup/reset one
+  @Column({ nullable: true, select: false, type: 'varchar' })
+  pendingEmail?: string | null;
+
+  @Column({ nullable: true, select: false, type: 'varchar' })
+  emailChangeOtpHash?: string | null;
+
+  @Column({ nullable: true, select: false, type: 'timestamptz' })
+  emailChangeOtpExpiration?: Date | null;
+
+  @Column({ default: 0, select: false })
+  emailChangeAttempts?: number;
+
   @Column({ type: 'enum', enum: UserRole, default: UserRole.USER })
   role?: UserRole;
 }

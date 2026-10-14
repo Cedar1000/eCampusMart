@@ -32,6 +32,10 @@ export class CreateServiceStoreDto {
 
   @IsOptional()
   @IsString()
+  address?: string;
+
+  @IsOptional()
+  @IsString()
   description: string;
 
   @IsOptional()

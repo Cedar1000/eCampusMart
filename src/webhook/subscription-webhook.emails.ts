@@ -18,6 +18,13 @@ export const getSubscriptionEmail = (
 
   switch (event) {
     case 'charge.success':
+      if (subscription.isTrial) {
+        return {
+          subject: 'Free trial started',
+          message: `Your free trial for ${storeName} has started and its services are now listed. Your card will be charged ${amount} on ${expiresAt} unless you cancel before then. The small card check charge has been refunded.`,
+        };
+      }
+
       return {
         subject: 'Subscription payment received',
         message: `We received your payment of ${amount} for the ${storeName} subscription.`,

@@ -1,5 +1,8 @@
+import { PlanType } from 'src/subscription-plan/enums/plan-type.enum';
 import {
+  IsEnum,
   IsNotEmpty,
+  ValidateIf,
   IsOptional,
   IsString,
   IsUUID,
@@ -7,9 +10,16 @@ import {
 } from 'class-validator';
 
 export class InitializeSubscriptionDto {
+  // Either a plan id or the plan type ("monthly" / "yearly") the app sends
+  @ValidateIf((dto: InitializeSubscriptionDto) => !dto.plan)
   @IsNotEmpty()
   @IsUUID()
-  planId: string;
+  planId?: string;
+
+  @ValidateIf((dto: InitializeSubscriptionDto) => !dto.planId)
+  @IsNotEmpty()
+  @IsEnum(PlanType)
+  plan?: PlanType;
 
   @IsOptional()
   @IsUUID()

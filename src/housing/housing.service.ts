@@ -16,6 +16,7 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { HOUSING_QUE, HOUSING_VIEW_JOB } from './housing.constants';
 import { Queue } from 'bullmq';
 import { HousingViewService } from 'src/housing-view/housing-view.service';
+import { ListingCleanupService } from 'src/common/listing-cleanup/listing-cleanup.service';
 import { Wallet } from 'src/wallet/entities/wallet.entity';
 import {
   Transaction,
@@ -47,6 +48,8 @@ export class HousingService {
     private readonly housingViewService: HousingViewService,
 
     private readonly dataSource: DataSource,
+
+    private readonly listingCleanupService: ListingCleanupService,
   ) {}
 
   async create(createHousingDto: CreateHousingDto) {
@@ -135,14 +138,25 @@ export class HousingService {
     return data;
   }
 
-  async update(id: string, updateHousingDto: UpdateHousingDto) {
+  async update(id: string, updateHousingDto: UpdateHousingDto, userId: string) {
+    await this.assertOwner(id, userId);
+
     const { images, ...housingData } = updateHousingDto;
 
     const data = await factory.updateOne(this.housingRepo, id, housingData);
 
     if (images?.length) {
+      const previous = await this.housingImageRepo.find({
+        where: { housingId: id },
+        select: ['key'],
+      });
+
       await this.housingImageRepo.delete({ housingId: id });
       await this.createHousingImages(images, id);
+      await this.listingCleanupService.deleteReplacedImages(
+        previous.map(({ key }) => key),
+        images,
+      );
     }
 
     const housing = data.data as Housing;
@@ -152,21 +166,25 @@ export class HousingService {
     return { ...data, data: housing };
   }
 
-  async remove(id: string) {
+  async remove(id: string, userId: string) {
+    await this.assertOwner(id, userId);
+
+    await this.listingCleanupService.deleteListings('housing', { id });
+
+    return { status: 'success', message: 'delete successful!' };
+  }
+
+  private async assertOwner(id: string, userId: string) {
     const housing = await this.housingRepo.findOne({
       where: { id },
-      relations: { images: true },
+      select: ['id', 'userId'],
     });
 
-    if (!housing) {
-      return await factory.deleteOne(this.housingRepo, id);
-    }
+    if (!housing) throw new NotFoundException('No resource with that ID');
 
-    if (housing.images?.length) {
-      await this.housingImageRepo.remove(housing.images);
+    if (housing.userId !== userId) {
+      throw new ForbiddenException('You can only modify your own housing');
     }
-
-    return await factory.deleteOne(this.housingRepo, id);
   }
 
   async createHousingImages(images: HousingImage[], housingId: string) {

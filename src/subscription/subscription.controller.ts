@@ -10,7 +10,7 @@ import type IQuery from 'interfaces/query.Interface';
 export class SubscriptionController {
   constructor(private readonly subscriptionService: SubscriptionService) {}
 
-  @Post('initialize-subscription')
+  @Post(['initialize-subscription', 'initialize-transaction'])
   initializeTransaction(
     @Body() dto: InitializeSubscriptionDto,
     @CurrentUser() user: User,

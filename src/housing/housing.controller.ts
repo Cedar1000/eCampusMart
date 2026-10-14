@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Get,
   Body,
   Post,
@@ -37,6 +38,16 @@ export class HousingController {
     @CurrentUser() user: User,
   ) {
     createHousingDto.userId = user.id;
+
+    // Set from the area when one is given, otherwise the housing is on the user's campus
+    createHousingDto.campusId ??= user.campusId;
+
+    if (!createHousingDto.campusId) {
+      throw new BadRequestException(
+        'locationId or a campus on your profile is required',
+      );
+    }
+
     return this.housingService.create(createHousingDto);
   }
 
@@ -75,12 +86,16 @@ export class HousingController {
 
   @Patch(':id')
   @UsePipes(ValidationPipe)
-  update(@Param('id') id: string, @Body() updateHousingDto: UpdateHousingDto) {
-    return this.housingService.update(id, updateHousingDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateHousingDto: UpdateHousingDto,
+    @CurrentUser() user: User,
+  ) {
+    return this.housingService.update(id, updateHousingDto, user.id);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.housingService.remove(id);
+  remove(@Param('id') id: string, @CurrentUser() user: User) {
+    return this.housingService.remove(id, user.id);
   }
 }

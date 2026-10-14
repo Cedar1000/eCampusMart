@@ -21,9 +21,9 @@ export class CreateHousingDto {
   @IsEnum(HouseType)
   houseType: HouseType;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsUUID()
-  locationId: string;
+  locationId?: string;
 
   @IsOptional()
   @IsUUID()

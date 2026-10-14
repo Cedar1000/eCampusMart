@@ -46,6 +46,12 @@ export class ProductStoreController {
     return this.productStoreService.findAll(query);
   }
 
+  @Get('my-store')
+  @UseInterceptors(IncludeCampusInterceptor)
+  findMine(@CurrentUser() user: User) {
+    return this.productStoreService.findMine(user.id);
+  }
+
   @Get(':id')
   @UseInterceptors(IncludeCampusInterceptor)
   findOne(@Param('id') id: string, @Query() query: Partial<IQuery>) {
@@ -57,12 +63,13 @@ export class ProductStoreController {
   update(
     @Param('id') id: string,
     @Body() updateProductStoreDto: UpdateProductStoreDto,
+    @CurrentUser() user: User,
   ) {
-    return this.productStoreService.update(id, updateProductStoreDto);
+    return this.productStoreService.update(id, updateProductStoreDto, user.id);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.productStoreService.remove(id);
+  remove(@Param('id') id: string, @CurrentUser() user: User) {
+    return this.productStoreService.remove(id, user.id);
   }
 }

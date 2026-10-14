@@ -10,22 +10,35 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
+import { AuthService } from '../auth.service';
 
 @Injectable()
 export class DuplicateEmailGuard implements CanActivate {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
+
+    private readonly authService: AuthService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const { email, phoneNumber, countryCode } = request.body;
+    const { email, phoneNumber, countryCode } = request.body as {
+      email?: string;
+      phoneNumber?: string;
+      countryCode?: string;
+    };
 
     if (!email) return true;
 
+    await this.authService.removeUnverifiedAccounts(
+      email,
+      phoneNumber,
+      countryCode,
+    );
+
     const existingUser = await this.userRepository.findOne({
-      where: [{ email }, { phoneNumber }, { countryCode }],
+      where: [{ email }, { phoneNumber, countryCode }],
       select: ['id', 'email', 'phoneNumber', 'countryCode'],
     });
 

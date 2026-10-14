@@ -14,6 +14,7 @@ import {
 } from '@nestjs/common';
 import type IQuery from 'interfaces/query.Interface';
 import { CurrentUser } from 'src/auth/decorators/get-current-user.decorator';
+import { withRelations } from 'utils/withRelations';
 import { User } from 'src/auth/entities/user.entity';
 import { ServiceService } from './service.service';
 import { CreateServiceDto } from './dto/create-service.dto';
@@ -42,8 +43,21 @@ export class ServiceController {
   @Get()
   @UseInterceptors(IncludeIsLikedServiceInterceptor)
   findAll(@Query() query: IQuery & { isActive: boolean }) {
-    query.relations = 'images';
+    query.relations = withRelations(query.relations, ['images'], ['store']);
     query.isActive = true;
+
+    if (query.search) query.search = `title,${query.search}`;
+
+    return this.serviceService.findAll(query);
+  }
+
+  @Get('my-listings')
+  myListings(
+    @Query() query: IQuery & { ownerId: string },
+    @CurrentUser() user: User,
+  ) {
+    query.relations = withRelations(query.relations, ['images'], ['store']);
+    query.ownerId = user.id;
 
     if (query.search) query.search = `title,${query.search}`;
 
@@ -57,7 +71,7 @@ export class ServiceController {
     @Query() query: IQuery,
     @CurrentUser() user: User,
   ) {
-    query.relations = 'images';
+    query.relations = withRelations(query.relations, ['images'], ['store']);
 
     return this.serviceService.findOne(id, query, user.id);
   }

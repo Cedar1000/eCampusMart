@@ -9,6 +9,11 @@ import { SubscriptionPlan } from 'src/subscription-plan/entities/subscription-pl
 import { PlanType } from 'src/subscription-plan/enums/plan-type.enum';
 import { DataSource, EntityManager, In, IsNull, Repository } from 'typeorm';
 import sendEmail from 'utils/sendEmail';
+import {
+  createPaystackSubscription,
+  refundPaystackTransaction,
+} from 'utils/paystack';
+import { TRIAL_DAYS } from 'src/subscription/subscription.constants';
 import { getSubscriptionEmail } from './subscription-webhook.emails';
 import { asRecord, asString, PaystackEventData } from './webhook.utils';
 
@@ -41,7 +46,7 @@ export class SubscriptionWebhookService {
   ): Promise<Subscription | null> {
     switch (event) {
       case 'charge.success':
-        return this.markSubscriptionSuccessful(this.getReference(data));
+        return this.markSubscriptionSuccessful(this.getReference(data), data);
 
       case 'charge.failed':
         return this.markSubscriptionFailed(this.getReference(data));
@@ -128,8 +133,11 @@ export class SubscriptionWebhookService {
     return reference;
   }
 
-  private async markSubscriptionSuccessful(reference: string) {
-    return this.dataSource.transaction(async (manager) => {
+  private async markSubscriptionSuccessful(
+    reference: string,
+    data: PaystackEventData,
+  ) {
+    const subscription = await this.dataSource.transaction(async (manager) => {
       const subscription = await manager.findOne(Subscription, {
         where: { reference },
         lock: { mode: 'pessimistic_write' },
@@ -142,10 +150,50 @@ export class SubscriptionWebhookService {
 
       subscription.status = SubscriptionStatus.ACTIVE;
 
+      // Throws before commit, so Paystack retries the webhook if it fails
+      if (subscription.isTrial)
+        await this.startTrialBilling(subscription, data);
+
       await manager.save(subscription);
       await this.syncStoreSubscription(manager, subscription.storeId);
 
       return subscription;
+    });
+
+    // The trial charge only checked the card, so give it back
+    if (subscription?.isTrial) {
+      try {
+        await refundPaystackTransaction(reference);
+      } catch (error) {
+        console.error('Trial card check refund failed', reference, error);
+      }
+    }
+
+    return subscription;
+  }
+
+  // Billing for the plan starts on Paystack when the trial ends
+  private async startTrialBilling(
+    subscription: Subscription,
+    data: PaystackEventData,
+  ) {
+    const authorization = asRecord(data.authorization);
+
+    if (!authorization.reusable) {
+      throw new BadRequestException(
+        'Trial card cannot be charged again, so billing cannot be scheduled',
+      );
+    }
+
+    subscription.expiresAt = new Date(
+      Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000,
+    );
+
+    await createPaystackSubscription({
+      customer: asString(asRecord(data.customer).customer_code),
+      plan: subscription.paystackId,
+      authorization: asString(authorization.authorization_code),
+      start_date: subscription.expiresAt.toISOString(),
     });
   }
 

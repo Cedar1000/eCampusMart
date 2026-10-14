@@ -35,6 +35,10 @@ export class Subscription extends BaseEntity {
   })
   status: SubscriptionStatus;
 
+  // Free first period: Paystack only starts charging when it ends
+  @Column({ default: false })
+  isTrial: boolean;
+
   @Column()
   expiresAt: Date;
 }

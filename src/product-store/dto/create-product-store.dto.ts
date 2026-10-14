@@ -19,6 +19,10 @@ export class CreateProductStoreDto {
 
   @IsOptional()
   @IsString()
+  address?: string;
+
+  @IsOptional()
+  @IsString()
   description?: string;
 
   @IsOptional()

@@ -1,3 +1,5 @@
+import { ListingCleanupService } from 'src/common/listing-cleanup/listing-cleanup.service';
+import { Subscription } from 'src/subscription/entities/subscription.entity';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { ServiceStore } from './entities/service-store.entity';
@@ -14,6 +16,11 @@ describe('ServiceStoreService', () => {
           provide: getRepositoryToken(ServiceStore),
           useValue: {},
         },
+        {
+          provide: getRepositoryToken(Subscription),
+          useValue: {},
+        },
+        { provide: ListingCleanupService, useValue: {} },
       ],
     }).compile();
 

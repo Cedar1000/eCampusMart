@@ -1,3 +1,4 @@
+import { ListingCleanupService } from 'src/common/listing-cleanup/listing-cleanup.service';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getQueueToken } from '@nestjs/bullmq';
 import { getRepositoryToken } from '@nestjs/typeorm';
@@ -47,6 +48,7 @@ describe('ServiceService', () => {
           provide: getQueueToken(SERVICE_QUE),
           useValue: {},
         },
+        { provide: ListingCleanupService, useValue: {} },
         {
           provide: ServiceViewService,
           useValue: {},

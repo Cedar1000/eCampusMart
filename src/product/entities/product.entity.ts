@@ -1,9 +1,17 @@
-import { BeforeInsert, Column, Entity, ManyToOne, OneToMany } from 'typeorm';
+import {
+  BeforeInsert,
+  Column,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
+} from 'typeorm';
 import { randomInt } from 'crypto';
 
 import slugify from 'slugify';
 
 import { BaseEntity } from 'src/common/base.entity';
+import { ProductStore } from 'src/product-store/entities/product-store.entity';
 import { ProductImage } from './product-image.entity';
 import { ProductStatus } from '../enums/product-status.enum';
 import { ProductCondition } from '../enums/product-condition.enum';
@@ -75,6 +83,10 @@ export class Product extends BaseEntity {
 
   @ManyToOne(() => ProductStoreCategory, (category) => category.products)
   storeCategory: ProductStoreCategory;
+
+  @ManyToOne(() => ProductStore, { createForeignKeyConstraints: false })
+  @JoinColumn({ name: 'storeId' })
+  store: ProductStore;
 
   @OneToMany(() => ProductImage, (image) => image.product)
   images: ProductImage[];

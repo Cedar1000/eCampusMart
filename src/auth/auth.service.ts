@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThan } from 'typeorm';
+import { In, MoreThan, Repository } from 'typeorm';
 
 import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
@@ -41,6 +41,12 @@ import { ProductStore } from 'src/product-store/entities/product-store.entity';
 import { Service } from 'src/service/entities/service.entity';
 import { ServiceStore } from 'src/service-store/entities/service-store.entity';
 
+const MAX_OTP_ATTEMPTS = 5;
+const EMAIL_CHANGE_OTP_MINUTES = 10;
+
+const hashOtp = (userId: string, otp: number | string) =>
+  crypto.createHash('sha256').update(`${userId}:${otp}`).digest('hex');
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -63,6 +69,8 @@ export class AuthService {
 
   async signUp(signUpDto: SignUpDto) {
     const { email, lastName, firstName, phoneNumber, countryCode } = signUpDto;
+
+    await this.removeUnverifiedAccounts(email, phoneNumber, countryCode);
 
     //check email
     const emailCheck = await this.userRepo.findOne({
@@ -163,11 +171,19 @@ export class AuthService {
       throw new NotFoundException('OTP not found. Please request a new one.');
     }
 
+    if (!(await this.consumeAttempt(user.id, 'otpAttempts'))) {
+      await this.userRepo.update({ id: user.id }, { otp: null });
+
+      throw new ForbiddenException(
+        'Too many wrong attempts. Please request a new OTP.',
+      );
+    }
+
     //compare OTP
     if (otp !== otpUser.otp) throw new UnauthorizedException('Invalid OTP!');
 
     //Check if OTP has expired
-    if (user.otpExpiration && new Date(Date.now()) > user.otpExpiration) {
+    if (otpUser.otpExpiration && new Date(Date.now()) > otpUser.otpExpiration) {
       throw new ForbiddenException('OTP Expired!');
     }
 
@@ -188,6 +204,7 @@ export class AuthService {
         passwordResetTokenExpires,
         emailVerified: true,
         otp: null,
+        otpAttempts: 0,
       },
     );
 
@@ -297,7 +314,10 @@ export class AuthService {
       //Generate 4 digit OTP and expiry date
       otp = generateRandomNumber(6);
       otpExpiration = new Date(Date.now() + 60 * 2 * 60 * 1000).toISOString();
-      await this.userRepo.update({ email }, { otp, otpExpiration });
+      await this.userRepo.update(
+        { email },
+        { otp, otpExpiration, otpAttempts: 0 },
+      );
     } else {
       otp = user.otp;
     }
@@ -449,9 +469,186 @@ export class AuthService {
 
     const data = await factory.updateOne(this.userRepo, id, payload);
 
-    if (campusId) this.updateUserUploads(id, campusId);
+    if (campusId) await this.updateUserUploads(id, campusId);
 
     return data;
+  }
+
+  // An account abandoned mid-signup (never verified) must not block its email or phone
+  async removeUnverifiedAccounts(
+    email: string,
+    phoneNumber?: string,
+    countryCode?: string,
+  ) {
+    const abandoned = await this.userRepo.find({
+      where: [
+        { email, emailVerified: false },
+        ...(phoneNumber
+          ? [{ phoneNumber, countryCode, emailVerified: false }]
+          : []),
+      ],
+      select: ['id'],
+    });
+
+    if (!abandoned.length) return;
+
+    const ids = abandoned.map(({ id }) => id);
+
+    await this.userRepo.manager.transaction(async (manager) => {
+      await manager.delete(Wallet, { userId: In(ids) });
+      await manager.delete(User, { id: In(ids) });
+    });
+  }
+
+  async verifyPassword(userId: string, password: string) {
+    if (!(await this.isPasswordCorrect(userId, password))) {
+      throw new UnauthorizedException('Password is incorrect');
+    }
+
+    return { status: 'success', message: 'Password is correct' };
+  }
+
+  async requestEmailChange(user: User, email: string, password: string) {
+    if (!(await this.isPasswordCorrect(user.id, password))) {
+      throw new UnauthorizedException('Password is incorrect');
+    }
+
+    if (email === user.email) {
+      throw new BadRequestException('That is already your email');
+    }
+
+    if (await this.userRepo.exists({ where: { email } })) {
+      throw new ConflictException('Email is already exists!');
+    }
+
+    // A new request replaces any earlier code and resets the attempt count
+    const otp = generateRandomNumber(6);
+
+    await this.userRepo.update(
+      { id: user.id },
+      {
+        pendingEmail: email,
+        emailChangeOtpHash: hashOtp(user.id, otp),
+        emailChangeOtpExpiration: new Date(
+          Date.now() + EMAIL_CHANGE_OTP_MINUTES * 60 * 1000,
+        ),
+        emailChangeAttempts: 0,
+      },
+    );
+
+    await sendEmail({
+      subject: 'Confirm your new email',
+      text: `Dear ${user.firstName}, Your OTP code is ${otp}. It will expire in ${EMAIL_CHANGE_OTP_MINUTES} minutes.`,
+      to: email,
+    });
+
+    return { status: 'success', message: 'email sent!' };
+  }
+
+  async verifyEmailChange(userId: string, otp: number) {
+    const user = await this.userRepo.findOne({
+      where: { id: userId },
+      select: [
+        'id',
+        'email',
+        'firstName',
+        'pendingEmail',
+        'emailChangeOtpHash',
+        'emailChangeOtpExpiration',
+      ],
+    });
+
+    if (!user?.pendingEmail || !user.emailChangeOtpHash) {
+      throw new BadRequestException(
+        'No email change in progress. Please request a new OTP.',
+      );
+    }
+
+    if (
+      !user.emailChangeOtpExpiration ||
+      new Date() > user.emailChangeOtpExpiration
+    ) {
+      await this.cancelEmailChange(userId);
+      throw new ForbiddenException('OTP Expired! Please request a new one.');
+    }
+
+    if (!(await this.consumeAttempt(userId, 'emailChangeAttempts'))) {
+      await this.cancelEmailChange(userId);
+      throw new ForbiddenException(
+        'Too many wrong attempts. Please request a new OTP.',
+      );
+    }
+
+    if (hashOtp(userId, Number(otp)) !== user.emailChangeOtpHash) {
+      throw new UnauthorizedException('Invalid OTP!');
+    }
+
+    // Someone may have taken the email while the OTP was pending
+    if (await this.userRepo.exists({ where: { email: user.pendingEmail } })) {
+      await this.cancelEmailChange(userId);
+      throw new ConflictException('Email is already exists!');
+    }
+
+    const previousEmail = user.email;
+    const email = user.pendingEmail;
+
+    await this.userRepo.update(
+      { id: userId },
+      { email, emailVerified: true, ...this.clearedEmailChange() },
+    );
+
+    // Lets the real owner notice if someone else made the change
+    try {
+      await sendEmail({
+        subject: 'Your email was changed',
+        text: `Dear ${user.firstName}, The email on your eCampusMart account was changed to ${email}. If you didn't do this, contact support immediately.`,
+        to: previousEmail,
+      });
+    } catch (error) {
+      console.error('Email change notice failed', error);
+    }
+
+    return { status: 'success', message: 'Email updated!', email };
+  }
+
+  private async isPasswordCorrect(userId: string, password: string) {
+    const user = await this.userRepo.findOne({
+      where: { id: userId },
+      select: ['id', 'password'],
+    });
+
+    return !!user?.password && (await bcrypt.compare(password, user.password));
+  }
+
+  // Counts the attempt before the code is checked, so parallel guesses can't exceed the limit
+  private async consumeAttempt(
+    userId: string,
+    column: 'otpAttempts' | 'emailChangeAttempts',
+  ) {
+    const result = await this.userRepo
+      .createQueryBuilder()
+      .update(User)
+      .set({ [column]: () => `"${column}" + 1` })
+      .where(`id = :userId AND "${column}" < :max`, {
+        userId,
+        max: MAX_OTP_ATTEMPTS,
+      })
+      .execute();
+
+    return !!result.affected;
+  }
+
+  private clearedEmailChange() {
+    return {
+      pendingEmail: null,
+      emailChangeOtpHash: null,
+      emailChangeOtpExpiration: null,
+      emailChangeAttempts: 0,
+    };
+  }
+
+  private async cancelEmailChange(userId: string) {
+    await this.userRepo.update({ id: userId }, this.clearedEmailChange());
   }
 
   private async withRelatedAccounts<T extends { id: string }>(user: T) {

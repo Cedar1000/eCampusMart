@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProductStoreService } from './product-store.service';
 import { ProductStoreController } from './product-store.controller';
+import { ProductStoreCategory } from 'src/product-store-category/entities/product-store-category.entity';
 import { ProductStore } from './entities/product-store.entity';
 import { ProductCategory } from 'src/product-category/entities/product-category.entity';
 import { ValidProductCategoryGuard } from 'src/product/guards/valid-product-category.guard';
@@ -11,7 +12,13 @@ import { Product } from 'src/product/entities/product.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ProductStore, ProductCategory, Campus, Product]),
+    TypeOrmModule.forFeature([
+      ProductStore,
+      ProductCategory,
+      Campus,
+      Product,
+      ProductStoreCategory,
+    ]),
   ],
   controllers: [ProductStoreController],
   providers: [

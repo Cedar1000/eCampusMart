@@ -3,6 +3,8 @@ import { WebhookService } from './webhook.service';
 import { WalletWebhookService } from './wallet-webhook.service';
 import { SubscriptionWebhookService } from './subscription-webhook.service';
 import { WebhookController } from './webhook.controller';
+import { PaymentController } from './payment.controller';
+import { PaymentService } from './payment.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Transaction } from 'src/transaction/entities/transaction.entity';
 import { Wallet } from 'src/wallet/entities/wallet.entity';
@@ -20,7 +22,12 @@ import { ServiceStore } from 'src/service-store/entities/service-store.entity';
       ServiceStore,
     ]),
   ],
-  controllers: [WebhookController],
-  providers: [WebhookService, WalletWebhookService, SubscriptionWebhookService],
+  controllers: [WebhookController, PaymentController],
+  providers: [
+    WebhookService,
+    WalletWebhookService,
+    SubscriptionWebhookService,
+    PaymentService,
+  ],
 })
 export class WebhookModule {}

@@ -12,6 +12,7 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { SERVICE_QUE, SERVICE_VIEW_JOB } from './service.constant';
 import { ServiceViewService } from 'src/service-view/service-view.service';
+import { ListingCleanupService } from 'src/common/listing-cleanup/listing-cleanup.service';
 
 interface ServiceViewJobData {
   userId: string;
@@ -34,6 +35,8 @@ export class ServiceService {
     private readonly serviceQueue: Queue<ServiceViewJobData>,
 
     private readonly serviceViewService: ServiceViewService,
+
+    private readonly listingCleanupService: ListingCleanupService,
   ) {}
 
   async create(createServiceDto: CreateServiceDto) {
@@ -91,15 +94,30 @@ export class ServiceService {
     const data = await factory.updateOne(this.serviceRepo, id, serviceData);
 
     if (images?.length) {
+      const previous = await this.serviceImageRepo.find({
+        where: { serviceId: id },
+        select: ['key'],
+      });
+
       await this.serviceImageRepo.delete({ serviceId: id });
       await this.createProductImage(images, id);
+      await this.listingCleanupService.deleteReplacedImages(
+        previous.map(({ key }) => key),
+        images,
+      );
     }
 
     return data;
   }
 
   async remove(id: string) {
-    return await factory.deleteOne(this.serviceRepo, id);
+    const deleted = await this.listingCleanupService.deleteListings('service', {
+      id,
+    });
+
+    if (!deleted) throw new NotFoundException('No resource with that ID');
+
+    return { status: 'success', message: 'delete successful!' };
   }
 
   async createProductImage(images: ServiceImage[], serviceId: string) {

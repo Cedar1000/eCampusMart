@@ -15,10 +15,12 @@ import axios, { AxiosError } from 'axios';
 import { TransactionDescription } from 'src/transaction/entities/transaction.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ServiceStore } from 'src/service-store/entities/service-store.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Subscription } from './entities/subscription.entity';
 import { SubscriptionPlan } from 'src/subscription-plan/entities/subscription-plan.entity';
 import { PlanType } from 'src/subscription-plan/enums/plan-type.enum';
+import { SubscriptionStatus } from './enums/subscription-status.enum';
+import { TRIAL_CARD_CHECK_AMOUNT, TRIAL_DAYS } from './subscription.constants';
 
 interface PaystackInitializeResponse {
   status: boolean;
@@ -57,12 +59,11 @@ export class SubscriptionService {
       throw new BadRequestException('storeId does not belong to user');
     }
 
-    // verify planId exists
-    const plan = await this.subscriptionPlanRepo.findOneBy({
-      id: payload.planId,
-    });
+    const plan = await this.subscriptionPlanRepo.findOneBy(
+      payload.planId ? { id: payload.planId } : { type: payload.plan },
+    );
 
-    if (!plan) throw new BadRequestException('Invalid planId');
+    if (!plan) throw new BadRequestException('Invalid plan');
 
     const secretKey =
       this.configService.get<string>('PAYSTACK_SECRET_KEY') ||
@@ -86,6 +87,20 @@ export class SubscriptionService {
       this.configService.get<string>('PAYSTACK_CALLBACK_URL') ||
       process.env.PAYSTACK_CALLBACK_URL;
 
+    // One free trial per store: any subscription that ever went through uses it up
+    const isTrial = !(await this.subscriptionRepo.exists({
+      where: {
+        storeId: store.id,
+        status: In([
+          SubscriptionStatus.ACTIVE,
+          SubscriptionStatus.NON_RENEWING,
+          SubscriptionStatus.INACTIVE,
+          SubscriptionStatus.EXPIRED,
+          SubscriptionStatus.CANCELLED,
+        ]),
+      },
+    }));
+
     try {
       const { data: response } = await axios.post<PaystackInitializeResponse>(
         'https://api.paystack.co/transaction/initialize',
@@ -94,7 +109,11 @@ export class SubscriptionService {
           currency,
           reference,
           callback_url: callbackUrl,
-          plan: plan.paystackId,
+          // A trial only verifies a card here; the webhook creates the Paystack
+          // subscription with billing starting when the trial ends
+          ...(isTrial
+            ? { amount: TRIAL_CARD_CHECK_AMOUNT, channels: ['card'] }
+            : { plan: plan.paystackId }),
           metadata: {
             userId: payload.userId,
             storeId: store.id,
@@ -109,19 +128,22 @@ export class SubscriptionService {
         },
       );
 
-      const expiresAt =
-        plan.type === PlanType.MONTHLY
-          ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-          : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+      const days = isTrial
+        ? TRIAL_DAYS
+        : plan.type === PlanType.MONTHLY
+          ? 30
+          : 365;
+      const expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
 
       await this.subscriptionRepo.save(
         this.subscriptionRepo.create({
           userId,
-          planId: payload.planId,
+          planId: plan.id,
           storeId: store.id,
           amount: plan.amount * 100, // Store in smallest currency unit
           paystackId: plan.paystackId,
           reference,
+          isTrial,
           expiresAt,
         }),
       );
@@ -133,6 +155,7 @@ export class SubscriptionService {
           ...(response.data || {}),
           storeId: store.id,
           reference,
+          isTrial,
         },
       };
     } catch (error) {

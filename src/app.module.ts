@@ -32,6 +32,7 @@ import { WalletModule } from './wallet/wallet.module';
 import { TransactionModule } from './transaction/transaction.module';
 import { ProductFavouriteModule } from './product-favourite/product-favourite.module';
 import { RedisModule } from './redis/redis.module';
+import { ListingCleanupModule } from './common/listing-cleanup/listing-cleanup.module';
 import { ServiceFavouriteModule } from './service-favourite/service-favourite.module';
 import { ProductViewModule } from './product-view/product-view.module';
 import { HousingFavouriteModule } from './housing-favourite/housing-favourite.module';
@@ -40,6 +41,7 @@ import { ServiceViewModule } from './service-view/service-view.module';
 import { SubscriptionPlanModule } from './subscription-plan/subscription-plan.module';
 import { SubscriptionModule } from './subscription/subscription.module';
 import { WebhookModule } from './webhook/webhook.module';
+import { UploadModule } from './upload/upload.module';
 
 @Module({
   imports: [
@@ -66,6 +68,7 @@ import { WebhookModule } from './webhook/webhook.module';
     TransactionModule,
     ProductFavouriteModule,
     RedisModule,
+    ListingCleanupModule,
     ServiceFavouriteModule,
     ProductViewModule,
     HousingFavouriteModule,
@@ -74,6 +77,7 @@ import { WebhookModule } from './webhook/webhook.module';
     SubscriptionPlanModule,
     SubscriptionModule,
     WebhookModule,
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [AppService],
