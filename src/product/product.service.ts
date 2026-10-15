@@ -18,9 +18,6 @@ import * as factory from 'utils/handlerFactory';
 import IQuery from 'interfaces/query.Interface';
 import { ProductImage } from './entities/product-image.entity';
 import { ProductViewService } from 'src/product-view/product-view.service';
-import { InjectQueue } from '@nestjs/bullmq';
-import { Queue } from 'bullmq';
-import { PRODUCT_QUE, PRODUCT_VIEWING_JOB } from './product.constants';
 import { Wallet } from 'src/wallet/entities/wallet.entity';
 import {
   Transaction,
@@ -29,11 +26,7 @@ import {
   TransactionType,
 } from 'src/transaction/entities/transaction.entity';
 import generateReference from 'utils/generateReference';
-
-interface ProductViewJobData {
-  userId: string;
-  productId: string;
-}
+import { PRODUCT_FEE_PER_UNIT } from 'src/fees/fees.constants';
 
 @Injectable()
 export class ProductService {
@@ -45,9 +38,6 @@ export class ProductService {
     private readonly productImageRepo: Repository<ProductImage>,
 
     private readonly productViewService: ProductViewService,
-
-    @InjectQueue(PRODUCT_QUE)
-    private readonly productViewingQueue: Queue<ProductViewJobData>,
 
     private readonly dataSource: DataSource,
 
@@ -120,25 +110,8 @@ export class ProductService {
     return await factory.getAll(this.productRepo, query);
   }
 
-  async findOne(id: string, query: IQuery, userId: string) {
-    const data = await factory.getOne(this.productRepo, id, query);
-
-    const product = data.data as Product;
-
-    if (product.userId !== userId) {
-      await this.productViewingQueue.add(
-        PRODUCT_VIEWING_JOB,
-        { productId: product.id, userId },
-        {
-          attempts: 3,
-          backoff: { type: 'exponential', delay: 5000 },
-          removeOnComplete: 100,
-          removeOnFail: 500,
-        },
-      );
-    }
-
-    return data;
+  async findOne(id: string, query: IQuery) {
+    return await factory.getOne(this.productRepo, id, query);
   }
 
   async update(id: string, updateProductDto: UpdateProductDto) {
@@ -199,13 +172,11 @@ export class ProductService {
       throw new BadRequestException('Product quantity must be greater than 0');
     }
 
-    return productQuantity * 10000;
+    return productQuantity * PRODUCT_FEE_PER_UNIT;
   }
 
   async creatAndCalculateViews(data: { productId: string; userId: string }) {
     const viewCount = await this.productViewService.create(data);
-
-    console.log({ viewCount });
 
     await this.update(data.productId, { viewCount });
   }

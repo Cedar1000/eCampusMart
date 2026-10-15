@@ -11,8 +11,7 @@ import { Request, Response } from 'express';
 import { User } from 'src/auth/entities/user.entity';
 import { Wallet } from 'src/wallet/entities/wallet.entity';
 import { Repository } from 'typeorm';
-
-const HOUSING_LISTING_FEE = 500 * 100;
+import { HOUSING_LISTING_FEE } from 'src/fees/fees.constants';
 
 @Injectable()
 export class HasHousingUploadBalanceGuard implements CanActivate {

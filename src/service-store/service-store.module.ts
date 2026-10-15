@@ -8,10 +8,17 @@ import { ServiceCategory } from 'src/service-category/entities/service-category.
 import { ValidServiceCategoryGuard } from './guards/valid-service-category.guard';
 import { UniqueServiceStoreGuard } from './guards/unique-service-store.guard';
 import { ValidServiceStoreOwnerGuard } from './guards/valid-service-store-owner.guard';
+import { SubscriptionPlan } from 'src/subscription-plan/entities/subscription-plan.entity';
+import { StoreVisibilitySweep } from './store-visibility.sweep';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ServiceStore, ServiceCategory, Subscription]),
+    TypeOrmModule.forFeature([
+      ServiceStore,
+      ServiceCategory,
+      Subscription,
+      SubscriptionPlan,
+    ]),
   ],
   controllers: [ServiceStoreController],
   providers: [
@@ -19,6 +26,7 @@ import { ValidServiceStoreOwnerGuard } from './guards/valid-service-store-owner.
     ValidServiceCategoryGuard,
     UniqueServiceStoreGuard,
     ValidServiceStoreOwnerGuard,
+    StoreVisibilitySweep,
   ],
   exports: [ServiceStoreService],
 })

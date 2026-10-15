@@ -161,13 +161,16 @@ describe('WebhookService', () => {
       jest.mocked(refundPaystackTransaction).mockReset();
     });
 
-    it('starts billing on Paystack when the trial ends and refunds the check', async () => {
+    it("starts billing on Paystack when the store's free month ends and refunds the check", async () => {
+      // Set at checkout to the end of the store's free month
+      const freeMonthEnd = new Date(Date.now() + 20 * 24 * 60 * 60 * 1000);
+      subscription.expiresAt = freeMonthEnd;
+
       await charge(true);
 
       const startDate = new Date(
         jest.mocked(createPaystackSubscription).mock.calls[0][0].start_date,
       );
-      const days = (startDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000);
 
       expect(createPaystackSubscription).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -176,10 +179,22 @@ describe('WebhookService', () => {
           authorization: 'AUTH_1',
         }),
       );
-      expect(Math.round(days)).toBe(30);
+      expect(startDate).toEqual(freeMonthEnd);
       expect(subscription.expiresAt).toEqual(startDate);
       expect(subscription.status).toBe(SubscriptionStatus.ACTIVE);
       expect(refundPaystackTransaction).toHaveBeenCalledWith('ref-1');
+    });
+
+    it('starts billing in the future when the free month ended before payment', async () => {
+      subscription.expiresAt = new Date(Date.now() - 60 * 1000);
+
+      await charge(true);
+
+      const startDate = new Date(
+        jest.mocked(createPaystackSubscription).mock.calls[0][0].start_date,
+      );
+
+      expect(startDate.getTime()).toBeGreaterThan(Date.now() + 59 * 60 * 1000);
     });
 
     it('fails, so Paystack retries, when the card cannot be charged again', async () => {
@@ -188,6 +203,31 @@ describe('WebhookService', () => {
       expect(createPaystackSubscription).not.toHaveBeenCalled();
       expect(refundPaystackTransaction).not.toHaveBeenCalled();
     });
+  });
+
+  it('still activates a paid checkout that a newer one replaced', async () => {
+    subscription.status = SubscriptionStatus.EXPIRED;
+
+    await send('charge.success', {
+      reference: 'ref-1',
+      metadata: { description: 'store-subscription' },
+    });
+
+    expect(subscription.status).toBe(SubscriptionStatus.ACTIVE);
+  });
+
+  it('ignores a charge for a period that already ended', async () => {
+    Object.assign(subscription, {
+      status: SubscriptionStatus.EXPIRED,
+      subscriptionCode: 'SUB_1',
+    });
+
+    await send('charge.success', {
+      reference: 'ref-1',
+      metadata: { description: 'store-subscription' },
+    });
+
+    expect(subscription.status).toBe(SubscriptionStatus.EXPIRED);
   });
 
   it('ignores renewal charges, which carry a plan but no metadata', async () => {

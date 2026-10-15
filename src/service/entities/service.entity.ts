@@ -6,6 +6,7 @@ import { BaseEntity } from 'src/common/base.entity';
 import { ServiceCategory } from 'src/service-category/entities/service-category.entity';
 import { ServiceImage } from './service-image.entity';
 import { PriceUnit } from '../enums/price.enum';
+import { ServiceStatus } from '../enums/service-status.enum';
 import { ServiceStore } from 'src/service-store/entities/service-store.entity';
 
 @Entity()
@@ -31,8 +32,13 @@ export class Service extends BaseEntity {
   @Column({ default: true })
   isNegotiable?: boolean;
 
+  // Listed on Explore: follows the store's free month or paid plan
   @Column({ nullable: true })
   isActive: boolean;
+
+  // Set by the seller
+  @Column({ type: 'enum', enum: ServiceStatus, default: ServiceStatus.ACTIVE })
+  status: ServiceStatus;
 
   @Column()
   campusId?: string;

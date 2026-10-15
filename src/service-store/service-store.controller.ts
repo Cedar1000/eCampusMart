@@ -10,6 +10,7 @@ import {
   UseGuards,
   Controller,
   ValidationPipe,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 
 import type IQuery from 'interfaces/query.Interface';
@@ -40,10 +41,13 @@ export class ServiceStoreController {
   }
 
   @Get()
-  findAll(@Query() query: Partial<IQuery>) {
+  findAll(
+    @Query() query: Partial<IQuery> & { ownerId?: string },
+    @CurrentUser() user: User,
+  ) {
     if (query.search) query.search = `name,${query.search}`;
 
-    return this.serviceStoreService.findAllServiceStores(query);
+    return this.serviceStoreService.findAllServiceStores(query, user.id);
   }
 
   @Get('my-store')
@@ -52,15 +56,19 @@ export class ServiceStoreController {
   }
 
   @Get(':id')
-  findOneById(@Param('id') id: string, @Query() query: Partial<IQuery>) {
-    return this.serviceStoreService.findServiceStoreById(id, query);
+  findOneById(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() query: Partial<IQuery>,
+    @CurrentUser() user: User,
+  ) {
+    return this.serviceStoreService.findServiceStoreById(id, query, user.id);
   }
 
   @Patch(':id')
   @UseGuards(ValidServiceStoreOwnerGuard)
   @UsePipes(ValidationPipe)
   update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() updateServiceStoreDto: UpdateServiceStoreDto,
   ) {
     return this.serviceStoreService.updateServiceStore(
@@ -71,7 +79,7 @@ export class ServiceStoreController {
 
   @Delete(':id')
   @UseGuards(ValidServiceStoreOwnerGuard)
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.serviceStoreService.deleteServiceStore(id);
   }
 }

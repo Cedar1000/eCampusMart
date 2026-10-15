@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Param } from '@nestjs/common';
+import { Controller, Get, Query, Param, ParseUUIDPipe } from '@nestjs/common';
 import { CampusService } from './campus.service';
 
 import type IQuery from 'interfaces/query.Interface';
@@ -17,7 +17,10 @@ export class CampusController {
   }
 
   @Get(':id')
-  findOneById(@Param('id') id: string, @Query() query: Partial<IQuery>) {
+  findOneById(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() query: Partial<IQuery>,
+  ) {
     return this.campusService.findCampusById(id, query);
   }
 }

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
+import { ClerkService } from './clerk.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { User } from './entities/user.entity';
@@ -33,6 +34,7 @@ import { ServiceStore } from 'src/service-store/entities/service-store.entity';
   controllers: [AuthController],
   providers: [
     AuthService,
+    ClerkService,
     DuplicateEmailGuard,
     ValidCampusGuard,
     UniquePhoneNumberGuard,

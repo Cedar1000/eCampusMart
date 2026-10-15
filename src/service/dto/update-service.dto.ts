@@ -10,6 +10,7 @@ import {
 } from 'class-validator';
 
 import { PriceUnit } from '../enums/price.enum';
+import { ServiceStatus } from '../enums/service-status.enum';
 
 import { ServiceImage } from '../entities/service-image.entity';
 
@@ -45,6 +46,10 @@ export class UpdateServiceDto {
   @IsNotEmpty()
   @IsEnum(PriceUnit)
   priceUnit?: PriceUnit;
+
+  @IsOptional()
+  @IsEnum(ServiceStatus)
+  status?: ServiceStatus;
 
   @IsOptional()
   @IsUUID()

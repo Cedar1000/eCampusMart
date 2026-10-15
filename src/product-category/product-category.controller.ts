@@ -9,6 +9,7 @@ import {
   UsePipes,
   Controller,
   ValidationPipe,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 
 import { ProductCategoryService } from './product-category.service';
@@ -40,14 +41,17 @@ export class ProductCategoryController {
   }
 
   @Get(':id')
-  findOneById(@Param('id') id: string, @Query() query: Partial<IQuery>) {
+  findOneById(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() query: Partial<IQuery>,
+  ) {
     return this.productCategoryService.findProductCategoryById(id, query);
   }
 
   @Patch(':id')
   @UsePipes(ValidationPipe)
   update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() updateProductCategoryDto: UpdateProductCategoryDto,
   ) {
     return this.productCategoryService.updateProductCategory(
@@ -57,7 +61,7 @@ export class ProductCategoryController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.productCategoryService.deleteProductCategory(id);
   }
 }

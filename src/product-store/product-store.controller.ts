@@ -11,6 +11,7 @@ import {
   UseInterceptors,
   UsePipes,
   ValidationPipe,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import type IQuery from 'interfaces/query.Interface';
 import { CurrentUser } from 'src/auth/decorators/get-current-user.decorator';
@@ -54,14 +55,17 @@ export class ProductStoreController {
 
   @Get(':id')
   @UseInterceptors(IncludeCampusInterceptor)
-  findOne(@Param('id') id: string, @Query() query: Partial<IQuery>) {
+  findOne(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() query: Partial<IQuery>,
+  ) {
     return this.productStoreService.findOne(id, query);
   }
 
   @Patch(':id')
   @UsePipes(ValidationPipe)
   update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() updateProductStoreDto: UpdateProductStoreDto,
     @CurrentUser() user: User,
   ) {
@@ -69,7 +73,7 @@ export class ProductStoreController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string, @CurrentUser() user: User) {
+  remove(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: User) {
     return this.productStoreService.remove(id, user.id);
   }
 }

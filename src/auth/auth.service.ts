@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, MoreThan, Repository } from 'typeorm';
+import { In, MoreThan, QueryFailedError, Repository } from 'typeorm';
 
 import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
@@ -40,9 +40,24 @@ import { Product } from 'src/product/entities/product.entity';
 import { ProductStore } from 'src/product-store/entities/product-store.entity';
 import { Service } from 'src/service/entities/service.entity';
 import { ServiceStore } from 'src/service-store/entities/service-store.entity';
+import { ClerkProfile, ClerkService } from './clerk.service';
 
 const MAX_OTP_ATTEMPTS = 5;
 const EMAIL_CHANGE_OTP_MINUTES = 10;
+
+// The user fields login responses carry
+const LOGIN_USER_FIELDS: (keyof User)[] = [
+  'id',
+  'firstName',
+  'lastName',
+  'email',
+  'isActive',
+  'phoneNumber',
+  'countryCode',
+  'emailVerified',
+  'campusId',
+  'photo',
+];
 
 const hashOtp = (userId: string, otp: number | string) =>
   crypto.createHash('sha256').update(`${userId}:${otp}`).digest('hex');
@@ -65,6 +80,7 @@ export class AuthService {
     private readonly walletService: WalletService,
     private readonly productStoreService: ProductStoreService,
     private readonly serviceStoreService: ServiceStoreService,
+    private readonly clerkService: ClerkService,
   ) {}
 
   async signUp(signUpDto: SignUpDto) {
@@ -225,18 +241,7 @@ export class AuthService {
     // Find User From Database
     const user = await this.userRepo.findOne({
       where: payload,
-      select: [
-        'id',
-        'firstName',
-        'lastName',
-        'email',
-        'isActive',
-        'password',
-        'phoneNumber',
-        'countryCode',
-        'emailVerified',
-        'campusId',
-      ],
+      select: [...LOGIN_USER_FIELDS, 'password'],
     });
 
     if (!user) {
@@ -251,7 +256,9 @@ export class AuthService {
       throw new UnauthorizedException('Your account is not active!');
     }
 
-    const passwordCheck = await bcrypt.compare(password, user.password);
+    // Google-only accounts have no password to match
+    const passwordCheck =
+      !!user.password && (await bcrypt.compare(password, user.password));
 
     // Checks if user does not exists in db and password is incorrect.
     if (!user || !passwordCheck) {
@@ -261,7 +268,7 @@ export class AuthService {
     const { token: accessToken, refreshToken } = signToken(user.id);
 
     const userClone: Omit<typeof user, 'password'> & {
-      password?: string;
+      password?: string | null;
     } = {
       ...user,
     };
@@ -281,6 +288,45 @@ export class AuthService {
       refreshToken,
       user: await this.withRelatedAccounts(userClone),
     };
+  }
+
+  // Google sign-in through Clerk: finds the account by Clerk id, then by email, else creates it
+  async clerkSignIn(token: string) {
+    const profile = await this.clerkService.getProfile(token);
+
+    let result: { user: User; isNewUser: boolean };
+
+    try {
+      result = await this.findOrCreateClerkUser(profile);
+    } catch (error) {
+      // Two first sign-ins raced; the other one created or linked the account
+      if (!this.isUniqueViolation(error)) throw error;
+
+      result = await this.findOrCreateClerkUser(profile);
+    }
+
+    const { user, isNewUser } = result;
+
+    if (!user.isActive) {
+      throw new UnauthorizedException('Your account is not active!');
+    }
+
+    const { token: accessToken, refreshToken } = signToken(user.id);
+
+    await this.userRepo.update({ id: user.id }, { lastLoggedIn: new Date() });
+
+    return {
+      status: 'success',
+      token: accessToken,
+      refreshToken,
+      isNewUser,
+      user: await this.withRelatedAccounts(user),
+    };
+  }
+
+  // Clerk user deleted: the account stays, but can no longer be reached through it
+  async unlinkClerkUser(clerkId: string) {
+    await this.userRepo.update({ clerkId }, { clerkId: null });
   }
 
   async getMe(user: User) {
@@ -353,11 +399,9 @@ export class AuthService {
       throw new BadRequestException('Token is invalid or has expired');
     }
 
-    if (!user.password) {
-      throw new BadRequestException('Please create your password first');
-    }
-
-    const passwordCheck = await bcrypt.compare(password, user.password);
+    // Google-only accounts set their first password through this flow
+    const passwordCheck =
+      !!user.password && (await bcrypt.compare(password, user.password));
 
     // Checks if the current password matches the one in the database
     if (passwordCheck) {
@@ -407,11 +451,17 @@ export class AuthService {
       throw new NotFoundException('No user with that id');
     }
 
+    if (!user.password) {
+      throw new BadRequestException(
+        'You have no password yet, use forgot password to set one',
+      );
+    }
+
     const passwordCheck = await bcrypt.compare(currentPassword, user.password);
 
-    // Checks if the current password matches the one in the database
+    // Not 401: the app signs the user out on a 401
     if (!passwordCheck) {
-      throw new UnauthorizedException('Your current password is incorrect');
+      throw new BadRequestException('Your current password is incorrect');
     }
 
     const passwordHash = await bcrypt.hash(newPassword, 12);
@@ -420,7 +470,15 @@ export class AuthService {
 
     const { token: accessToken, refreshToken } = signToken(user_id);
 
-    return { status: 'success', token: accessToken, refreshToken, user };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...safeUser } = user;
+
+    return {
+      status: 'success',
+      token: accessToken,
+      refreshToken,
+      user: safeUser,
+    };
   }
 
   async refreshToken(refreshTokenInput: string) {
@@ -500,9 +558,10 @@ export class AuthService {
     });
   }
 
+  // A wrong password is 400, not 401: the app signs the user out on a 401
   async verifyPassword(userId: string, password: string) {
     if (!(await this.isPasswordCorrect(userId, password))) {
-      throw new UnauthorizedException('Password is incorrect');
+      throw new BadRequestException('Password is incorrect');
     }
 
     return { status: 'success', message: 'Password is correct' };
@@ -510,7 +569,7 @@ export class AuthService {
 
   async requestEmailChange(user: User, email: string, password: string) {
     if (!(await this.isPasswordCorrect(user.id, password))) {
-      throw new UnauthorizedException('Password is incorrect');
+      throw new BadRequestException('Password is incorrect');
     }
 
     if (email === user.email) {
@@ -580,7 +639,7 @@ export class AuthService {
     }
 
     if (hashOtp(userId, Number(otp)) !== user.emailChangeOtpHash) {
-      throw new UnauthorizedException('Invalid OTP!');
+      throw new BadRequestException('Invalid OTP!');
     }
 
     // Someone may have taken the email while the OTP was pending
@@ -636,6 +695,65 @@ export class AuthService {
       .execute();
 
     return !!result.affected;
+  }
+
+  private async findOrCreateClerkUser(
+    profile: ClerkProfile,
+  ): Promise<{ user: User; isNewUser: boolean }> {
+    const linked = await this.userRepo.findOne({
+      where: { clerkId: profile.clerkId },
+      select: LOGIN_USER_FIELDS,
+    });
+
+    if (linked) return { user: linked, isNewUser: false };
+
+    // An abandoned signup never proved it owns the email, so it must not be linked
+    await this.removeUnverifiedAccounts(profile.email);
+
+    const existing = await this.userRepo.findOne({
+      where: { email: profile.email },
+      select: LOGIN_USER_FIELDS,
+    });
+
+    if (existing) {
+      await this.userRepo.update(
+        { id: existing.id },
+        { clerkId: profile.clerkId },
+      );
+
+      return { user: existing, isNewUser: false };
+    }
+
+    const user = await this.userRepo.manager.transaction(async (manager) => {
+      const created = await manager.save(
+        manager.create(User, {
+          firstName: profile.firstName,
+          lastName: profile.lastName,
+          email: profile.email,
+          emailVerified: true,
+          photo: profile.imageUrl,
+          clerkId: profile.clerkId,
+        }),
+      );
+
+      await manager.save(manager.create(Wallet, { userId: created.id }));
+
+      return created;
+    });
+
+    const created = await this.userRepo.findOne({
+      where: { id: user.id },
+      select: LOGIN_USER_FIELDS,
+    });
+
+    return { user: created as User, isNewUser: true };
+  }
+
+  private isUniqueViolation(error: unknown) {
+    return (
+      error instanceof QueryFailedError &&
+      (error.driverError as { code?: string }).code === '23505'
+    );
   }
 
   private clearedEmailChange() {

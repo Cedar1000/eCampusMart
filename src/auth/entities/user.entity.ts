@@ -36,9 +36,15 @@ export class User extends BaseEntity {
   @Column({ nullable: true })
   photoKey?: string;
 
-  @Column({ select: false, nullable: true })
+  // Null for accounts that only sign in with Google, until they set one
+  @Column({ select: false, nullable: true, type: 'varchar' })
   @Exclude({ toPlainOnly: true })
-  password: string;
+  password: string | null;
+
+  // Clerk user id ("user_…") of the Google sign-in linked to this account
+  @Column({ nullable: true, type: 'varchar' })
+  @Index({ unique: true })
+  clerkId?: string | null;
 
   @Column({ default: false })
   isVerified?: boolean;

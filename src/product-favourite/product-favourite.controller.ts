@@ -8,6 +8,7 @@ import {
   Controller,
   UseGuards,
   UseInterceptors,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 
 import { ProductFavouriteService } from './product-favourite.service';
@@ -43,7 +44,10 @@ export class ProductFavouriteController {
   }
 
   @Delete(':productId')
-  remove(@Param('productId') productId: string, @CurrentUser() user: User) {
+  remove(
+    @Param('productId', ParseUUIDPipe) productId: string,
+    @CurrentUser() user: User,
+  ) {
     return this.productFavouriteService.remove(productId, user);
   }
 }

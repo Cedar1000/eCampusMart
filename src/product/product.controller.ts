@@ -9,6 +9,7 @@ import {
   Controller,
   UseGuards,
   UseInterceptors,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 
 import { ProductService } from './product.service';
@@ -80,18 +81,17 @@ export class ProductController {
 
   @Get(':id')
   @UseInterceptors(ProductUserDetailsInterceptor, IncludeIsLikedInterceptor)
-  findOne(
-    @Param('id') id: string,
-    @Query() query: IQuery,
-    @CurrentUser() user: User,
-  ) {
+  findOne(@Param('id', ParseUUIDPipe) id: string, @Query() query: IQuery) {
     query.relations = withRelations(query.relations, ['images'], ['store']);
-    return this.productService.findOne(id, query, user.id);
+    return this.productService.findOne(id, query);
   }
 
   @Patch(':id')
   @UseGuards(ValidProductOwnerGuard, ValidProductStoreGuard)
-  update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateProductDto: UpdateProductDto,
+  ) {
     const { storeId } = updateProductDto;
 
     if (storeId) updateProductDto.isStoreProduct = true;
@@ -101,7 +101,7 @@ export class ProductController {
 
   @Delete(':id')
   @UseGuards(ValidProductOwnerGuard)
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.productService.remove(id);
   }
 }

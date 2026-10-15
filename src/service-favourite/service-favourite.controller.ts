@@ -8,6 +8,7 @@ import {
   Query,
   UseGuards,
   UseInterceptors,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { ServiceFavouriteService } from './service-favourite.service';
 import { CreateServiceFavouriteDto } from './dto/create-service-favourite.dto';
@@ -41,7 +42,10 @@ export class ServiceFavouriteController {
   }
 
   @Delete(':serviceId')
-  remove(@Param('serviceId') serviceId: string, @CurrentUser() user: User) {
+  remove(
+    @Param('serviceId', ParseUUIDPipe) serviceId: string,
+    @CurrentUser() user: User,
+  ) {
     return this.serviceFavouriteService.remove(serviceId, user);
   }
 }

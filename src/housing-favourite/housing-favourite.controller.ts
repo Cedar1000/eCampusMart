@@ -8,6 +8,7 @@ import {
   Controller,
   UseGuards,
   UseInterceptors,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 
 import { HousingFavouriteService } from './housing-favourite.service';
@@ -44,7 +45,10 @@ export class HousingFavouriteController {
   }
 
   @Delete(':housingId')
-  remove(@Param('housingId') housingId: string, @CurrentUser() user: User) {
+  remove(
+    @Param('housingId', ParseUUIDPipe) housingId: string,
+    @CurrentUser() user: User,
+  ) {
     return this.housingFavouriteService.remove(housingId, user);
   }
 }

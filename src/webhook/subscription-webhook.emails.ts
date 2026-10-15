@@ -20,8 +20,8 @@ export const getSubscriptionEmail = (
     case 'charge.success':
       if (subscription.isTrial) {
         return {
-          subject: 'Free trial started',
-          message: `Your free trial for ${storeName} has started and its services are now listed. Your card will be charged ${amount} on ${expiresAt} unless you cancel before then. The small card check charge has been refunded.`,
+          subject: 'Subscription set up',
+          message: `Your plan for ${storeName} is set up. Its free month runs until ${expiresAt}, then your card will be charged ${amount} unless you cancel before then. The small card check charge has been refunded.`,
         };
       }
 

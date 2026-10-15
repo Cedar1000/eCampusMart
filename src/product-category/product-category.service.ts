@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { CreateProductCategoryDto } from './dto/create-product-category.dto';
 import { UpdateProductCategoryDto } from './dto/update-product-category.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -18,6 +18,18 @@ export class ProductCategoryService {
   async createProductCategory(
     createProductCategoryDto: CreateProductCategoryDto,
   ) {
+    // Names are unique ignoring case and spaces
+    const exists = await this.productCategoryRepo
+      .createQueryBuilder('category')
+      .where('LOWER(TRIM(category.name)) = LOWER(TRIM(:name))', {
+        name: createProductCategoryDto.name,
+      })
+      .getExists();
+
+    if (exists) {
+      throw new ConflictException('A category with that name already exists');
+    }
+
     return await factory.createOne(
       this.productCategoryRepo,
       createProductCategoryDto,

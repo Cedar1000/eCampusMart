@@ -1,18 +1,15 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body } from '@nestjs/common';
 import { ProductViewService } from './product-view.service';
 import { CreateProductViewDto } from './dto/create-product-view.dto';
+import { CurrentUser } from 'src/auth/decorators/get-current-user.decorator';
+import { User } from 'src/auth/entities/user.entity';
 
-@Controller('product-view')
+@Controller('product-views')
 export class ProductViewController {
   constructor(private readonly productViewService: ProductViewService) {}
 
   @Post()
-  create(@Body() createProductViewDto: CreateProductViewDto) {
-    return this.productViewService.create(createProductViewDto);
-  }
-
-  @Get()
-  findAll() {
-    return this.productViewService.findAll();
+  create(@Body() dto: CreateProductViewDto, @CurrentUser() user: User) {
+    return this.productViewService.recordView(dto.productId, user.id);
   }
 }

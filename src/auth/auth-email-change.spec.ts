@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import sendEmail from 'utils/sendEmail';
 import { AuthService } from './auth.service';
@@ -67,6 +63,7 @@ describe('AuthService email change', () => {
       unused,
       unused,
       unused,
+      unused,
     );
   });
 
@@ -74,7 +71,7 @@ describe('AuthService email change', () => {
     service.requestEmailChange(user, 'new@b.com', password);
 
   it('rejects the request when the password is wrong', async () => {
-    await expect(request('wrong')).rejects.toThrow(UnauthorizedException);
+    await expect(request('wrong')).rejects.toThrow(BadRequestException);
     expect(sendEmail).not.toHaveBeenCalled();
   });
 
@@ -108,7 +105,7 @@ describe('AuthService email change', () => {
 
     for (let i = 0; i < 5; i++) {
       await expect(service.verifyEmailChange('user-1', 111111)).rejects.toThrow(
-        UnauthorizedException,
+        BadRequestException,
       );
     }
 

@@ -12,6 +12,7 @@ import { Request, Response } from 'express';
 import { User } from 'src/auth/entities/user.entity';
 import { Wallet } from 'src/wallet/entities/wallet.entity';
 import { Repository } from 'typeorm';
+import { PRODUCT_FEE_PER_UNIT } from 'src/fees/fees.constants';
 
 @Injectable()
 export class HasProductUploadBalanceGuard implements CanActivate {
@@ -36,7 +37,7 @@ export class HasProductUploadBalanceGuard implements CanActivate {
       throw new BadRequestException('Product quantity must be greater than 0');
     }
 
-    const uploadAmount = quantity * 100;
+    const uploadAmount = quantity * PRODUCT_FEE_PER_UNIT;
 
     const wallet = await this.walletRepo.findOne({
       where: { userId: user.id },

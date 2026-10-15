@@ -9,11 +9,14 @@ import * as factory from 'utils/handlerFactory';
 import { disablePaystackSubscription } from 'utils/paystack';
 import { In, Not, IsNull, Repository } from 'typeorm';
 import { ListingCleanupService } from 'src/common/listing-cleanup/listing-cleanup.service';
+import { SubscriptionPlan } from 'src/subscription-plan/entities/subscription-plan.entity';
 import { Subscription } from 'src/subscription/entities/subscription.entity';
 import { SubscriptionStatus } from 'src/subscription/enums/subscription-status.enum';
 import { CreateServiceStoreDto } from './dto/create-service-store.dto';
 import { UpdateServiceStoreDto } from './dto/update-service-store.dto';
 import { ServiceStore } from './entities/service-store.entity';
+import { TRIAL_DAYS } from 'src/subscription/subscription.constants';
+import { getTrialEnd, isInFreeMonth, PAID_STATUSES } from './store-visibility';
 
 @Injectable()
 export class ServiceStoreService {
@@ -24,27 +27,47 @@ export class ServiceStoreService {
     @InjectRepository(Subscription)
     private readonly subscriptionRepo: Repository<Subscription>,
 
+    @InjectRepository(SubscriptionPlan)
+    private readonly subscriptionPlanRepo: Repository<SubscriptionPlan>,
+
     private readonly listingCleanupService: ListingCleanupService,
   ) {}
 
+  // Every store starts with a free month on Explore
   async createServiceStore(createServiceStoreDto: CreateServiceStoreDto) {
-    return await factory.createOne(
-      this.serviceStoreRepo,
-      createServiceStoreDto,
-    );
+    return await factory.createOne(this.serviceStoreRepo, {
+      ...createServiceStoreDto,
+      trialEndsAt: new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000),
+      hasActiveSubscription: true,
+    });
   }
 
-  async findAllServiceStores(query: Partial<IQuery>) {
+  // Buyers only see stores on Explore; sellers always see their own
+  async findAllServiceStores(
+    query: Partial<IQuery> & {
+      ownerId?: string;
+      hasActiveSubscription?: boolean;
+    },
+    userId: string,
+  ) {
+    if (query.ownerId !== userId) query.hasActiveSubscription = true;
+
     return await factory.getAll(this.serviceStoreRepo, query);
   }
 
-  async findServiceStoreById(id: string, query: Partial<IQuery>) {
+  async findServiceStoreById(
+    id: string,
+    query: Partial<IQuery>,
+    userId: string,
+  ) {
     const data = await factory.getOne(this.serviceStoreRepo, id, query);
+    const store = data.data as ServiceStore;
 
-    return {
-      ...data,
-      data: await this.withSubscription(data.data as ServiceStore),
-    };
+    if (store.ownerId !== userId && !store.hasActiveSubscription) {
+      throw new NotFoundException('No resource with that ID');
+    }
+
+    return { ...data, data: await this.withSubscription(store) };
   }
 
   async findMine(ownerId: string) {
@@ -59,35 +82,91 @@ export class ServiceStoreService {
     };
   }
 
-  private async withSubscription(store: ServiceStore) {
-    const current = await this.subscriptionRepo.findOne({
-      where: {
-        storeId: store.id,
-        status: In([
-          SubscriptionStatus.ACTIVE,
-          SubscriptionStatus.NON_RENEWING,
-        ]),
-      },
+  private async withSubscription<T extends ServiceStore>(store: T) {
+    return { ...store, subscription: await this.getSubscriptionState(store) };
+  }
+
+  /**
+   * trial: in the free month · active: on a paid plan · canceled: the seller cancelled
+   * the free month or plan · expired: the free month or plan ran out.
+   * isOnExplore is what Explore currently shows.
+   */
+  private async getSubscriptionState(store: ServiceStore) {
+    const trialEndsAt = getTrialEnd(store);
+
+    const paid = await this.subscriptionRepo.findOne({
+      where: { storeId: store.id, status: In(PAID_STATUSES) },
       order: { createdAt: 'DESC' },
     });
 
+    if (paid) {
+      const plan = await this.subscriptionPlanRepo.findOne({
+        where: { id: paid.planId },
+        select: ['id', 'name', 'type'],
+      });
+
+      return {
+        status: 'active',
+        plan,
+        // Billing starts when the free month ends for plans taken during it
+        endsAt: paid.expiresAt,
+        renews: paid.status === SubscriptionStatus.ACTIVE,
+        trialEndsAt,
+        isOnExplore: store.hasActiveSubscription,
+        canRestartFree: false,
+      };
+    }
+
+    if (isInFreeMonth(store)) {
+      return {
+        status: 'trial',
+        plan: null,
+        endsAt: trialEndsAt,
+        renews: false,
+        trialEndsAt,
+        isOnExplore: store.hasActiveSubscription,
+        canRestartFree: false,
+      };
+    }
+
+    // Abandoned checkouts never got a Paystack code, so they don't count as a plan
+    const lastPlan = await this.subscriptionRepo.findOne({
+      where: { storeId: store.id, subscriptionCode: Not(IsNull()) },
+      order: { createdAt: 'DESC' },
+    });
+
+    const canRestartFree = store.trialCancelled && trialEndsAt > new Date();
+
     return {
-      ...store,
-      subscription: current
-        ? {
-            status: current.isTrial ? 'trial' : 'paid',
-            renews: current.status === SubscriptionStatus.ACTIVE,
-            endsAt: current.expiresAt,
-          }
-        : { status: 'inactive', renews: false, endsAt: null },
+      status:
+        canRestartFree || lastPlan?.status === SubscriptionStatus.CANCELLED
+          ? 'canceled'
+          : 'expired',
+      plan: null,
+      endsAt: null,
+      renews: false,
+      trialEndsAt,
+      isOnExplore: store.hasActiveSubscription,
+      canRestartFree,
     };
   }
 
-  async findByOwnerId(ownerId: string): Promise<ServiceStore | null> {
-    return this.serviceStoreRepo.findOne({
+  // For /auth/me: the seller's store with the same status as its store page
+  async findByOwnerId(ownerId: string) {
+    const store = await this.serviceStoreRepo.findOne({
       where: { ownerId },
-      select: ['id', 'name', 'logo'],
+      select: [
+        'id',
+        'name',
+        'logo',
+        'createdAt',
+        'trialEndsAt',
+        'trialCancelled',
+        'hasActiveSubscription',
+      ],
     });
+
+    return store ? this.withSubscription(store) : null;
   }
 
   async updateServiceStore(

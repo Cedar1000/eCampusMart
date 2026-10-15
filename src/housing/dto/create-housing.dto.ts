@@ -11,6 +11,7 @@ import {
 import { HousingImage } from '../entities/housing-image.entity';
 import { HouseType } from '../enums/house-type.enum';
 import { PricePeriod } from '../enums/price-period.enum';
+import { HousingStatus } from '../enums/housing-status.enum';
 
 export class CreateHousingDto {
   @IsNotEmpty()
@@ -20,6 +21,10 @@ export class CreateHousingDto {
   @IsNotEmpty()
   @IsEnum(HouseType)
   houseType: HouseType;
+
+  @IsOptional()
+  @IsEnum(HousingStatus)
+  status?: HousingStatus;
 
   @IsOptional()
   @IsUUID()

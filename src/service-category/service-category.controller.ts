@@ -9,6 +9,7 @@ import {
   Query,
   UsePipes,
   ValidationPipe,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import type IQuery from 'interfaces/query.Interface';
 import { ServiceCategoryService } from './service-category.service';
@@ -37,14 +38,17 @@ export class ServiceCategoryController {
   }
 
   @Get(':id')
-  findOneById(@Param('id') id: string, @Query() query: Partial<IQuery>) {
+  findOneById(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() query: Partial<IQuery>,
+  ) {
     return this.serviceCategoryService.findServiceCategoryById(id, query);
   }
 
   @Patch(':id')
   @UsePipes(ValidationPipe)
   update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() updateServiceCategoryDto: UpdateServiceCategoryDto,
   ) {
     return this.serviceCategoryService.updateServiceCategory(
@@ -54,7 +58,7 @@ export class ServiceCategoryController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.serviceCategoryService.deleteServiceCategory(id);
   }
 }

@@ -15,11 +15,14 @@ describe('ServiceService', () => {
   let serviceRepo: {
     create: jest.Mock;
     save: jest.Mock;
+    find: jest.Mock;
+    count: jest.Mock;
     countBy?: jest.Mock;
   };
   let serviceStoreRepo: {
     findOne: jest.Mock;
     update: jest.Mock;
+    exists: jest.Mock;
   };
   let serviceQueue: { add: jest.Mock };
 
@@ -27,10 +30,13 @@ describe('ServiceService', () => {
     serviceRepo = {
       create: jest.fn((payload) => payload),
       save: jest.fn((payload) => ({ id: 'service-id', ...payload })),
+      find: jest.fn(() => []),
+      count: jest.fn(() => 0),
     };
     serviceStoreRepo = {
       findOne: jest.fn(),
       update: jest.fn(),
+      exists: jest.fn(() => false),
     };
     serviceQueue = { add: jest.fn() };
 
@@ -66,6 +72,43 @@ describe('ServiceService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+  });
+
+  describe('listing services', () => {
+    const where = () =>
+      JSON.stringify(
+        (serviceRepo.find.mock.calls[0] as [{ where: unknown }])[0].where,
+      );
+
+    it('only shows buyers listed, active services', async () => {
+      await service.findListed({}, 'buyer-1');
+
+      expect(where()).toContain('isActive');
+      expect(where()).toContain('status');
+    });
+
+    it('shows sellers all of their own services by owner', async () => {
+      await service.findListed({ ownerId: 'owner-1' }, 'owner-1');
+
+      expect(where()).not.toContain('isActive');
+    });
+
+    it("shows sellers all of their own store's services", async () => {
+      serviceStoreRepo.exists.mockReturnValue(true);
+
+      await service.findListed({ storeId: 'store-1' }, 'owner-1');
+
+      expect(serviceStoreRepo.exists).toHaveBeenCalledWith({
+        where: { id: 'store-1', ownerId: 'owner-1' },
+      });
+      expect(where()).not.toContain('isActive');
+    });
+
+    it("hides another seller's unlisted services by store", async () => {
+      await service.findListed({ storeId: 'store-1' }, 'buyer-1');
+
+      expect(where()).toContain('isActive');
+    });
   });
 
   it('sets isActive from the selected store subscription status when creating', async () => {

@@ -47,8 +47,17 @@ export class ServiceStore extends BaseEntity {
   @Column({ default: 0 })
   ratingsCount: number;
 
+  // On Explore: during the free month or while a paid plan runs (see store-visibility.ts)
   @Column({ default: false })
   hasActiveSubscription: boolean;
+
+  // End of the free month; stores opened before it was saved fall back to createdAt + 30 days
+  @Column({ type: 'timestamp', nullable: true })
+  trialEndsAt?: Date | null;
+
+  // The seller cancelled the free month; they can restart it until trialEndsAt
+  @Column({ default: false })
+  trialCancelled: boolean;
 
   @Column({ default: 0 })
   servicesCount: number;

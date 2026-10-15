@@ -8,6 +8,7 @@ import {
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { BullModule } from '@nestjs/bullmq';
+import { ScheduleModule } from '@nestjs/schedule';
 import { getRedisOptions } from './redis/redis.config';
 
 import { AppController } from './app.controller';
@@ -42,10 +43,12 @@ import { SubscriptionPlanModule } from './subscription-plan/subscription-plan.mo
 import { SubscriptionModule } from './subscription/subscription.module';
 import { WebhookModule } from './webhook/webhook.module';
 import { UploadModule } from './upload/upload.module';
+import { FeesModule } from './fees/fees.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    ScheduleModule.forRoot(),
     BullModule.forRootAsync({
       // Injecting ConfigService makes sure .env is loaded before reading it
       inject: [ConfigService],
@@ -78,6 +81,7 @@ import { UploadModule } from './upload/upload.module';
     SubscriptionModule,
     WebhookModule,
     UploadModule,
+    FeesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
@@ -90,6 +94,8 @@ export class AppModule implements NestModule {
         { path: 'auth/login/email', method: RequestMethod.POST },
         { path: 'auth/login/phone', method: RequestMethod.POST },
         { path: 'auth/signup', method: RequestMethod.POST },
+        { path: 'auth/clerk', method: RequestMethod.POST },
+        { path: 'auth/clerk/webhook', method: RequestMethod.POST },
 
         { path: 'auth/check-email', method: RequestMethod.POST },
         { path: 'auth/refresh-token', method: RequestMethod.POST },

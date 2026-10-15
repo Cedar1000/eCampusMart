@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import type IQuery from 'interfaces/query.Interface';
 import * as factory from 'utils/handlerFactory';
@@ -17,6 +17,18 @@ export class ServiceCategoryService {
   async createServiceCategory(
     createServiceCategoryDto: CreateServiceCategoryDto,
   ) {
+    // Names are unique ignoring case and spaces
+    const exists = await this.serviceCategoryRepo
+      .createQueryBuilder('category')
+      .where('LOWER(TRIM(category.name)) = LOWER(TRIM(:name))', {
+        name: createServiceCategoryDto.name,
+      })
+      .getExists();
+
+    if (exists) {
+      throw new ConflictException('A category with that name already exists');
+    }
+
     return await factory.createOne(
       this.serviceCategoryRepo,
       createServiceCategoryDto,

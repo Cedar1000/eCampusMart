@@ -6,22 +6,14 @@ import { Repository } from 'typeorm';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { Service } from './entities/service.entity';
+import { ServiceStatus } from './enums/service-status.enum';
 import { ServiceImage } from './entities/service-image.entity';
 import { ServiceStore } from 'src/service-store/entities/service-store.entity';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
-import {
-  SERVICE_QUE,
-  SERVICE_STORE_COUNT_JOB,
-  SERVICE_VIEW_JOB,
-} from './service.constant';
+import { SERVICE_QUE, SERVICE_STORE_COUNT_JOB } from './service.constant';
 import { ServiceViewService } from 'src/service-view/service-view.service';
 import { ListingCleanupService } from 'src/common/listing-cleanup/listing-cleanup.service';
-
-interface ServiceViewJobData {
-  userId: string;
-  serviceId: string;
-}
 
 interface ServiceStoreCountJobData {
   storeId: string;
@@ -40,9 +32,7 @@ export class ServiceService {
     private readonly serviceStoreRepo: Repository<ServiceStore>,
 
     @InjectQueue(SERVICE_QUE)
-    private readonly serviceQueue: Queue<
-      ServiceViewJobData | ServiceStoreCountJobData
-    >,
+    private readonly serviceQueue: Queue<ServiceStoreCountJobData>,
 
     private readonly serviceViewService: ServiceViewService,
 
@@ -75,29 +65,36 @@ export class ServiceService {
   }
 
   async findAll(query: Partial<IQuery>) {
-    console.log({ query });
     return await factory.getAll(this.serviceRepo, query);
   }
 
-  async findOne(id: string, query: IQuery, userId: string) {
-    const data = await factory.getOne(this.serviceRepo, id, query);
+  // Buyers see listed, active services; sellers see all of their own, by owner or store
+  async findListed(
+    query: Partial<IQuery> & {
+      ownerId?: string;
+      storeId?: string;
+      isActive?: boolean;
+      status?: string;
+    },
+    userId: string,
+  ) {
+    const isOwnView =
+      query.ownerId === userId ||
+      (!!query.storeId &&
+        (await this.serviceStoreRepo.exists({
+          where: { id: query.storeId, ownerId: userId },
+        })));
 
-    const service = data.data as Service;
-
-    if (service.ownerId !== userId) {
-      await this.serviceQueue.add(
-        SERVICE_VIEW_JOB,
-        { serviceId: service.id, userId },
-        {
-          attempts: 3,
-          backoff: { type: 'exponential', delay: 5000 },
-          removeOnComplete: 100,
-          removeOnFail: 500,
-        },
-      );
+    if (!isOwnView) {
+      query.isActive = true;
+      query.status = ServiceStatus.ACTIVE;
     }
 
-    return data;
+    return await factory.getAll(this.serviceRepo, query);
+  }
+
+  async findOne(id: string, query: IQuery) {
+    return await factory.getOne(this.serviceRepo, id, query);
   }
 
   async update(id: string, updateServiceDto: UpdateServiceDto) {

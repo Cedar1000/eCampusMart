@@ -1,7 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/auth/entities/user.entity';
-import { Service } from 'src/service/entities/service.entity';
 import { ServiceStore } from 'src/service-store/entities/service-store.entity';
 import { Subscription } from 'src/subscription/entities/subscription.entity';
 import { SubscriptionStatus } from 'src/subscription/enums/subscription-status.enum';
@@ -13,7 +12,7 @@ import {
   createPaystackSubscription,
   refundPaystackTransaction,
 } from 'utils/paystack';
-import { TRIAL_DAYS } from 'src/subscription/subscription.constants';
+import { syncStoreVisibility } from 'src/service-store/store-visibility';
 import { getSubscriptionEmail } from './subscription-webhook.emails';
 import { asRecord, asString, PaystackEventData } from './webhook.utils';
 
@@ -143,10 +142,14 @@ export class SubscriptionWebhookService {
         lock: { mode: 'pessimistic_write' },
       });
 
-      // Only the first charge uses our reference; renewals are settled by invoice.update
-      if (!subscription || subscription.status !== SubscriptionStatus.PENDING) {
-        return null;
-      }
+      // Only the first charge uses our reference; renewals are settled by invoice.update.
+      // A checkout replaced by a newer one is expired with no code, but was still paid.
+      const isOpenCheckout =
+        subscription?.status === SubscriptionStatus.PENDING ||
+        (subscription?.status === SubscriptionStatus.EXPIRED &&
+          !subscription.subscriptionCode);
+
+      if (!subscription || !isOpenCheckout) return null;
 
       subscription.status = SubscriptionStatus.ACTIVE;
 
@@ -155,7 +158,7 @@ export class SubscriptionWebhookService {
         await this.startTrialBilling(subscription, data);
 
       await manager.save(subscription);
-      await this.syncStoreSubscription(manager, subscription.storeId);
+      await syncStoreVisibility(manager, subscription.storeId);
 
       return subscription;
     });
@@ -172,7 +175,7 @@ export class SubscriptionWebhookService {
     return subscription;
   }
 
-  // Billing for the plan starts on Paystack when the trial ends
+  // Billing for the plan starts on Paystack when the store's free month ends
   private async startTrialBilling(
     subscription: Subscription,
     data: PaystackEventData,
@@ -185,8 +188,12 @@ export class SubscriptionWebhookService {
       );
     }
 
+    // Paystack needs a start date in the future, even if the free month ran out meanwhile
     subscription.expiresAt = new Date(
-      Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000,
+      Math.max(
+        new Date(subscription.expiresAt).getTime(),
+        Date.now() + 60 * 60 * 1000,
+      ),
     );
 
     await createPaystackSubscription({
@@ -258,7 +265,7 @@ export class SubscriptionWebhookService {
       }
 
       await manager.save(subscription);
-      await this.syncStoreSubscription(manager, subscription.storeId);
+      await syncStoreVisibility(manager, subscription.storeId);
 
       return changed ? subscription : null;
     });
@@ -318,7 +325,7 @@ export class SubscriptionWebhookService {
         }),
       );
 
-      await this.syncStoreSubscription(manager, previous.storeId);
+      await syncStoreVisibility(manager, previous.storeId);
 
       return renewed;
     });
@@ -381,26 +388,5 @@ export class SubscriptionWebhookService {
       order: { createdAt: 'DESC' },
       lock: { mode: 'pessimistic_write' },
     });
-  }
-
-  private async syncStoreSubscription(manager: EntityManager, storeId: string) {
-    const hasActiveSubscription = await manager.exists(Subscription, {
-      where: {
-        storeId,
-        status: In([
-          SubscriptionStatus.ACTIVE,
-          SubscriptionStatus.NON_RENEWING,
-        ]),
-      },
-    });
-
-    await manager.update(ServiceStore, storeId, { hasActiveSubscription });
-
-    // The store's services are only listed while it has a running subscription
-    await manager.update(
-      Service,
-      { storeId },
-      { isActive: hasActiveSubscription },
-    );
   }
 }

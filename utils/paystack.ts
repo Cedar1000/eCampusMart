@@ -16,7 +16,21 @@ export const createPaystackSubscription = async (payload: {
   plan: string;
   authorization: string;
   start_date: string;
-}) => paystack().post('/subscription', payload);
+}) => {
+  const { data } = await paystack().post<{
+    data: { subscription_code: string; email_token: string };
+  }>('/subscription', payload);
+
+  return data.data;
+};
+
+export const fetchPaystackSubscription = async (code: string) => {
+  const { data } = await paystack().get<{ data: Record<string, unknown> }>(
+    `/subscription/${encodeURIComponent(code)}`,
+  );
+
+  return data.data;
+};
 
 export const refundPaystackTransaction = async (reference: string) =>
   paystack().post('/refund', { transaction: reference });

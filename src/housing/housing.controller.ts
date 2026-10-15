@@ -12,6 +12,7 @@ import {
   UsePipes,
   Controller,
   ValidationPipe,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 
 import type IQuery from 'interfaces/query.Interface';
@@ -26,6 +27,7 @@ import { HousingUserDetailsInterceptor } from './interceptors/housing-user-detai
 import { IncludeIsLikedInterceptor } from './interceptors/has-liked-housing.interceptor';
 import { HasHousingUploadBalanceGuard } from './guards/has-housing-upload-balance.guard';
 
+import { HousingStatus } from './enums/housing-status.enum';
 @Controller('housings')
 export class HousingController {
   constructor(private readonly housingService: HousingService) {}
@@ -55,6 +57,7 @@ export class HousingController {
   @UseInterceptors(IncludeIsLikedInterceptor, HousingUserDetailsInterceptor)
   findAll(@Query() query: IQuery) {
     query.relations = 'images';
+    query.status = HousingStatus.ACTIVE;
 
     if (query.search) query.search = `title,${query.search}`;
 
@@ -74,20 +77,16 @@ export class HousingController {
 
   @Get(':id')
   @UseInterceptors(IncludeIsLikedInterceptor, HousingUserDetailsInterceptor)
-  findOne(
-    @Param('id') id: string,
-    @Query() query: IQuery,
-    @CurrentUser() user: User,
-  ) {
+  findOne(@Param('id', ParseUUIDPipe) id: string, @Query() query: IQuery) {
     query.relations = 'images';
 
-    return this.housingService.findOne(id, query, user.id);
+    return this.housingService.findOne(id, query);
   }
 
   @Patch(':id')
   @UsePipes(ValidationPipe)
   update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() updateHousingDto: UpdateHousingDto,
     @CurrentUser() user: User,
   ) {
@@ -95,7 +94,7 @@ export class HousingController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string, @CurrentUser() user: User) {
+  remove(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: User) {
     return this.housingService.remove(id, user.id);
   }
 }

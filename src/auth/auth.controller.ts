@@ -8,11 +8,15 @@ import {
   HttpCode,
   UsePipes,
   UseGuards,
+  Req,
   Controller,
   ValidationPipe,
+  ParseUUIDPipe,
 } from '@nestjs/common';
+import type { Request } from 'express';
 
 import { AuthService } from './auth.service';
+import { ClerkService } from './clerk.service';
 
 import { SignUpDto } from './dto/signup.dto';
 import { EmailLoginDto, PhoneNumberLoginDto } from './dto/login.dto';
@@ -32,10 +36,14 @@ import { VerifyPasswordDto } from './dto/verify-password.dto';
 import { ChangeEmailDto, VerifyChangeEmailDto } from './dto/change-email.dto';
 import { ValidCampusGuard } from './guards/valid-campus.guard';
 import { UniquePhoneNumberGuard } from './guards/unique-phone-number.guard';
+import { ClerkSignInDto } from './dto/clerk-sign-in.dto';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly clerkService: ClerkService,
+  ) {}
 
   @Post('/signup')
   @HttpCode(201)
@@ -62,6 +70,28 @@ export class AuthController {
       phoneNumber: payload.phoneNumber,
     };
     return this.authService.login(payload);
+  }
+
+  @Post('/clerk')
+  @HttpCode(200)
+  @UsePipes(ValidationPipe)
+  async clerkSignIn(@Body() payload: ClerkSignInDto) {
+    return this.authService.clerkSignIn(payload.token);
+  }
+
+  @Post('/clerk/webhook')
+  @HttpCode(200)
+  async clerkWebhook(@Req() req: Request & { rawBody?: Buffer }) {
+    const event = await this.clerkService.verifyWebhook(
+      req.rawBody ?? Buffer.alloc(0),
+      req.headers,
+    );
+
+    if (event.type === 'user.deleted' && event.data.id) {
+      await this.authService.unlinkClerkUser(event.data.id);
+    }
+
+    return { status: 'success' };
   }
 
   @Post('/verify-otp')
@@ -164,7 +194,7 @@ export class AuthController {
 
   @Get('/users/:id')
   async getSingleUser(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Query() query: Partial<IQuery>,
   ) {
     return this.authService.getSingleUser(id, query);

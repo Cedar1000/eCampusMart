@@ -11,6 +11,7 @@ import {
   UseInterceptors,
   UsePipes,
   ValidationPipe,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import type IQuery from 'interfaces/query.Interface';
 import { CurrentUser } from 'src/auth/decorators/get-current-user.decorator';
@@ -42,13 +43,15 @@ export class ServiceController {
 
   @Get()
   @UseInterceptors(IncludeIsLikedServiceInterceptor)
-  findAll(@Query() query: IQuery & { isActive: boolean }) {
+  findAll(
+    @Query() query: IQuery & { ownerId?: string; storeId?: string },
+    @CurrentUser() user: User,
+  ) {
     query.relations = withRelations(query.relations, ['images'], ['store']);
-    query.isActive = true;
 
     if (query.search) query.search = `title,${query.search}`;
 
-    return this.serviceService.findAll(query);
+    return this.serviceService.findListed(query, user.id);
   }
 
   @Get('my-listings')
@@ -66,26 +69,25 @@ export class ServiceController {
 
   @Get(':id')
   @UseInterceptors(IncludeIsLikedServiceInterceptor)
-  findOne(
-    @Param('id') id: string,
-    @Query() query: IQuery,
-    @CurrentUser() user: User,
-  ) {
+  findOne(@Param('id', ParseUUIDPipe) id: string, @Query() query: IQuery) {
     query.relations = withRelations(query.relations, ['images'], ['store']);
 
-    return this.serviceService.findOne(id, query, user.id);
+    return this.serviceService.findOne(id, query);
   }
 
   @Patch(':id')
   @UseGuards(ValidServiceStoreGuard)
   @UsePipes(ValidationPipe)
-  update(@Param('id') id: string, @Body() updateServiceDto: UpdateServiceDto) {
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateServiceDto: UpdateServiceDto,
+  ) {
     return this.serviceService.update(id, updateServiceDto);
   }
 
   @Delete(':id')
   @UseGuards(ValidServiceOwnerGuard)
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.serviceService.remove(id);
   }
 }

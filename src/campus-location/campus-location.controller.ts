@@ -9,6 +9,7 @@ import {
   Query,
   UsePipes,
   ValidationPipe,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import type IQuery from 'interfaces/query.Interface';
 import { CampusLocationService } from './campus-location.service';
@@ -33,21 +34,24 @@ export class CampusLocationController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string, @Query() query: Partial<IQuery>) {
+  findOne(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() query: Partial<IQuery>,
+  ) {
     return this.campusLocationService.findOne(id, query);
   }
 
   @Patch(':id')
   @UsePipes(ValidationPipe)
   update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() updateCampusLocationDto: UpdateCampusLocationDto,
   ) {
     return this.campusLocationService.update(id, updateCampusLocationDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.campusLocationService.remove(id);
   }
 }
