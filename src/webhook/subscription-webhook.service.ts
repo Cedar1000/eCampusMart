@@ -43,6 +43,8 @@ export class SubscriptionWebhookService {
     event: string,
     data: PaystackEventData,
   ): Promise<Subscription | null> {
+    console.log({ event });
+
     switch (event) {
       case 'charge.success':
         return this.markSubscriptionSuccessful(this.getReference(data), data);
@@ -97,10 +99,13 @@ export class SubscriptionWebhookService {
 
   private async notify(event: string, subscription: Subscription) {
     try {
-      const [user, store] = await Promise.all([
+      const [user, store, plan] = await Promise.all([
         this.userRepository.findOne({ where: { id: subscription.userId } }),
         this.serviceStoreRepository.findOne({
           where: { id: subscription.storeId },
+        }),
+        this.dataSource.manager.findOne(SubscriptionPlan, {
+          where: { id: subscription.planId },
         }),
       ]);
 
@@ -108,6 +113,7 @@ export class SubscriptionWebhookService {
         event,
         subscription,
         store?.name || 'your store',
+        plan?.type,
       );
 
       if (!user || !email) return;
@@ -158,6 +164,7 @@ export class SubscriptionWebhookService {
         await this.startTrialBilling(subscription, data);
 
       await manager.save(subscription);
+      await this.useUpFreeTrial(manager, subscription.storeId);
       await syncStoreVisibility(manager, subscription.storeId);
 
       return subscription;
@@ -204,6 +211,11 @@ export class SubscriptionWebhookService {
     });
   }
 
+  // The store's first plan uses up its free trial, so later checkouts bill straight away
+  private async useUpFreeTrial(manager: EntityManager, storeId: string) {
+    await manager.update(ServiceStore, storeId, { hasFreeTrial: false });
+  }
+
   private async markSubscriptionFailed(reference: string) {
     const subscription = await this.subscriptionRepository.findOne({
       where: { reference },
@@ -237,6 +249,8 @@ export class SubscriptionWebhookService {
         planCode: asString(asRecord(data.plan).plan_code),
       });
 
+      console.log({ subscription });
+
       if (!subscription) {
         console.error('Subscription not found', { subscriptionCode, status });
         return null;
@@ -247,6 +261,11 @@ export class SubscriptionWebhookService {
         subscription.status !== status ||
         (!!subscriptionCode &&
           subscription.subscriptionCode !== subscriptionCode);
+
+      // subscription.create can arrive before charge.success and activate the checkout
+      const activated =
+        subscription.status === SubscriptionStatus.PENDING &&
+        status === SubscriptionStatus.ACTIVE;
 
       subscription.status = status;
 
@@ -265,6 +284,7 @@ export class SubscriptionWebhookService {
       }
 
       await manager.save(subscription);
+      if (activated) await this.useUpFreeTrial(manager, subscription.storeId);
       await syncStoreVisibility(manager, subscription.storeId);
 
       return changed ? subscription : null;

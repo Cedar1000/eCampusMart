@@ -44,6 +44,7 @@ import { SubscriptionModule } from './subscription/subscription.module';
 import { WebhookModule } from './webhook/webhook.module';
 import { UploadModule } from './upload/upload.module';
 import { FeesModule } from './fees/fees.module';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
@@ -82,6 +83,7 @@ import { FeesModule } from './fees/fees.module';
     WebhookModule,
     UploadModule,
     FeesModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [AppService],

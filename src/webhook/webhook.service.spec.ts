@@ -114,6 +114,7 @@ describe('WebhookService', () => {
         {
           provide: DataSource,
           useValue: {
+            manager,
             transaction: jest.fn((run: (m: typeof manager) => unknown) =>
               run(manager),
             ),

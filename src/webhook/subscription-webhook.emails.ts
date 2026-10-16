@@ -1,5 +1,6 @@
 import { Subscription } from 'src/subscription/entities/subscription.entity';
 import { SubscriptionStatus } from 'src/subscription/enums/subscription-status.enum';
+import { PlanType } from 'src/subscription-plan/enums/plan-type.enum';
 
 const formatDate = (date: Date) =>
   new Date(date).toLocaleDateString('en-NG', { dateStyle: 'long' });
@@ -12,6 +13,7 @@ export const getSubscriptionEmail = (
   event: string,
   subscription: Subscription,
   storeName: string,
+  planType?: PlanType,
 ): { subject: string; message: string } | null => {
   const amount = formatAmount(subscription.amount);
   const expiresAt = formatDate(subscription.expiresAt);
@@ -45,7 +47,7 @@ export const getSubscriptionEmail = (
     case 'subscription.not_renew':
       return {
         subject: 'Subscription will not renew',
-        message: `Your subscription for ${storeName} will not renew. It stays active until ${expiresAt}.`,
+        message: `Your ${planType ? `${planType} ` : ''}subscription for ${storeName} will not renew. It stays active until ${expiresAt}.`,
       };
 
     case 'subscription.disable':

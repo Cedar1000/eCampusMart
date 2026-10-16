@@ -14,7 +14,7 @@ export class InitializeSubscriptionDto {
   @ValidateIf((dto: InitializeSubscriptionDto) => !dto.plan)
   @IsNotEmpty()
   @IsUUID()
-  planId?: string;
+  planId: string;
 
   @ValidateIf((dto: InitializeSubscriptionDto) => !dto.planId)
   @IsNotEmpty()

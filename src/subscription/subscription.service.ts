@@ -22,7 +22,6 @@ import { Subscription } from './entities/subscription.entity';
 import { SubscriptionPlan } from 'src/subscription-plan/entities/subscription-plan.entity';
 import { PlanType } from 'src/subscription-plan/enums/plan-type.enum';
 import { SubscriptionStatus } from './enums/subscription-status.enum';
-import { TRIAL_CARD_CHECK_AMOUNT } from './subscription.constants';
 import {
   getTrialEnd,
   isInFreeMonth,
@@ -41,6 +40,20 @@ interface PaystackInitializeResponse {
   status: boolean;
   message: string;
   data?: Record<string, unknown>;
+}
+
+interface PaystackInitializeBody {
+  email: string;
+  currency: string;
+  reference: string;
+  callback_url?: string;
+  plan: string;
+  start_date?: string;
+  metadata: {
+    userId: string;
+    storeId: string;
+    description: TransactionDescription;
+  };
 }
 
 @Injectable()
@@ -65,6 +78,24 @@ export class SubscriptionService {
     userId: string,
   ) {
     const store = await this.findOwnedStore(payload.storeId, userId);
+
+    // A second checkout would bill the store for two plans at once
+    const activeSubscription = await this.subscriptionRepo.findOne({
+      where: { storeId: store.id, status: In(PAID_STATUSES) },
+      order: { createdAt: 'DESC' },
+    });
+
+    if (activeSubscription?.status === SubscriptionStatus.ACTIVE) {
+      throw new BadRequestException(
+        'Store already has an active subscription, use the change plan endpoint to switch plans',
+      );
+    }
+
+    if (activeSubscription) {
+      throw new BadRequestException(
+        `Store's current plan runs until ${activeSubscription.expiresAt.toISOString()}, please subscribe again after it ends`,
+      );
+    }
 
     const plan = await this.subscriptionPlanRepo.findOneBy(
       payload.planId ? { id: payload.planId } : { type: payload.plan },
@@ -99,25 +130,29 @@ export class SubscriptionService {
     const trialEndsAt = getTrialEnd(store);
     const isTrial = trialEndsAt > new Date();
 
+    const body: PaystackInitializeBody = {
+      email: payload.email,
+      currency,
+      reference,
+      callback_url: callbackUrl,
+      plan: plan.paystackId,
+      metadata: {
+        userId: payload.userId,
+        storeId: store.id,
+        description: TransactionDescription.STORE_SUBSCRIPTION,
+      },
+    };
+
+    if (store.hasFreeTrial) {
+      // set start date to be one month from nnow
+      const start_date = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      body.start_date = start_date.toISOString();
+    }
+
     try {
       const { data: response } = await axios.post<PaystackInitializeResponse>(
         'https://api.paystack.co/transaction/initialize',
-        {
-          email: payload.email,
-          currency,
-          reference,
-          callback_url: callbackUrl,
-          // A trial only verifies a card here; the webhook creates the Paystack
-          // subscription with billing starting when the trial ends
-          ...(isTrial
-            ? { amount: TRIAL_CARD_CHECK_AMOUNT, channels: ['card'] }
-            : { plan: plan.paystackId }),
-          metadata: {
-            userId: payload.userId,
-            storeId: store.id,
-            description: TransactionDescription.STORE_SUBSCRIPTION,
-          },
-        },
+        body,
         {
           headers: {
             Authorization: `Bearer ${secretKey}`,
@@ -127,6 +162,7 @@ export class SubscriptionService {
       );
 
       const days = plan.type === PlanType.MONTHLY ? 30 : 365;
+
       const expiresAt = isTrial
         ? trialEndsAt
         : new Date(Date.now() + days * 24 * 60 * 60 * 1000);
@@ -134,7 +170,7 @@ export class SubscriptionService {
       // One open checkout per store; a late payment on an older one is still honoured
       await this.subscriptionRepo.update(
         { storeId: store.id, status: SubscriptionStatus.PENDING },
-        { status: SubscriptionStatus.EXPIRED },
+        { status: SubscriptionStatus.FAILED },
       );
 
       await this.subscriptionRepo.save(

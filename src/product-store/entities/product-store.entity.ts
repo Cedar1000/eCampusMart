@@ -21,6 +21,9 @@ export class ProductStore extends BaseEntity {
   @Column({ default: 0 })
   ratingsCount?: number;
 
+  @Column({ default: 0 })
+  unreadMessages: number;
+
   @Column({ nullable: true, type: 'float', default: 0 })
   ratingsAverage?: number;
 

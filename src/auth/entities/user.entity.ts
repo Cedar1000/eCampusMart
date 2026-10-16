@@ -36,6 +36,9 @@ export class User extends BaseEntity {
   @Column({ nullable: true })
   photoKey?: string;
 
+  @Column({ default: 0 })
+  unreadMessages: number;
+
   // Null for accounts that only sign in with Google, until they set one
   @Column({ select: false, nullable: true, type: 'varchar' })
   @Exclude({ toPlainOnly: true })
