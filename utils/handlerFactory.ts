@@ -8,7 +8,13 @@ import IQuery from '../interfaces/query.Interface';
 import IPayload from '../interfaces/payload.Interface';
 import { NotFoundException } from '@nestjs/common';
 
-export const getAll = async (Repo: any, query: Partial<IQuery>) => {
+// `where` is merged into every where clause, for conditions the query string
+// can't express (e.g. ArrayContains on an array column)
+export const getAll = async (
+  Repo: any,
+  query: Partial<IQuery>,
+  where: Record<string, any> = {},
+) => {
   const payload: Partial<IPayload> = new APIFeatures(query)
     .filter()
     .sort()
@@ -16,6 +22,11 @@ export const getAll = async (Repo: any, query: Partial<IQuery>) => {
     .paginate()
     .search()
     .relations().payload;
+
+  payload.where = (payload.where as any[]).map((clause) => ({
+    ...clause,
+    ...where,
+  }));
 
   const limit = query.limit ? +query.limit : 10;
 

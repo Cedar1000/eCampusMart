@@ -26,9 +26,6 @@ export class Conversation extends BaseEntity {
   @Column({ nullable: true })
   createdBy?: string;
 
-  @Column({ type: 'uuid', nullable: true })
-  lastMessageId?: string | null;
-
   @ManyToOne(() => Message, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'lastMessageId' })
   lastMessage?: Message | null;

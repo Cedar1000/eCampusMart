@@ -24,6 +24,9 @@ export class ProductStore extends BaseEntity {
   @Column({ default: 0 })
   unreadMessages: number;
 
+  @Column({ default: false })
+  isOnline: boolean;
+
   @Column({ nullable: true, type: 'float', default: 0 })
   ratingsAverage?: number;
 

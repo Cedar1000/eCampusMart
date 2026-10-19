@@ -10,6 +10,7 @@ export enum MessageType {
   AUDIO = 'audio',
   FILE = 'file',
   SYSTEM = 'system',
+  VOICENOTE = 'voicenote',
 }
 
 export enum MessageStatus {
@@ -23,9 +24,9 @@ export interface MessageMedia {
   url: string;
   thumbnail?: string;
   size?: number;
-  duration?: number; // For audio/video
+  duration?: number; // For audio/video/voicenote
   mimeType?: string;
-  type?: string; // image, video, audio, file
+  type?: string; // image, video, audio, file, voicenote,
 }
 
 export interface MessageMetadata {
@@ -42,8 +43,9 @@ export enum MessageIndentity {
 
 @Entity()
 @Index(['conversationId', 'createdAt'])
-// Text messages need content; media messages may leave it out
-@Check(`"type" <> 'text' OR "content" IS NOT NULL`)
+// Text messages need content; media messages may leave it out. Compares as text so
+// the check doesn't reference the enum type, which TypeORM recreates when values change
+@Check(`"type"::text <> 'text' OR "content" IS NOT NULL`)
 export class Message extends BaseEntity {
   @Column({ type: 'uuid' })
   conversationId: string;
@@ -67,6 +69,12 @@ export class Message extends BaseEntity {
 
   @Column({ nullable: true })
   productId?: string;
+
+  @Column({ nullable: true })
+  serviceId?: string;
+
+  @Column({ nullable: true })
+  housingId?: string;
 
   @Column({ type: 'enum', enum: MessageType, default: MessageType.TEXT })
   type: MessageType;

@@ -1,8 +1,8 @@
-import { IsMongoId, IsNotEmpty, IsUUID } from 'class-validator';
+import { IsNotEmpty, IsUUID } from 'class-validator';
 
 export class TypingDto {
   @IsNotEmpty()
-  @IsMongoId()
+  @IsUUID()
   conversationId: string;
 
   @IsNotEmpty()

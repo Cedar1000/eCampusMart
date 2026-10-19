@@ -1,14 +1,15 @@
 import {
   IsArray,
   IsNumber,
-  IsMongoId,
   IsNotEmpty,
   IsOptional,
   IsString,
   IsUUID,
   ValidateNested,
+  IsEnum,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import { MessageIndentity } from '../entities/message.entity';
 
 class ChatMediaDto {
   @IsNotEmpty()
@@ -38,12 +39,20 @@ class ChatMediaDto {
 
 export class CreateChatDto {
   @IsOptional()
-  @IsMongoId()
+  @IsUUID()
   conversationId: string;
 
   @IsNotEmpty()
   @IsUUID()
   senderId: string;
+
+  @IsOptional()
+  @IsEnum(MessageIndentity)
+  senderType: MessageIndentity;
+
+  @IsOptional()
+  @IsEnum(MessageIndentity)
+  receiverType: MessageIndentity;
 
   @IsNotEmpty()
   @IsUUID()
@@ -52,6 +61,14 @@ export class CreateChatDto {
   @IsOptional()
   @IsUUID()
   productId: string;
+
+  @IsOptional()
+  @IsUUID()
+  serviceId: string;
+
+  @IsOptional()
+  @IsUUID()
+  housingId: string;
 
   @IsOptional()
   @IsString()

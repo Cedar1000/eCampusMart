@@ -50,6 +50,9 @@ export class ServiceStore extends BaseEntity {
   @Column({ default: 0 })
   unreadMessages: number;
 
+  @Column({ default: false })
+  isOnline: boolean;
+
   // On Explore: during the free month or while a paid plan runs (see store-visibility.ts)
   @Column({ default: false })
   hasActiveSubscription: boolean;

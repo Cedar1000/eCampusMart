@@ -14,7 +14,7 @@ import { ServiceStore } from 'src/service-store/entities/service-store.entity';
 import { Conversation } from './conversation.entity';
 import { Message, MessageIndentity, MessageStatus } from './message.entity';
 
-const UNREAD_STATUSES = [MessageStatus.SENT, MessageStatus.DELIVERED];
+export const UNREAD_STATUSES = [MessageStatus.SENT, MessageStatus.DELIVERED];
 
 // The entity that holds a receiver's unreadMessages, by receiverType
 const RECEIVER_ENTITIES = {
@@ -54,9 +54,19 @@ export class MessageSubscriber implements EntitySubscriberInterface<Message> {
     }
   }
 
+  // For bulk updates of one receiver's messages in a conversation, which skip the hooks
+  async syncUnreadCounts(
+    manager: EntityManager,
+    message: Pick<Message, 'conversationId' | 'receiverId' | 'receiverType'>,
+  ) {
+    await this.syncConversation(manager, message, false);
+    await this.syncReceiver(manager, message);
+  }
+
   private async syncConversation(
     manager: EntityManager,
-    message: Message,
+    message: Pick<Message, 'conversationId' | 'receiverId'> &
+      Partial<Pick<Message, 'id'>>,
     isNew: boolean,
   ) {
     const unreadCount = await manager.count(Message, {
@@ -75,7 +85,8 @@ export class MessageSubscriber implements EntitySubscriberInterface<Message> {
       .set({
         unReadCount: () =>
           `jsonb_set(COALESCE("unReadCount", '{}'::jsonb), ARRAY[:receiverId]::text[], to_jsonb(:unreadCount::int))`,
-        ...(isNew && { lastMessageId: message.id }),
+        // lastMessage is a relation; there's no lastMessageId property to set
+        ...(isNew && { lastMessage: { id: message.id } }),
       })
       .where('id = :conversationId', {
         conversationId: message.conversationId,
@@ -88,7 +99,7 @@ export class MessageSubscriber implements EntitySubscriberInterface<Message> {
   // The receiver's unread messages across all their conversations
   private async syncReceiver(
     manager: EntityManager,
-    { receiverId, receiverType }: Message,
+    { receiverId, receiverType }: Pick<Message, 'receiverId' | 'receiverType'>,
   ) {
     const receiver = RECEIVER_ENTITIES[receiverType];
 
