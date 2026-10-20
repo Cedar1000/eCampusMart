@@ -1,0 +1,54 @@
+$kind: http-example
+request:
+  url: "{{URL}}/product-stores/my-store"
+  method: GET
+  body:
+    type: json
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "1026"
+    etag: W/"402-pqvQQwZ9Sx9sTWv6qb+/T6egrbo"
+    date: Fri, 16 Oct 2026 16:58:23 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "Get One successful!",
+        "data": {
+          "id": "719b271f-0af2-4e60-9c24-3be55ca07225",
+          "createdAt": "2026-10-15T09:24:10.644Z",
+          "updatedAt": "2026-10-15T09:24:10.644Z",
+          "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+          "categoryId": "dc1e3297-69b8-4b87-9556-dff761adce6b",
+          "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+          "name": "Kings Wealth Gadgets",
+          "ratingsCount": 0,
+          "unreadMessages": 0,
+          "ratingsAverage": 0,
+          "address": null,
+          "description": "The best gadgets in uniport",
+          "logo": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1792059849/ECampusMart/emg8ngwuxc0hnmcceayw.jpg",
+          "logoKey": "ECampusMart/emg8ngwuxc0hnmcceayw",
+          "banner": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1792059849/ECampusMart/unvzjw9gpk1ymm71jpnu.jpg",
+          "bannerKey": "ECampusMart/unvzjw9gpk1ymm71jpnu",
+          "campus": {
+            "id": "801b075c-10d6-42be-972e-2d83df5580fd",
+            "createdAt": "2026-08-28T17:49:23.896Z",
+            "updatedAt": "2026-08-28T17:49:23.896Z",
+            "name": "University of Port Harcourt",
+            "abbreviation": "UNIPORT",
+            "type": "federal",
+            "state": "Rivers",
+            "logo": ""
+          }
+        }
+      }
+order: 1000

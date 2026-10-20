@@ -1,0 +1,32 @@
+$kind: http-example
+request:
+  url: "{{URL}}/auth/update-me"
+  method: PATCH
+  body:
+    type: json
+    content: |-
+      {
+          "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+          "phoneNumber": "8164175406",
+          "countryCode": "234"
+      }
+response:
+  statusCode: 409
+  statusText: Conflict
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "81"
+    etag: W/"51-il4Io5RGGAtlakgKsZi9H7syqDA"
+    date: Fri, 04 Sep 2026 14:28:46 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "message": "Phone number is already exists!",
+        "error": "Conflict",
+        "statusCode": 409
+      }
+order: 1000

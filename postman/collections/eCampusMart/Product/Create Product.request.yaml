@@ -1,0 +1,35 @@
+$kind: http-request
+url: "{{URL}}/products"
+method: POST
+body:
+  type: json
+  content: |-
+    {
+        "name": "Ced's Aldo Men Shoes",
+        "description": "test desc",
+        "categoryId": "29385f1f-d11b-462d-80bb-80f32ba72884",
+        "price": 65000,
+        "quantity": 3,
+        "condition": "brand-new", //fairly-used
+        "images": [
+            {
+                "key": "key-1",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790181560/ECampusMart/Frame_1984080275_1_ngyggj.jpg"
+            },
+            {
+                "key": "key-2",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790181560/ECampusMart/Frame_1984080275_1_ngyggj.jpg"
+            },
+            {
+                "key": "key-3",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790181560/ECampusMart/Frame_1984080275_1_ngyggj.jpg"
+            }
+        ]
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+settings: {}
+examples: ./.resources/Create Product.resources/examples
+order: 2000

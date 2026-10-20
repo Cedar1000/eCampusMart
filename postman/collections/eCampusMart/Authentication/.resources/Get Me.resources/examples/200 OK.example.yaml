@@ -1,0 +1,65 @@
+$kind: http-example
+request:
+  url: "{{URL}}/auth/me"
+  method: GET
+  body:
+    type: json
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "1120"
+    etag: W/"460-NDcZvKz2v0MlLAw15YgHcZMg2M8"
+    date: Mon, 05 Oct 2026 15:13:42 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "Get user successful!",
+        "user": {
+          "id": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+          "createdAt": "2026-09-04T13:09:56.118Z",
+          "updatedAt": "2026-10-05T14:12:56.502Z",
+          "firstName": "Cedar",
+          "lastName": "Daniel",
+          "email": "cedard686@gmail.com",
+          "phoneNumber": "8164175406",
+          "countryCode": "234",
+          "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+          "photo": null,
+          "isVerified": false,
+          "isActive": true,
+          "emailVerified": true,
+          "ratingsCount": 0,
+          "ratingsAverage": 0,
+          "lastLoggedIn": "2026-10-05T15:12:55.826Z",
+          "isOnline": false,
+          "role": "user",
+          "wallet": {
+            "id": "3be86da2-0379-4364-8265-22f399100954",
+            "createdAt": "2026-10-05T14:04:43.331Z",
+            "updatedAt": "2026-10-05T14:04:43.331Z",
+            "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "balance": "0.00",
+            "currency": "NGN",
+            "isActive": true
+          },
+          "productStore": {
+            "id": "16744f6a-cdf9-4922-acdc-a6bb8b72f261",
+            "name": "Campus Electronics Store",
+            "logo": "https://cdn.example.com/service-stores/sweet-crumbs/logo.png"
+          },
+          "serviceStore": {
+            "id": "513ce376-0dc1-451f-9dc5-eb9686a9d1d8",
+            "name": "Sweet Crumbs Bakery",
+            "logo": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790619525/ECampusMart/cake_brand_dvpbz5.jpg"
+          }
+        }
+      }
+order: 1000

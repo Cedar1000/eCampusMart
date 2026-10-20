@@ -1,0 +1,26 @@
+$kind: http-example
+request:
+  url: "{{URL}}/service-favourites/1fd582eb-0093-454d-9de5-609d4daff188"
+  method: DELETE
+  body:
+    type: json
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "51"
+    etag: W/"33-KNrpR5c1zdsS8xVZzC7awnD9CVU"
+    date: Thu, 08 Oct 2026 17:18:41 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "delete successful!"
+      }
+order: 1000

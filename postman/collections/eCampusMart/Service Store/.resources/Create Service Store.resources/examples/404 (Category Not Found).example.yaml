@@ -1,0 +1,36 @@
+$kind: http-example
+request:
+  url: "{{URL}}/service-stores"
+  method: POST
+  body:
+    type: json
+    content: |-
+      {
+          "categoryId": "8f6d9f26-3a25-4bf8-9ccf-6e4991f4ab12",
+          "name": "Campus Tech Repairs",
+          "description": "Phone, laptop, and accessory repair services.",
+          "logo": "https://cdn.example.com/stores/campus-tech-repairs-logo.png",
+          "logoKey": "service-stores/campus-tech-repairs/logo.png",
+          "banner": "https://cdn.example.com/stores/campus-tech-repairs-banner.png",
+          "bannerKey": "service-stores/campus-tech-repairs/banner.png"
+      }
+response:
+  statusCode: 404
+  statusText: Not Found
+  headers:
+    X-Powered-By: Express
+    Content-Type: application/json; charset=utf-8
+    Content-Length: "77"
+    ETag: W/"4d-ArbPoxBDgYV6yKOtzySa/I9pnfQ"
+    Date: Mon, 28 Sep 2026 17:08:34 GMT
+    Connection: keep-alive
+    Keep-Alive: timeout=5
+  body:
+    type: text
+    content: |-
+      {
+          "message": "Service category not found",
+          "error": "Not Found",
+          "statusCode": 404
+      }
+order: 1000

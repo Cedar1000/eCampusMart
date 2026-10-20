@@ -1,0 +1,32 @@
+$kind: http-request
+url: "{{URL}}/housings/b827ec76-839f-4302-8d15-8452fbcece8e"
+method: PATCH
+body:
+  type: json
+  content: |-
+    {
+        "title": "Modern Self-Contained Apartment",
+        "houseType": "self-contained",
+        "locationId": "80640c55-b4da-4b3b-aaa6-4588b2741606",
+        "whoCanRent": "Students",
+        "description": "A clean and spacious self-contained apartment close to campus.",
+        "isNegotiable": true,
+        "price": 850000,
+        "pricePeriod": "yearly",
+        "images": [
+            {
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777176/ECampusMart/housing_f7mjrp.jpg",
+                "key": "housing/apartment-1.jpg"
+            },
+            {
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777172/ECampusMart/housing_2_kmp3y3.jpg",
+                "key": "housing/apartment-2.jpg"
+            }
+        ]
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+examples: ./.resources/Update Housing.resources/examples
+order: 4000

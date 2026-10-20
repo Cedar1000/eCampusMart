@@ -1,0 +1,36 @@
+$kind: http-example
+request:
+  url: "{{URL}}/subscriptions/initialize-subscription"
+  method: POST
+  body:
+    type: json
+    content: |-
+      {
+          "storeId": "513ce376-0dc1-451f-9dc5-eb9686a9d1d8",
+          "planId": "c6af54a9-453d-49b6-b915-08484265f696"
+      }
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "236"
+    etag: W/"ec-5PxtSG/zkldt5QQBJji53SEY+2Q"
+    date: Tue, 13 Oct 2026 10:15:56 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": true,
+        "message": "Authorization URL created",
+        "data": {
+          "authorization_url": "https://checkout.paystack.com/h8czv4t3njuvjbn",
+          "access_code": "h8czv4t3njuvjbn",
+          "reference": "kO9115485E",
+          "storeId": "513ce376-0dc1-451f-9dc5-eb9686a9d1d8"
+        }
+      }
+order: 1000

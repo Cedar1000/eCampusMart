@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Query,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import { SubscriptionService } from './subscription.service';
 
 import { InitializeSubscriptionDto } from './dto/initialize-subscription.dto';
@@ -37,6 +45,7 @@ export class SubscriptionController {
   }
 
   @Post('change-plan')
+  @HttpCode(HttpStatus.OK)
   changePlan(
     @Body() dto: ChangeSubscriptionPlanDto,
     @CurrentUser() user: User,

@@ -1,5 +1,6 @@
 import {
   BadGatewayException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -8,13 +9,30 @@ import { Repository } from 'typeorm';
 import { verifyPaystackTransaction } from 'utils/paystack';
 
 import { Subscription } from 'src/subscription/entities/subscription.entity';
+import { SubscriptionStatus } from 'src/subscription/enums/subscription-status.enum';
 import {
   Transaction,
   TransactionDescription,
+  TransactionStatus,
 } from 'src/transaction/entities/transaction.entity';
 import { Wallet } from 'src/wallet/entities/wallet.entity';
-import { WebhookService } from './webhook.service';
+import { SubscriptionWebhookService } from './subscription-webhook.service';
+import { WalletWebhookService } from './wallet-webhook.service';
 import { asString } from './webhook.utils';
+
+type PaymentPurpose = 'fund' | 'subscription';
+type PaymentStatus = 'success' | 'pending' | 'failed';
+
+interface Payment {
+  purpose: PaymentPurpose;
+  status: PaymentStatus;
+  amount: number; // kobo
+  expiresAt?: Date; // only top-ups expire as checkouts
+}
+
+// Paystack statuses that settle a payment; anything else (abandoned, ongoing,
+// pending, …) means the user may still be paying
+const PAYSTACK_FAILED = ['failed', 'reversed'];
 
 @Injectable()
 export class PaymentService {
@@ -28,68 +46,122 @@ export class PaymentService {
     @InjectRepository(Subscription)
     private readonly subscriptionRepository: Repository<Subscription>,
 
-    private readonly webhookService: WebhookService,
+    private readonly walletWebhookService: WalletWebhookService,
+
+    private readonly subscriptionWebhookService: SubscriptionWebhookService,
   ) {}
 
+  // Settles a top-up or subscription payment straight away, in case the webhook is
+  // late. Uses the same settlement code as the webhook, so it's credited once
   async verify(reference: string, userId: string) {
-    const type = await this.getOwnedPaymentType(reference, userId);
+    let payment = await this.findOwnedPayment(reference, userId);
 
-    let data: Record<string, unknown>;
-
-    try {
-      data = await verifyPaystackTransaction(reference);
-    } catch (error) {
-      console.error('Paystack verification failed', error);
-      throw new BadGatewayException('Unable to verify payment');
+    if (payment.status === 'pending') {
+      await this.settleWithPaystack(reference, payment);
+      payment = await this.findOwnedPayment(reference, userId);
     }
 
-    const paystackStatus = asString(data.status);
-
-    // Settle it now in case the webhook hasn't arrived yet
-    if (paystackStatus === 'success') {
-      await this.webhookService.processEvent('charge.success', data);
-    }
-
-    if (paystackStatus === 'failed') {
-      await this.webhookService.processEvent('charge.failed', data);
-    }
+    const wallet = await this.walletRepository.findOne({
+      where: { userId },
+      select: ['id', 'balance'],
+    });
 
     return {
       status: 'success',
       data: {
         reference,
-        type,
-        paymentStatus:
-          paystackStatus === 'success' || paystackStatus === 'failed'
-            ? paystackStatus
-            : 'pending',
-        // Paystack amounts are in kobo
-        amount: Number(data.amount || 0) / 100,
-        currency: asString(data.currency) || 'NGN',
+        purpose: payment.purpose,
+        status: payment.status,
+        // Stored in kobo, shown in naira
+        amount: Number(payment.amount) / 100,
+        balance: wallet ? Number(wallet.balance) / 100 : 0,
       },
     };
   }
 
-  private async getOwnedPaymentType(reference: string, userId: string) {
+  private async settleWithPaystack(reference: string, payment: Payment) {
+    let data: Record<string, unknown>;
+
+    try {
+      data = await verifyPaystackTransaction(reference);
+    } catch (error) {
+      console.error('Paystack verification failed', reference, error);
+      throw new BadGatewayException('Unable to verify payment');
+    }
+
+    const paystackStatus = asString(data.status);
+    const settle = (event: string) =>
+      payment.purpose === 'fund'
+        ? this.walletWebhookService.handle(event, { ...data, reference })
+        : this.subscriptionWebhookService.handle(event, {
+            ...data,
+            reference,
+          });
+
+    if (paystackStatus === 'success') return settle('charge.success');
+
+    if (PAYSTACK_FAILED.includes(paystackStatus)) {
+      return settle('charge.failed');
+    }
+
+    // Unpaid top-up checkouts close when they expire; a late payment is still credited
+    if (payment.expiresAt && payment.expiresAt < new Date()) {
+      return settle('charge.failed');
+    }
+  }
+
+  // 404 if no payment has the reference, 403 if it isn't the user's
+  private async findOwnedPayment(
+    reference: string,
+    userId: string,
+  ): Promise<Payment> {
     const transaction = await this.transactionRepository.findOne({
-      where: { reference },
-      select: ['id', 'walletId'],
+      where: { reference, description: TransactionDescription.FUND },
+      relations: ['wallet'],
     });
 
     if (transaction) {
-      const ownsWallet = await this.walletRepository.exists({
-        where: { id: transaction.walletId, userId },
-      });
+      if (transaction.wallet?.userId !== userId) throw this.notYours();
 
-      if (ownsWallet) return TransactionDescription.FUND;
+      return {
+        purpose: 'fund',
+        status: this.transactionStatus(transaction.status),
+        amount: transaction.amount,
+        expiresAt: transaction.expiresAt,
+      };
     }
 
-    const ownsSubscription = await this.subscriptionRepository.exists({
-      where: { reference, userId },
+    const subscription = await this.subscriptionRepository.findOne({
+      where: { reference },
     });
 
-    if (ownsSubscription) return TransactionDescription.STORE_SUBSCRIPTION;
+    if (subscription) {
+      if (subscription.userId !== userId) throw this.notYours();
+
+      return {
+        purpose: 'subscription',
+        status: this.subscriptionStatus(subscription.status),
+        amount: subscription.amount,
+      };
+    }
 
     throw new NotFoundException('No payment with that reference');
+  }
+
+  private notYours() {
+    return new ForbiddenException('This payment is not yours');
+  }
+
+  private transactionStatus(status: TransactionStatus): PaymentStatus {
+    if (status === TransactionStatus.SUCCESS) return 'success';
+    if (status === TransactionStatus.FAILED) return 'failed';
+    return 'pending';
+  }
+
+  // Every status past pending, except failed, means the first payment went through
+  private subscriptionStatus(status: SubscriptionStatus): PaymentStatus {
+    if (status === SubscriptionStatus.PENDING) return 'pending';
+    if (status === SubscriptionStatus.FAILED) return 'failed';
+    return 'success';
   }
 }

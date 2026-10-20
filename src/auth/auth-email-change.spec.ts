@@ -14,6 +14,7 @@ describe('AuthService email change', () => {
   let row: Record<string, unknown>;
   let userRepo: {
     findOne: jest.Mock;
+    find: jest.Mock;
     update: jest.Mock;
     exists: jest.Mock;
     createQueryBuilder: jest.Mock;
@@ -26,6 +27,8 @@ describe('AuthService email change', () => {
 
     userRepo = {
       findOne: jest.fn(() => ({ ...row })),
+      // No abandoned signups hold the new email
+      find: jest.fn(() => []),
       update: jest.fn((_where, changes: Record<string, unknown>) =>
         Object.assign(row, changes),
       ),
@@ -69,6 +72,14 @@ describe('AuthService email change', () => {
 
   const request = (password = 'secret123') =>
     service.requestEmailChange(user, 'new@b.com', password);
+
+  it("isn't blocked by an unverified signup that used the email", async () => {
+    await request();
+
+    expect(userRepo.exists).toHaveBeenCalledWith({
+      where: { email: 'new@b.com', emailVerified: true },
+    });
+  });
 
   it('rejects the request when the password is wrong', async () => {
     await expect(request('wrong')).rejects.toThrow(BadRequestException);

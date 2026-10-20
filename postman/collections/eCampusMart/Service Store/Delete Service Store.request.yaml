@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{URL}}/service-stores/5073cd3b-1b0d-4623-87c9-fa96fa866ee3"
+method: DELETE
+body:
+  type: json
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+examples: ./.resources/Delete Service Store.resources/examples
+order: 5000

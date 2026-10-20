@@ -1,0 +1,17 @@
+$kind: http-request
+url: "{{URL}}/products/c4b46ada-ae8b-4e7a-97b3-bcfd770f8842"
+method: GET
+queryParams:
+  - key: relations
+    value: images
+    disabled: true
+body:
+  type: json
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+settings: {}
+examples: ./.resources/Get Single Product.resources/examples
+order: 3000

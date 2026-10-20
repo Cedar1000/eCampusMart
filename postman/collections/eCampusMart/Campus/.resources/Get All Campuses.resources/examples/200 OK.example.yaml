@@ -1,0 +1,134 @@
+$kind: http-example
+request:
+  url: "{{URL}}/campuses"
+  method: GET
+  body:
+    type: json
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "2420"
+    etag: W/"974-wGkYUjexUR3By1NoJNmMfheBhW4"
+    date: Fri, 04 Sep 2026 17:43:11 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "Get All successful!",
+        "total": 10,
+        "nextPage": 2,
+        "prevPage": null,
+        "count": 300,
+        "pages": 30,
+        "currentPage": 1,
+        "data": [
+          {
+            "id": "fff4ca33-ce83-452f-b5ca-45339dbba36f",
+            "createdAt": "2026-08-28T17:49:23.896Z",
+            "updatedAt": "2026-08-28T17:49:23.896Z",
+            "name": "University of Medical Sciences Ondo",
+            "abbreviation": "UNIMED",
+            "type": "state",
+            "state": "Ondo",
+            "logo": ""
+          },
+          {
+            "id": "fee4c1ef-a04c-4305-ac95-fd40350b503c",
+            "createdAt": "2026-08-28T17:49:23.896Z",
+            "updatedAt": "2026-08-28T17:49:23.896Z",
+            "name": "British Canadian University Obufu",
+            "abbreviation": "BCU",
+            "type": "private",
+            "state": "Cross River",
+            "logo": ""
+          },
+          {
+            "id": "fe438c4d-c4a2-41e2-bce0-f2d5b12e9fa2",
+            "createdAt": "2026-08-28T17:49:23.896Z",
+            "updatedAt": "2026-08-28T17:49:23.896Z",
+            "name": "Nigeria Police Academy Wudil",
+            "abbreviation": "POLAC",
+            "type": "federal",
+            "state": "Kano",
+            "logo": ""
+          },
+          {
+            "id": "fdeeb712-08ef-4f30-ac76-22244c94b87a",
+            "createdAt": "2026-08-28T17:49:23.896Z",
+            "updatedAt": "2026-08-28T17:49:23.896Z",
+            "name": "Akwa Ibom State University",
+            "abbreviation": "AKSU",
+            "type": "state",
+            "state": "Akwa Ibom",
+            "logo": ""
+          },
+          {
+            "id": "fdec1c13-7384-4f26-af51-b1d7b83b8c0e",
+            "createdAt": "2026-08-28T17:49:23.896Z",
+            "updatedAt": "2026-08-28T17:49:23.896Z",
+            "name": "Kings University Ode Omu",
+            "abbreviation": "KINGSUNI",
+            "type": "private",
+            "state": "Osun",
+            "logo": ""
+          },
+          {
+            "id": "fdebdcbb-d278-4338-a39e-3aee859d059e",
+            "createdAt": "2026-08-28T17:49:23.896Z",
+            "updatedAt": "2026-08-28T17:49:23.896Z",
+            "name": "Elrazi Medical University Kano",
+            "abbreviation": "ELRAZI",
+            "type": "private",
+            "state": "Kano",
+            "logo": ""
+          },
+          {
+            "id": "fd74fa74-b915-4038-992b-91c5213761f6",
+            "createdAt": "2026-08-28T17:49:23.896Z",
+            "updatedAt": "2026-08-28T17:49:23.896Z",
+            "name": "University of Fortune Igbotako",
+            "abbreviation": "FORTUNE",
+            "type": "private",
+            "state": "Ondo",
+            "logo": ""
+          },
+          {
+            "id": "fcc282da-b0c8-499b-a5c2-70fc31c30581",
+            "createdAt": "2026-08-28T17:49:23.896Z",
+            "updatedAt": "2026-08-28T17:49:23.896Z",
+            "name": "Coal City University Enugu",
+            "abbreviation": "CCU",
+            "type": "private",
+            "state": "Enugu",
+            "logo": ""
+          },
+          {
+            "id": "fcb99cae-7594-4a50-aac1-ea7ce7a8d13d",
+            "createdAt": "2026-08-28T17:49:23.896Z",
+            "updatedAt": "2026-08-28T17:49:23.896Z",
+            "name": "Capital City University Kano",
+            "abbreviation": "CCUK",
+            "type": "private",
+            "state": "Kano",
+            "logo": ""
+          },
+          {
+            "id": "fbddd1e4-7a75-445d-bdd5-b94b117031b4",
+            "createdAt": "2026-08-28T17:49:23.896Z",
+            "updatedAt": "2026-08-28T17:49:23.896Z",
+            "name": "Prime University Kuje",
+            "abbreviation": "PRIME",
+            "type": "private",
+            "state": "FCT",
+            "logo": ""
+          }
+        ]
+      }
+order: 1000

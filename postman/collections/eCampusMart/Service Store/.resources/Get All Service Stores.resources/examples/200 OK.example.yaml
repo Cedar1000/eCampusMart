@@ -1,0 +1,224 @@
+$kind: http-example
+request:
+  url: "{{URL}}/service-stores"
+  method: GET
+  body:
+    type: json
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    X-Powered-By: Express
+    Content-Type: application/json; charset=utf-8
+    Content-Length: "7887"
+    ETag: W/"1ecf-v0Eu1eq5MzNluvVNSroORoLa3MQ"
+    Date: Tue, 29 Sep 2026 09:24:04 GMT
+    Connection: keep-alive
+    Keep-Alive: timeout=5
+  body:
+    type: text
+    content: |-
+      {
+          "status": "success",
+          "message": "Get All successful!",
+          "total": 10,
+          "nextPage": 2,
+          "prevPage": null,
+          "count": 16,
+          "pages": 2,
+          "currentPage": 1,
+          "data": [
+              {
+                  "id": "e5e9a262-c8bb-4946-ba93-978e581729a6",
+                  "createdAt": "2026-09-28T17:05:22.530Z",
+                  "updatedAt": "2026-09-28T17:05:22.530Z",
+                  "ownerId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+                  "categoryId": "a682ec3d-f952-404f-8f1d-cbdd45b60697",
+                  "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+                  "name": "Kinks & Curls Salon",
+                  "ratingsCount": 0,
+                  "servicesCount": 0,
+                  "basePrice": 15000,
+                  "completedBookings": 0,
+                  "ratingsAverage": 0,
+                  "description": "Braiding, natural hair care, wash and styling for all hair types.",
+                  "logo": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790619525/ECampusMart/cake_brand_dvpbz5.jpg",
+                  "logoKey": "ECampusMart/cake_brand_dvpbz5",
+                  "banner": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790619808/ECampusMart/cake_banner_s1q20x.jpg",
+                  "bannerKey": "ECampusMart/cake_banner_s1q20x"
+              },
+              {
+                  "id": "c9c83fc8-c7f9-4927-b71a-4b4dcc79f28b",
+                  "createdAt": "2026-09-28T17:05:22.530Z",
+                  "updatedAt": "2026-09-28T17:05:22.530Z",
+                  "ownerId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+                  "categoryId": "2dd564f0-ad8f-4a41-a606-b32bad98f645",
+                  "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+                  "name": "Crown & Co Barbers",
+                  "ratingsCount": 0,
+                  "servicesCount": 0,
+                  "basePrice": 15000,
+                  "completedBookings": 0,
+                  "ratingsAverage": 0,
+                  "description": "Premium haircuts and styling for students who want to look their best.",
+                  "logo": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790619525/ECampusMart/cake_brand_dvpbz5.jpg",
+                  "logoKey": "ECampusMart/cake_brand_dvpbz5",
+                  "banner": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790619808/ECampusMart/cake_banner_s1q20x.jpg",
+                  "bannerKey": "ECampusMart/cake_banner_s1q20x"
+              },
+              {
+                  "id": "acab90b4-ed8d-48f5-a3c0-04a8c3c83384",
+                  "createdAt": "2026-09-28T17:05:22.530Z",
+                  "updatedAt": "2026-09-28T17:05:22.530Z",
+                  "ownerId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+                  "categoryId": "15a5ba38-225c-4e9f-a12c-c568deabbe69",
+                  "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+                  "name": "QuickCopy Centre",
+                  "ratingsCount": 0,
+                  "servicesCount": 0,
+                  "basePrice": 15000,
+                  "completedBookings": 0,
+                  "ratingsAverage": 0,
+                  "description": "Project printing, lamination and document typing at student-friendly rates.",
+                  "logo": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790619525/ECampusMart/cake_brand_dvpbz5.jpg",
+                  "logoKey": "ECampusMart/cake_brand_dvpbz5",
+                  "banner": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790619808/ECampusMart/cake_banner_s1q20x.jpg",
+                  "bannerKey": "ECampusMart/cake_banner_s1q20x"
+              },
+              {
+                  "id": "a7c68777-0e7c-412a-81d5-11208a0cd300",
+                  "createdAt": "2026-09-28T17:05:22.530Z",
+                  "updatedAt": "2026-09-28T17:05:22.530Z",
+                  "ownerId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+                  "categoryId": "b5418c4d-52b9-4751-b83d-c22009d17be1",
+                  "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+                  "name": "CodeCampus Mentors",
+                  "ratingsCount": 0,
+                  "servicesCount": 0,
+                  "basePrice": 15000,
+                  "completedBookings": 0,
+                  "ratingsAverage": 0,
+                  "description": "Beginner-friendly coding lessons and project guidance.",
+                  "logo": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790619525/ECampusMart/cake_brand_dvpbz5.jpg",
+                  "logoKey": "ECampusMart/cake_brand_dvpbz5",
+                  "banner": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790619808/ECampusMart/cake_banner_s1q20x.jpg",
+                  "bannerKey": "ECampusMart/cake_banner_s1q20x"
+              },
+              {
+                  "id": "8d17eb7c-9015-482d-8330-31f4bff963c0",
+                  "createdAt": "2026-09-28T17:05:22.530Z",
+                  "updatedAt": "2026-09-28T17:05:22.530Z",
+                  "ownerId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+                  "categoryId": "d9dc5f57-28d3-4ed4-813a-678676e6afa7",
+                  "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+                  "name": "Vivid Visuals",
+                  "ratingsCount": 0,
+                  "servicesCount": 0,
+                  "basePrice": 15000,
+                  "completedBookings": 0,
+                  "ratingsAverage": 0,
+                  "description": "Event posters, banners, invitations and presentation design.",
+                  "logo": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790619525/ECampusMart/cake_brand_dvpbz5.jpg",
+                  "logoKey": "ECampusMart/cake_brand_dvpbz5",
+                  "banner": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790619808/ECampusMart/cake_banner_s1q20x.jpg",
+                  "bannerKey": "ECampusMart/cake_banner_s1q20x"
+              },
+              {
+                  "id": "8cd336d1-f769-4b5f-bf65-64675d15ffee",
+                  "createdAt": "2026-09-28T17:05:22.530Z",
+                  "updatedAt": "2026-09-28T17:05:22.530Z",
+                  "ownerId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+                  "categoryId": "fa8a8ab6-6d34-4277-8a43-ecf0269ba38b",
+                  "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+                  "name": "WashBox Express",
+                  "ratingsCount": 0,
+                  "servicesCount": 0,
+                  "basePrice": 15000,
+                  "completedBookings": 0,
+                  "ratingsAverage": 0,
+                  "description": "Affordable weekly laundry plans for hostel residents.",
+                  "logo": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790619525/ECampusMart/cake_brand_dvpbz5.jpg",
+                  "logoKey": "ECampusMart/cake_brand_dvpbz5",
+                  "banner": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790619808/ECampusMart/cake_banner_s1q20x.jpg",
+                  "bannerKey": "ECampusMart/cake_banner_s1q20x"
+              },
+              {
+                  "id": "74ed55ee-e3b8-4ac5-9d65-5fdf98548b26",
+                  "createdAt": "2026-09-28T17:05:22.530Z",
+                  "updatedAt": "2026-09-28T17:05:22.530Z",
+                  "ownerId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+                  "categoryId": "b2d8981d-11b5-40ea-b0f0-b2f613afc646",
+                  "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+                  "name": "PrintPoint Hub",
+                  "ratingsCount": 0,
+                  "servicesCount": 0,
+                  "basePrice": 15000,
+                  "completedBookings": 0,
+                  "ratingsAverage": 0,
+                  "description": "Fast printing, photocopying, scanning and spiral binding.",
+                  "logo": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790619525/ECampusMart/cake_brand_dvpbz5.jpg",
+                  "logoKey": "ECampusMart/cake_brand_dvpbz5",
+                  "banner": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790619808/ECampusMart/cake_banner_s1q20x.jpg",
+                  "bannerKey": "ECampusMart/cake_banner_s1q20x"
+              },
+              {
+                  "id": "712a6499-ee50-4781-b312-5a8c74dc6f61",
+                  "createdAt": "2026-09-28T17:05:22.530Z",
+                  "updatedAt": "2026-09-28T17:05:22.530Z",
+                  "ownerId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+                  "categoryId": "d2b4ea1c-2186-4f11-9321-e8c4b7ff73c9",
+                  "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+                  "name": "BrightMinds Tutors",
+                  "ratingsCount": 0,
+                  "servicesCount": 0,
+                  "basePrice": 15000,
+                  "completedBookings": 0,
+                  "ratingsAverage": 0,
+                  "description": "One-on-one and group tutoring for core 100 to 400 level courses.",
+                  "logo": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790619525/ECampusMart/cake_brand_dvpbz5.jpg",
+                  "logoKey": "ECampusMart/cake_brand_dvpbz5",
+                  "banner": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790619808/ECampusMart/cake_banner_s1q20x.jpg",
+                  "bannerKey": "ECampusMart/cake_banner_s1q20x"
+              },
+              {
+                  "id": "6b6b6fed-f694-467b-ac35-4dec5c7f6baf",
+                  "createdAt": "2026-09-28T17:05:22.530Z",
+                  "updatedAt": "2026-09-28T17:05:22.530Z",
+                  "ownerId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+                  "categoryId": "89532070-ff44-4304-8bd1-265e2d7dd3ea",
+                  "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+                  "name": "Fresh Fade Studio",
+                  "ratingsCount": 0,
+                  "servicesCount": 0,
+                  "basePrice": 15000,
+                  "completedBookings": 0,
+                  "ratingsAverage": 0,
+                  "description": "Clean cuts, sharp fades and beard grooming by experienced barbers.",
+                  "logo": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790619525/ECampusMart/cake_brand_dvpbz5.jpg",
+                  "logoKey": "ECampusMart/cake_brand_dvpbz5",
+                  "banner": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790619808/ECampusMart/cake_banner_s1q20x.jpg",
+                  "bannerKey": "ECampusMart/cake_banner_s1q20x"
+              },
+              {
+                  "id": "3b81f613-5611-4e70-bc4f-d9b1b86f5a3f",
+                  "createdAt": "2026-09-28T17:05:22.530Z",
+                  "updatedAt": "2026-09-28T17:05:22.530Z",
+                  "ownerId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+                  "categoryId": "a56614a5-9256-4f54-a4b5-2ccf7034a745",
+                  "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+                  "name": "Studio Nine Creatives",
+                  "ratingsCount": 0,
+                  "servicesCount": 0,
+                  "basePrice": 15000,
+                  "completedBookings": 0,
+                  "ratingsAverage": 0,
+                  "description": "Photo editing, motion graphics and custom illustrations.",
+                  "logo": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790619525/ECampusMart/cake_brand_dvpbz5.jpg",
+                  "logoKey": "ECampusMart/cake_brand_dvpbz5",
+                  "banner": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790619808/ECampusMart/cake_banner_s1q20x.jpg",
+                  "bannerKey": "ECampusMart/cake_banner_s1q20x"
+              }
+          ]
+      }
+order: 1000

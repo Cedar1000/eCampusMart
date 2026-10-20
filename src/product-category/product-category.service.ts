@@ -18,17 +18,7 @@ export class ProductCategoryService {
   async createProductCategory(
     createProductCategoryDto: CreateProductCategoryDto,
   ) {
-    // Names are unique ignoring case and spaces
-    const exists = await this.productCategoryRepo
-      .createQueryBuilder('category')
-      .where('LOWER(TRIM(category.name)) = LOWER(TRIM(:name))', {
-        name: createProductCategoryDto.name,
-      })
-      .getExists();
-
-    if (exists) {
-      throw new ConflictException('A category with that name already exists');
-    }
+    await this.assertNameIsFree(createProductCategoryDto.name);
 
     return await factory.createOne(
       this.productCategoryRepo,
@@ -48,6 +38,10 @@ export class ProductCategoryService {
     id: string,
     updateProductCategoryDto: UpdateProductCategoryDto,
   ) {
+    if (updateProductCategoryDto.name !== undefined) {
+      await this.assertNameIsFree(updateProductCategoryDto.name, id);
+    }
+
     return await factory.updateOne(
       this.productCategoryRepo,
       id,
@@ -57,5 +51,18 @@ export class ProductCategoryService {
 
   async deleteProductCategory(id: string) {
     return await factory.deleteOne(this.productCategoryRepo, id);
+  }
+
+  // Names are unique ignoring case and spaces; exceptId lets a category keep its own
+  private async assertNameIsFree(name: string, exceptId?: string) {
+    const query = this.productCategoryRepo
+      .createQueryBuilder('category')
+      .where('LOWER(TRIM(category.name)) = LOWER(TRIM(:name))', { name });
+
+    if (exceptId) query.andWhere('category.id <> :exceptId', { exceptId });
+
+    if (await query.getExists()) {
+      throw new ConflictException('A category with that name already exists');
+    }
   }
 }

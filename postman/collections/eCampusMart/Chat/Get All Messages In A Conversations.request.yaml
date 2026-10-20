@@ -1,0 +1,16 @@
+$kind: http-request
+url: "{{URL}}/chat/conversations/0b2ff029-745f-4c0b-a0f4-040d0870e744/messages"
+method: GET
+queryParams:
+  - key: categoryId
+    value: a682ec3d-f952-404f-8f1d-cbdd45b60697,f09eb871-ad67-4749-8398-6ddac3b21d16
+    disabled: true
+body:
+  type: json
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+examples: ./.resources/Get All Messages In A Conversations.resources/examples
+order: 2000

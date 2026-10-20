@@ -1,0 +1,11 @@
+$kind: http-request
+url: "{{URL}}/subscriptions/my-subscriptions"
+method: GET
+body:
+  type: json
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+order: 2000

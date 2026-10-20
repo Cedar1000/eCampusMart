@@ -1,0 +1,339 @@
+$kind: http-example
+request:
+  url: "{{URL}}/chat/conversations/fa98a8f0-fc09-49c3-9cab-91e19b9dabc3"
+  method: GET
+  queryParams:
+    - key: categoryId
+      value: a682ec3d-f952-404f-8f1d-cbdd45b60697,f09eb871-ad67-4749-8398-6ddac3b21d16
+      disabled: true
+  body:
+    type: json
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "7876"
+    etag: W/"1ec4-62UQixdiTTOalyExWEbBq9BdK8E"
+    date: Sun, 18 Oct 2026 19:11:23 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "Get All successful!",
+        "total": 7,
+        "nextPage": null,
+        "prevPage": null,
+        "count": 7,
+        "pages": 1,
+        "currentPage": 1,
+        "data": [
+          {
+            "id": "c0000000-0000-4000-8000-000000000007",
+            "createdAt": "2026-10-17T11:10:00.000Z",
+            "updatedAt": "2026-10-17T11:24:00.000Z",
+            "type": "private",
+            "participants": [
+              "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+              "45eb094a-9340-46e3-92ba-592e2b8c38db"
+            ],
+            "createdBy": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "lastMessage": {
+              "id": "194e4c1d-02fa-40ed-bc53-257012391f3d",
+              "createdAt": "2026-10-17T11:24:00.000Z",
+              "updatedAt": "2026-10-17T11:24:00.000Z",
+              "conversationId": "c0000000-0000-4000-8000-000000000007",
+              "senderId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+              "senderType": "user",
+              "receiverType": "user",
+              "receiverId": "45eb094a-9340-46e3-92ba-592e2b8c38db",
+              "productId": null,
+              "type": "text",
+              "content": "Go to your profile and tap \"Create store\". Pick product or service and fill in the details.",
+              "media": null,
+              "status": "delivered",
+              "replyToId": null,
+              "isDeleted": false,
+              "isEdited": false,
+              "metadata": null
+            },
+            "isArchived": false,
+            "unReadCount": {
+              "45eb094a-9340-46e3-92ba-592e2b8c38db": 1,
+              "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3": 0
+            },
+            "mutedBy": {},
+            "mutedUntil": {},
+            "recipient": {
+              "id": "45eb094a-9340-46e3-92ba-592e2b8c38db",
+              "type": "user",
+              "name": "Precious Okus",
+              "photo": null
+            }
+          },
+          {
+            "id": "c0000000-0000-4000-8000-000000000006",
+            "createdAt": "2026-10-16T18:05:00.000Z",
+            "updatedAt": "2026-10-16T18:20:00.000Z",
+            "type": "private",
+            "participants": [
+              "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+              "f5c09c74-5b3e-44da-be1e-5942c30a6409"
+            ],
+            "createdBy": "f5c09c74-5b3e-44da-be1e-5942c30a6409",
+            "lastMessage": {
+              "id": "b53cc363-7b25-44b8-a31e-5f7ab5615290",
+              "createdAt": "2026-10-16T18:20:00.000Z",
+              "updatedAt": "2026-10-16T18:20:00.000Z",
+              "conversationId": "c0000000-0000-4000-8000-000000000006",
+              "senderId": "f5c09c74-5b3e-44da-be1e-5942c30a6409",
+              "senderType": "user",
+              "receiverType": "user",
+              "receiverId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+              "productId": null,
+              "type": "text",
+              "content": "Call me when you're free.",
+              "media": null,
+              "status": "sent",
+              "replyToId": null,
+              "isDeleted": false,
+              "isEdited": false,
+              "metadata": null
+            },
+            "isArchived": false,
+            "unReadCount": {
+              "f5c09c74-5b3e-44da-be1e-5942c30a6409": 0,
+              "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3": 3
+            },
+            "mutedBy": {},
+            "mutedUntil": {},
+            "recipient": {
+              "id": "f5c09c74-5b3e-44da-be1e-5942c30a6409",
+              "type": "user",
+              "name": "Jeremy Daniel",
+              "photo": null
+            }
+          },
+          {
+            "id": "c0000000-0000-4000-8000-000000000005",
+            "createdAt": "2026-10-16T07:20:00.000Z",
+            "updatedAt": "2026-10-16T07:31:00.000Z",
+            "type": "private",
+            "participants": [
+              "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+              "1d9f446a-117c-43e9-b837-a31d0d5462f3"
+            ],
+            "createdBy": "1d9f446a-117c-43e9-b837-a31d0d5462f3",
+            "lastMessage": {
+              "id": "87aa7372-ad0a-4ae6-a433-cc7cb8dbc0aa",
+              "createdAt": "2026-10-16T07:31:00.000Z",
+              "updatedAt": "2026-10-16T07:31:00.000Z",
+              "conversationId": "c0000000-0000-4000-8000-000000000005",
+              "senderId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+              "senderType": "user",
+              "receiverType": "user",
+              "receiverId": "1d9f446a-117c-43e9-b837-a31d0d5462f3",
+              "productId": null,
+              "type": "text",
+              "content": "Will do 👍",
+              "media": null,
+              "status": "read",
+              "replyToId": null,
+              "isDeleted": false,
+              "isEdited": false,
+              "metadata": null
+            },
+            "isArchived": false,
+            "unReadCount": {
+              "1d9f446a-117c-43e9-b837-a31d0d5462f3": 0,
+              "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3": 0
+            },
+            "mutedBy": {},
+            "mutedUntil": {},
+            "recipient": {
+              "id": "1d9f446a-117c-43e9-b837-a31d0d5462f3",
+              "type": "user",
+              "name": "Paul Collins",
+              "photo": null
+            }
+          },
+          {
+            "id": "c0000000-0000-4000-8000-000000000004",
+            "createdAt": "2026-10-15T15:45:00.000Z",
+            "updatedAt": "2026-10-15T16:03:00.000Z",
+            "type": "private",
+            "participants": [
+              "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+              "04b69674-4027-42ba-9c21-73b5122de6b2"
+            ],
+            "createdBy": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "lastMessage": {
+              "id": "30d6ea1a-6b27-4e52-be10-d280a10bd0b7",
+              "createdAt": "2026-10-15T16:03:00.000Z",
+              "updatedAt": "2026-10-15T16:03:00.000Z",
+              "conversationId": "c0000000-0000-4000-8000-000000000004",
+              "senderId": "04b69674-4027-42ba-9c21-73b5122de6b2",
+              "senderType": "product-store",
+              "receiverType": "user",
+              "receiverId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+              "productId": null,
+              "type": "text",
+              "content": "Send me your model number and I'll confirm which one fits.",
+              "media": null,
+              "status": "delivered",
+              "replyToId": null,
+              "isDeleted": false,
+              "isEdited": false,
+              "metadata": null
+            },
+            "isArchived": false,
+            "unReadCount": {
+              "04b69674-4027-42ba-9c21-73b5122de6b2": 0,
+              "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3": 2
+            },
+            "mutedBy": {},
+            "mutedUntil": {},
+            "recipient": {
+              "id": "04b69674-4027-42ba-9c21-73b5122de6b2",
+              "type": "product-store",
+              "name": "Collin’s Tech",
+              "photo": null
+            }
+          },
+          {
+            "id": "c0000000-0000-4000-8000-000000000003",
+            "createdAt": "2026-10-14T10:30:00.000Z",
+            "updatedAt": "2026-10-14T11:01:00.000Z",
+            "type": "private",
+            "participants": [
+              "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+              "a7549483-df12-47e0-a366-8000e7e33e7e"
+            ],
+            "createdBy": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "lastMessage": {
+              "id": "9eb85005-1cd5-4eeb-a9b8-d7963a8d3f40",
+              "createdAt": "2026-10-14T11:01:00.000Z",
+              "updatedAt": "2026-10-14T11:01:00.000Z",
+              "conversationId": "c0000000-0000-4000-8000-000000000003",
+              "senderId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+              "senderType": "user",
+              "receiverType": "product-store",
+              "receiverId": "a7549483-df12-47e0-a366-8000e7e33e7e",
+              "productId": null,
+              "type": "text",
+              "content": "Delivery please. Is there a fee?",
+              "media": null,
+              "status": "sent",
+              "replyToId": null,
+              "isDeleted": false,
+              "isEdited": false,
+              "metadata": null
+            },
+            "isArchived": false,
+            "unReadCount": {
+              "a7549483-df12-47e0-a366-8000e7e33e7e": 1,
+              "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3": 0
+            },
+            "mutedBy": {},
+            "mutedUntil": {},
+            "recipient": {
+              "id": "a7549483-df12-47e0-a366-8000e7e33e7e",
+              "type": "product-store",
+              "name": "Bestman Conncet",
+              "photo": "https://res.cloudinary.com/dnued3o6t/image/upload/v1791546585/ECampusMart/dt9qks6fqouphur90525.jpg"
+            }
+          },
+          {
+            "id": "c0000000-0000-4000-8000-000000000002",
+            "createdAt": "2026-10-13T13:02:00.000Z",
+            "updatedAt": "2026-10-13T13:25:00.000Z",
+            "type": "private",
+            "participants": [
+              "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+              "3a1453a5-ed1a-4b7e-8797-da2e5a5fc83d"
+            ],
+            "createdBy": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "lastMessage": {
+              "id": "aa34fc36-e612-42c6-8d53-12dcd3df3bbd",
+              "createdAt": "2026-10-13T13:25:00.000Z",
+              "updatedAt": "2026-10-13T13:25:00.000Z",
+              "conversationId": "c0000000-0000-4000-8000-000000000002",
+              "senderId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+              "senderType": "user",
+              "receiverType": "service-store",
+              "receiverId": "3a1453a5-ed1a-4b7e-8797-da2e5a5fc83d",
+              "productId": null,
+              "type": "text",
+              "content": "Great, thanks!",
+              "media": null,
+              "status": "read",
+              "replyToId": null,
+              "isDeleted": false,
+              "isEdited": false,
+              "metadata": null
+            },
+            "isArchived": false,
+            "unReadCount": {
+              "3a1453a5-ed1a-4b7e-8797-da2e5a5fc83d": 0,
+              "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3": 0
+            },
+            "mutedBy": {},
+            "mutedUntil": {},
+            "recipient": {
+              "id": "3a1453a5-ed1a-4b7e-8797-da2e5a5fc83d",
+              "type": "service-store",
+              "name": "Acad Schoool",
+              "photo": null
+            }
+          },
+          {
+            "id": "c0000000-0000-4000-8000-000000000001",
+            "createdAt": "2026-10-12T08:15:00.000Z",
+            "updatedAt": "2026-10-12T08:41:00.000Z",
+            "type": "private",
+            "participants": [
+              "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+              "2664e500-c1b0-41ae-bcaa-4a4978bcbe7d"
+            ],
+            "createdBy": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "lastMessage": {
+              "id": "e9c110f1-2df0-4ed0-8d75-8195f3a0ed19",
+              "createdAt": "2026-10-12T08:41:00.000Z",
+              "updatedAt": "2026-10-12T08:41:00.000Z",
+              "conversationId": "c0000000-0000-4000-8000-000000000001",
+              "senderId": "2664e500-c1b0-41ae-bcaa-4a4978bcbe7d",
+              "senderType": "service-store",
+              "receiverType": "user",
+              "receiverId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+              "productId": null,
+              "type": "text",
+              "content": "Got it. The base price is 5,000. I'll send a first draft by tomorrow evening.",
+              "media": null,
+              "status": "delivered",
+              "replyToId": null,
+              "isDeleted": false,
+              "isEdited": false,
+              "metadata": null
+            },
+            "isArchived": false,
+            "unReadCount": {
+              "2664e500-c1b0-41ae-bcaa-4a4978bcbe7d": 0,
+              "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3": 1
+            },
+            "mutedBy": {},
+            "mutedUntil": {},
+            "recipient": {
+              "id": "2664e500-c1b0-41ae-bcaa-4a4978bcbe7d",
+              "type": "service-store",
+              "name": "Designers And Sons",
+              "photo": "https://res.cloudinary.com/dnued3o6t/image/upload/v1791545334/ECampusMart/i7vnazrmma7kcrwmtdrq.jpg"
+            }
+          }
+        ]
+      }
+order: 1000

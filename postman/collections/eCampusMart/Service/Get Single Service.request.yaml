@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{URL}}/services/9ed60bf5-9fd0-4b11-bfd7-51da38b956c8"
+method: GET
+body:
+  type: json
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+examples: ./.resources/Get Single Service.resources/examples
+order: 3000

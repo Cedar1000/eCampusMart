@@ -1,0 +1,13 @@
+$kind: http-request
+url: "{{URL}}/auth/me"
+method: GET
+body:
+  type: json
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+settings: {}
+examples: ./.resources/Get Me.resources/examples
+order: 7000

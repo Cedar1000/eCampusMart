@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{URL}}/service-favourites"
+method: POST
+body:
+  type: json
+  content: |-
+    {
+        "serviceId": "328fbf94-c55b-41a3-9598-0db65dc274a2"
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+examples: ./.resources/Favourite Service.resources/examples
+order: 1000

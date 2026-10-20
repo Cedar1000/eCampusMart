@@ -1,0 +1,36 @@
+$kind: http-example
+request:
+  url: "{{URL}}/campuses/801b075c-10d6-42be-972e-2d83df5580fd"
+  method: GET
+  body:
+    type: json
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    X-Powered-By: Express
+    Content-Type: application/json; charset=utf-8
+    Content-Length: "289"
+    ETag: W/"121-BGVkKohqnEFgPGrEOH4a2jlOL5g"
+    Date: Wed, 30 Sep 2026 08:37:42 GMT
+    Connection: keep-alive
+    Keep-Alive: timeout=5
+  body:
+    type: text
+    content: |-
+      {
+          "status": "success",
+          "message": "Get One successful!",
+          "data": {
+              "id": "801b075c-10d6-42be-972e-2d83df5580fd",
+              "createdAt": "2026-08-28T17:49:23.896Z",
+              "updatedAt": "2026-08-28T17:49:23.896Z",
+              "name": "University of Port Harcourt",
+              "abbreviation": "UNIPORT",
+              "type": "federal",
+              "state": "Rivers",
+              "logo": ""
+          }
+      }
+order: 1000

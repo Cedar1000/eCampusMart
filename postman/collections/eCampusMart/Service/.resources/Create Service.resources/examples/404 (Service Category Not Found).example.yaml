@@ -1,0 +1,79 @@
+$kind: http-example
+request:
+  url: "{{URL}}/services"
+  method: POST
+  body:
+    type: json
+    content: |-
+      {
+          "title": "Computer Repair",
+          "categoryId": "550e8400-e29b-41d4-a716-446655440000",
+          "storeId": "e5e9a262-c8bb-4946-ba93-978e581729a6",
+          "description": "Laptop and desktop computer repair services.",
+          "price": 5000,
+          "priceUnit": "session",
+          "isNegotiable": true,
+          "availability": {
+              "monday": {
+                  "active": true,
+                  "openingTime": "08:00",
+                  "closingTime": "17:00"
+              },
+              "tuesday": {
+                  "active": true,
+                  "openingTime": "08:00",
+                  "closingTime": "17:00"
+              },
+              "wednesday": {
+                  "active": false,
+                  "openingTime": null,
+                  "closingTime": null
+              },
+              "thursday": {
+                  "active": true,
+                  "openingTime": "08:00",
+                  "closingTime": "17:00"
+              },
+              "friday": {
+                  "active": true,
+                  "openingTime": "08:00",
+                  "closingTime": "15:00"
+              },
+              "saturday": {
+                  "active": true,
+                  "openingTime": "10:00",
+                  "closingTime": "14:00"
+              },
+              "sunday": {
+                  "active": false,
+                  "openingTime": null,
+                  "closingTime": null
+              }
+          },
+          "images": [
+              {
+                  "key": "key",
+                  "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790181560/ECampusMart/Frame_1984080275_1_ngyggj.jpg"
+              }
+          ]
+      }
+response:
+  statusCode: 404
+  statusText: Not Found
+  headers:
+    X-Powered-By: Express
+    Content-Type: application/json; charset=utf-8
+    Content-Length: "77"
+    ETag: W/"4d-ArbPoxBDgYV6yKOtzySa/I9pnfQ"
+    Date: Tue, 29 Sep 2026 14:07:57 GMT
+    Connection: keep-alive
+    Keep-Alive: timeout=5
+  body:
+    type: text
+    content: |-
+      {
+          "message": "Service category not found",
+          "error": "Not Found",
+          "statusCode": 404
+      }
+order: 1000

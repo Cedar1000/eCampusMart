@@ -1,0 +1,16 @@
+$kind: http-request
+url: "{{URL}}/auth/change-email"
+method: POST
+body:
+  type: json
+  content: |-
+    {
+        "email": "cedard686@gmail.com",
+        "password": "test12345"
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+examples: ./.resources/Change Email.resources/examples
+order: 12000

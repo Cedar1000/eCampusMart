@@ -1,0 +1,49 @@
+$kind: http-example
+request:
+  url: "{{URL}}/products/create-store-product"
+  method: POST
+  body:
+    type: formdata
+    content:
+      - type: text
+        key: name
+        value: PS4
+      - type: text
+        key: description
+        value: test desc for product
+      - type: text
+        key: price
+        value: "15000"
+      - type: text
+        key: quantity
+        value: "1"
+        disabled: true
+      - type: file
+        key: images
+        src: postman-cloud:///1eec631b-ce3d-48d0-999a-39596a912a68
+      - type: file
+        key: images
+        src: postman-cloud:///1eec5d36-9484-47a0-bb3a-010d1daa17d3
+      - type: text
+        key: storeId
+        value: 7263870c-1463-40fd-b683-7187adec022g
+response:
+  statusCode: 404
+  statusText: Not Found
+  headers:
+    X-Powered-By: Express
+    Content-Type: application/json; charset=utf-8
+    Content-Length: "116"
+    ETag: W/"74-/vRfOqAK5f+gnKAsOzk8hRGEWS8"
+    Date: Thu, 28 May 2026 07:31:06 GMT
+    Connection: keep-alive
+    Keep-Alive: timeout=5
+  body:
+    type: text
+    content: |-
+      {
+          "message": "Store with ID 7263870c-1463-40fd-b683-7187adec022g does not exist",
+          "error": "Not Found",
+          "statusCode": 404
+      }
+order: 2000

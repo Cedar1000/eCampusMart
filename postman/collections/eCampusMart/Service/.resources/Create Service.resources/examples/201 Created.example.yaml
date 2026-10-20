@@ -1,0 +1,61 @@
+$kind: http-example
+request:
+  url: "{{URL}}/services"
+  method: POST
+  body:
+    type: json
+    content: |-
+      {
+          "title": "Computer Repair",
+          "storeId": "e5e9a262-c8bb-4946-ba93-978e581729a6",
+          "description": "Laptop and desktop computer repair services.",
+          "price": 5000,
+          "priceUnit": "session",
+          "isNegotiable": true,
+          "images": [
+              {
+                  "key": "key",
+                  "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790181560/ECampusMart/Frame_1984080275_1_ngyggj.jpg"
+              }
+          ]
+      }
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "687"
+    etag: W/"2af-3CdVmqgOjJfPA7MiIntM02miFTw"
+    date: Sun, 04 Oct 2026 15:41:09 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "create successful!",
+        "data": {
+          "id": "410e3470-bee7-46c9-8b66-e3bf11db51ce",
+          "createdAt": "2026-10-04T14:41:09.301Z",
+          "updatedAt": "2026-10-04T14:41:09.301Z",
+          "title": "Computer Repair",
+          "ownerId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+          "categoryId": "a682ec3d-f952-404f-8f1d-cbdd45b60697",
+          "description": "Laptop and desktop computer repair services.",
+          "isNegotiable": true,
+          "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+          "storeId": "e5e9a262-c8bb-4946-ba93-978e581729a6",
+          "listingId": "LST-CRAQ-XG",
+          "price": 5000,
+          "priceUnit": "session",
+          "images": [
+            {
+              "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790181560/ECampusMart/Frame_1984080275_1_ngyggj.jpg",
+              "key": "key"
+            }
+          ]
+        }
+      }
+order: 2000

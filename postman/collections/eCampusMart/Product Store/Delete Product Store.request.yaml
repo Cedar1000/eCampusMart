@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{URL}}/product-stores/ccdfa759-a60f-4a00-8f06-7656779a0c62"
+method: DELETE
+body:
+  type: json
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+examples: ./.resources/Delete Product Store.resources/examples
+order: 3000

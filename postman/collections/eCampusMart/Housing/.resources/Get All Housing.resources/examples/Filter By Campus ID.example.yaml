@@ -1,0 +1,208 @@
+$kind: http-example
+request:
+  url: "{{URL}}/housings?campusId=801b075c-10d6-42be-972e-2d83df5580fd"
+  method: GET
+  queryParams:
+    campusId: 801b075c-10d6-42be-972e-2d83df5580fd
+  body:
+    type: json
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "5339"
+    etag: W/"14db-jtvL4YeG4116n1YRhSEscG4nu1c"
+    date: Thu, 08 Oct 2026 00:58:57 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "Get All successful!",
+        "total": 4,
+        "nextPage": null,
+        "prevPage": null,
+        "count": 4,
+        "pages": 1,
+        "currentPage": 1,
+        "data": [
+          {
+            "id": "99010c51-fbe7-4e88-90d3-6353a9ebf304",
+            "createdAt": "2026-10-07T23:52:27.640Z",
+            "updatedAt": "2026-10-07T23:52:27.640Z",
+            "title": "Neat 3 Bedroom Apartment",
+            "houseType": "three-bedroom",
+            "locationId": "c2119933-3c05-41c0-a9f5-8d19b3bc021e",
+            "listingId": "LST-NM4Y-GM",
+            "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+            "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "whoCanRent": "Students",
+            "description": "A clean and spacious self-contained apartment close to campus.",
+            "isNegotiable": true,
+            "price": "850000.00",
+            "pricePeriod": "yearly",
+            "images": [
+              {
+                "id": "7b6a6014-5ce0-4382-bbec-5a345010cbac",
+                "createdAt": "2026-10-07T23:52:28.317Z",
+                "updatedAt": "2026-10-07T23:52:28.317Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777176/ECampusMart/housing_f7mjrp.jpg",
+                "key": "housing/apartment-1.jpg",
+                "housingId": "99010c51-fbe7-4e88-90d3-6353a9ebf304",
+                "isCoverImage": true
+              },
+              {
+                "id": "716e3f8e-ef7e-4aec-b08e-256f4c8d0cc1",
+                "createdAt": "2026-10-07T23:52:28.317Z",
+                "updatedAt": "2026-10-07T23:52:28.317Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777172/ECampusMart/housing_2_kmp3y3.jpg",
+                "key": "housing/apartment-2.jpg",
+                "housingId": "99010c51-fbe7-4e88-90d3-6353a9ebf304",
+                "isCoverImage": false
+              }
+            ],
+            "user": {
+              "firstName": "Cedar",
+              "lastName": "Daniels",
+              "photo": null,
+              "ratingsCount": 0,
+              "ratingsAverage": 0
+            }
+          },
+          {
+            "id": "385796a1-ad88-484b-9083-85fcdc778316",
+            "createdAt": "2026-10-07T23:51:13.274Z",
+            "updatedAt": "2026-10-07T23:51:13.274Z",
+            "title": "Neatly Two Bedroom Apartment",
+            "houseType": "two-bedroom",
+            "locationId": "c2119933-3c05-41c0-a9f5-8d19b3bc021e",
+            "listingId": "LST-1SAS-KQ",
+            "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+            "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "whoCanRent": "Students",
+            "description": "A clean and spacious self-contained apartment close to campus.",
+            "isNegotiable": true,
+            "price": "850000.00",
+            "pricePeriod": "yearly",
+            "images": [
+              {
+                "id": "2aee584b-9cc5-46b7-a4f9-f7b11469b018",
+                "createdAt": "2026-10-07T23:51:13.934Z",
+                "updatedAt": "2026-10-07T23:51:13.934Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777176/ECampusMart/housing_f7mjrp.jpg",
+                "key": "housing/apartment-1.jpg",
+                "housingId": "385796a1-ad88-484b-9083-85fcdc778316",
+                "isCoverImage": true
+              },
+              {
+                "id": "5434ce92-679f-4bea-aa24-a7afb97b0b07",
+                "createdAt": "2026-10-07T23:51:13.934Z",
+                "updatedAt": "2026-10-07T23:51:13.934Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777172/ECampusMart/housing_2_kmp3y3.jpg",
+                "key": "housing/apartment-2.jpg",
+                "housingId": "385796a1-ad88-484b-9083-85fcdc778316",
+                "isCoverImage": false
+              }
+            ],
+            "user": {
+              "firstName": "Cedar",
+              "lastName": "Daniels",
+              "photo": null,
+              "ratingsCount": 0,
+              "ratingsAverage": 0
+            }
+          },
+          {
+            "id": "bce28a60-4617-4c81-8679-557e262bc4b2",
+            "createdAt": "2026-10-07T23:50:46.972Z",
+            "updatedAt": "2026-10-07T23:50:46.972Z",
+            "title": "Neat One Bedroom Apartment",
+            "houseType": "one-bedroom",
+            "locationId": "c2119933-3c05-41c0-a9f5-8d19b3bc021e",
+            "listingId": "LST-RXRC-MF",
+            "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+            "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "whoCanRent": "Students",
+            "description": "A clean and spacious self-contained apartment close to campus.",
+            "isNegotiable": true,
+            "price": "850000.00",
+            "pricePeriod": "yearly",
+            "images": [
+              {
+                "id": "a0239156-ad77-456c-9c52-40959f108964",
+                "createdAt": "2026-10-07T23:50:47.533Z",
+                "updatedAt": "2026-10-07T23:50:47.533Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777176/ECampusMart/housing_f7mjrp.jpg",
+                "key": "housing/apartment-1.jpg",
+                "housingId": "bce28a60-4617-4c81-8679-557e262bc4b2",
+                "isCoverImage": true
+              },
+              {
+                "id": "3057efe2-443e-4f9f-bd1c-5c1243a242f5",
+                "createdAt": "2026-10-07T23:50:47.533Z",
+                "updatedAt": "2026-10-07T23:50:47.533Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777172/ECampusMart/housing_2_kmp3y3.jpg",
+                "key": "housing/apartment-2.jpg",
+                "housingId": "bce28a60-4617-4c81-8679-557e262bc4b2",
+                "isCoverImage": false
+              }
+            ],
+            "user": {
+              "firstName": "Cedar",
+              "lastName": "Daniels",
+              "photo": null,
+              "ratingsCount": 0,
+              "ratingsAverage": 0
+            }
+          },
+          {
+            "id": "c90730fd-78fb-4100-9f6e-423a260a0098",
+            "createdAt": "2026-10-07T23:50:08.464Z",
+            "updatedAt": "2026-10-07T23:50:08.464Z",
+            "title": "Neat Self-Contained Apartment",
+            "houseType": "self-contained",
+            "locationId": "c2119933-3c05-41c0-a9f5-8d19b3bc021e",
+            "listingId": "LST-XMOW-M4",
+            "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+            "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "whoCanRent": "Students",
+            "description": "A clean and spacious self-contained apartment close to campus.",
+            "isNegotiable": true,
+            "price": "850000.00",
+            "pricePeriod": "yearly",
+            "images": [
+              {
+                "id": "b8b47467-bea1-4692-9328-1b4ebb104a5c",
+                "createdAt": "2026-10-07T23:50:09.021Z",
+                "updatedAt": "2026-10-07T23:50:09.021Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777176/ECampusMart/housing_f7mjrp.jpg",
+                "key": "housing/apartment-1.jpg",
+                "housingId": "c90730fd-78fb-4100-9f6e-423a260a0098",
+                "isCoverImage": true
+              },
+              {
+                "id": "b88a826f-c63b-48b9-b3c2-fd70987a89fb",
+                "createdAt": "2026-10-07T23:50:09.021Z",
+                "updatedAt": "2026-10-07T23:50:09.021Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777172/ECampusMart/housing_2_kmp3y3.jpg",
+                "key": "housing/apartment-2.jpg",
+                "housingId": "c90730fd-78fb-4100-9f6e-423a260a0098",
+                "isCoverImage": false
+              }
+            ],
+            "user": {
+              "firstName": "Cedar",
+              "lastName": "Daniels",
+              "photo": null,
+              "ratingsCount": 0,
+              "ratingsAverage": 0
+            }
+          }
+        ]
+      }
+order: 4000

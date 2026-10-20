@@ -1,0 +1,36 @@
+$kind: http-example
+request:
+  url: "{{URL}}/housing-favourites/99010c51-fbe7-4e88-90d3-6353a9ebf304"
+  method: DELETE
+  body:
+    type: json
+    content: |-
+      {
+          "housingId": "99010c51-fbe7-4e88-90d3-6353a9ebf304"
+      }
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "281"
+    etag: W/"119-MEmQjZ/o9sjG7G33Eb9vhVJLPyM"
+    date: Sat, 10 Oct 2026 21:13:26 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "create successful!",
+        "data": {
+          "id": "ef89e902-7f15-4246-a0b7-50b6cebba6de",
+          "createdAt": "2026-10-10T20:12:22.799Z",
+          "updatedAt": "2026-10-10T20:12:22.799Z",
+          "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+          "housingId": "99010c51-fbe7-4e88-90d3-6353a9ebf304"
+        }
+      }
+order: 1000

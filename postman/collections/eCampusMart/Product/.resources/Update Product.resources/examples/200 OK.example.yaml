@@ -1,0 +1,61 @@
+$kind: http-example
+request:
+  url: "{{URL}}/products/7b9bf9c9-48e4-42f5-9004-4b4501f197cc"
+  method: PATCH
+  body:
+    type: json
+    content: |-
+      {
+          "name": "Aldo Men Shoes",
+          "description": "test desc",
+          "categoryId": "29385f1f-d11b-462d-80bb-80f32ba72884",
+          "price": 65000,
+          "quantity": 3,
+          "condition": "brand-new", //fairly-used
+          "images": [
+              {
+                  "key": "key",
+                  "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790181560/ECampusMart/Frame_1984080275_1_ngyggj.jpg"
+              }
+          ]
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "594"
+    etag: W/"252-JSU9TzPfcAN8hjc43OSGBZSDnxo"
+    date: Tue, 06 Oct 2026 15:37:02 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "update successful!",
+        "data": {
+          "id": "7b9bf9c9-48e4-42f5-9004-4b4501f197cc",
+          "createdAt": "2026-10-03T12:05:09.097Z",
+          "updatedAt": "2026-10-06T14:37:01.066Z",
+          "name": "aldo men shoes",
+          "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+          "description": "test desc",
+          "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+          "price": 65000,
+          "quantity": 3,
+          "viewCount": 0,
+          "favoriteCount": 0,
+          "slug": "aldo-men-shoes",
+          "isStoreProduct": false,
+          "storeCategoryId": null,
+          "categoryId": "29385f1f-d11b-462d-80bb-80f32ba72884",
+          "storeId": null,
+          "listingId": "LST-V7L5-3W",
+          "status": "active",
+          "condition": "brand-new"
+        }
+      }
+order: 1000

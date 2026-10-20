@@ -1,0 +1,46 @@
+$kind: http-example
+request:
+  url: "{{URL}}/subscriptions/change-plan"
+  method: POST
+  body:
+    type: json
+    content: |-
+      {
+          "storeId": "513ce376-0dc1-451f-9dc5-eb9686a9d1d8",
+          "planId": "56a195d1-4856-4fae-bcd1-e22669af2562"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "574"
+    etag: W/"23e-Zop+i6OupMKxAr516Zh6pHbed+U"
+    date: Tue, 20 Oct 2026 14:59:52 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "Subscription changed to the Yearly Plan plan",
+        "data": {
+          "id": "7deed148-4826-472b-9d9f-f1e1e1f0a15b",
+          "createdAt": "2026-10-20T13:59:50.913Z",
+          "updatedAt": "2026-10-20T13:59:50.913Z",
+          "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+          "planId": "56a195d1-4856-4fae-bcd1-e22669af2562",
+          "storeId": "513ce376-0dc1-451f-9dc5-eb9686a9d1d8",
+          "paystackId": "PLN_ay59ndw1jp5bkbp",
+          "reference": "HF5717655t",
+          "subscriptionCode": "SUB_0dbuf1hvoapvi1u",
+          "emailToken": "b5v0oj8bkrc3d99",
+          "amount": 1000000,
+          "status": "active",
+          "isTrial": true,
+          "expiresAt": "2026-11-16T20:42:00.000Z"
+        }
+      }
+order: 2000

@@ -1,0 +1,30 @@
+$kind: http-example
+request:
+  url: "{{URL}}/product-favourites"
+  method: POST
+  body:
+    type: json
+    content: |-
+      {
+          "productId": "29385f1f-d11b-462d-80bb-80f32ba72885"
+      }
+response:
+  statusCode: 404
+  statusText: Not Found
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "77"
+    etag: W/"4d-qVNSEcE6YLuepu76/R0gmP9k+QI"
+    date: Tue, 06 Oct 2026 17:16:09 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "message": "Product category not found",
+        "error": "Not Found",
+        "statusCode": 404
+      }
+order: 1000

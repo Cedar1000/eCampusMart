@@ -1,0 +1,52 @@
+$kind: http-example
+request:
+  url: "{{URL}}/products"
+  method: POST
+  body:
+    type: formdata
+    content:
+      - type: text
+        key: name
+        value: PS4
+      - type: text
+        key: description
+        value: test desc for product
+      - type: text
+        key: price
+        value: "15000"
+      - type: text
+        key: quantity
+        value: "1"
+        disabled: true
+      - type: file
+        key: images
+        src: postman-cloud:///1eec631b-ce3d-48d0-999a-39596a912a68
+      - type: file
+        key: images
+        src:
+          - postman-cloud:///1eec5d36-9060-4e80-b141-9a2bc7259d4c
+          - postman-cloud:///1eec5d36-9484-47a0-bb3a-010d1daa17d3
+          - /Users/mac/Downloads/Processador com AI Alexa Built-in Design LaserSlim….jpeg
+      - type: text
+        key: categoryId
+        value: 621bd321-094a-471a-85c3-6ca1cb46a628
+response:
+  statusCode: 404
+  statusText: Not Found
+  headers:
+    X-Powered-By: Express
+    Content-Type: application/json; charset=utf-8
+    Content-Length: "127"
+    ETag: W/"7f-pNxhLBMOwneHAC4DOPpmNaNCizk"
+    Date: Wed, 27 May 2026 21:49:20 GMT
+    Connection: keep-alive
+    Keep-Alive: timeout=5
+  body:
+    type: text
+    content: |-
+      {
+          "message": "Product category with ID 621bd321-094a-471a-85c3-6ca1cb46a628 does not exist",
+          "error": "Not Found",
+          "statusCode": 404
+      }
+order: 1000

@@ -267,7 +267,7 @@ export class AuthService {
 
     const { token: accessToken, refreshToken } = signToken(user.id);
 
-    const userClone: Omit<typeof user, 'password'> & {
+    const userClone: Omit<typeof user, 'password' | 'toJSON'> & {
       password?: string | null;
     } = {
       ...user,
@@ -548,13 +548,16 @@ export class AuthService {
       select: ['id'],
     });
 
-    if (!abandoned.length) return;
+    await this.deleteUnverifiedUsers(abandoned.map(({ id }) => id));
+  }
 
-    const ids = abandoned.map(({ id }) => id);
+  // Unverified accounts can't log in, so all they own is the wallet made at signup
+  async deleteUnverifiedUsers(ids: string[]) {
+    if (!ids.length) return;
 
     await this.userRepo.manager.transaction(async (manager) => {
       await manager.delete(Wallet, { userId: In(ids) });
-      await manager.delete(User, { id: In(ids) });
+      await manager.delete(User, { id: In(ids), emailVerified: false });
     });
   }
 
@@ -576,7 +579,8 @@ export class AuthService {
       throw new BadRequestException('That is already your email');
     }
 
-    if (await this.userRepo.exists({ where: { email } })) {
+    // An unverified signup doesn't hold the email; it's removed once the OTP proves ownership
+    if (await this.userRepo.exists({ where: { email, emailVerified: true } })) {
       throw new ConflictException('Email is already exists!');
     }
 
@@ -643,10 +647,17 @@ export class AuthService {
     }
 
     // Someone may have taken the email while the OTP was pending
-    if (await this.userRepo.exists({ where: { email: user.pendingEmail } })) {
+    if (
+      await this.userRepo.exists({
+        where: { email: user.pendingEmail, emailVerified: true },
+      })
+    ) {
       await this.cancelEmailChange(userId);
       throw new ConflictException('Email is already exists!');
     }
+
+    // The OTP proved this user owns the email, so an abandoned signup can't keep it
+    await this.removeUnverifiedAccounts(user.pendingEmail);
 
     const previousEmail = user.email;
     const email = user.pendingEmail;

@@ -1,0 +1,197 @@
+$kind: http-example
+request:
+  url: "{{URL}}/products?page=2&limit=5"
+  method: GET
+  queryParams:
+    page: "2"
+    limit: "5"
+  body:
+    type: json
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    X-Powered-By: Express
+    Content-Type: application/json; charset=utf-8
+    Content-Length: "4536"
+    ETag: W/"11b8-p4Ba7VWukQ9niynHZhLGmU2fqNI"
+    Date: Wed, 30 Sep 2026 11:08:44 GMT
+    Connection: keep-alive
+    Keep-Alive: timeout=5
+  body:
+    type: text
+    content: |-
+      {
+          "status": "success",
+          "message": "Get All successful!",
+          "total": 5,
+          "nextPage": 3,
+          "prevPage": 1,
+          "count": 12,
+          "pages": 3,
+          "currentPage": 2,
+          "data": [
+              {
+                  "id": "027d0254-dff8-43a5-908f-c1b4f54f608d",
+                  "createdAt": "2026-09-24T16:28:34.160Z",
+                  "updatedAt": "2026-09-24T16:28:34.160Z",
+                  "name": "iPhone 13 Pro Max Case",
+                  "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+                  "description": "Blue silicone MagSafe case for iPhone 13 Pro Max.",
+                  "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+                  "price": 8500,
+                  "quantity": 5,
+                  "slug": "iphone-13-pro-max-case",
+                  "isStoreProduct": false,
+                  "storeCategoryId": null,
+                  "categoryId": "e23ee22e-e05d-4026-b079-37e6b73f1f46",
+                  "storeId": null,
+                  "listingId": "LST-3K9P-X4",
+                  "status": "active",
+                  "condition": "brand-new",
+                  "images": [
+                      {
+                          "id": "8b254363-6d3c-4470-848c-1db796d6250f",
+                          "createdAt": "2026-09-24T16:28:34.160Z",
+                          "updatedAt": "2026-09-24T16:28:34.160Z",
+                          "url": "https://www.seller.gsmprice.com/image/cache/catalog/Margoun/Margoun_Silicone_Case_Cover_Apple_iPhone_13_Pro_Max_Blue__2_-650x650.jpg",
+                          "key": "seed/iphone-13-pro-max-case-2.jpg",
+                          "productId": "027d0254-dff8-43a5-908f-c1b4f54f608d"
+                      },
+                      {
+                          "id": "bb57a3ae-58c1-4731-9e56-12c4009c8c22",
+                          "createdAt": "2026-09-24T16:28:34.160Z",
+                          "updatedAt": "2026-09-24T16:28:34.160Z",
+                          "url": "https://im9.cz/iR/importprodukt-orig/aed/aed5c697f9fb0d5b9cfe6278455ee0bf--mm800x800.jpg",
+                          "key": "seed/iphone-13-pro-max-case-3.jpg",
+                          "productId": "027d0254-dff8-43a5-908f-c1b4f54f608d"
+                      },
+                      {
+                          "id": "c171bdf5-2e7e-404c-86e0-01e3f0b83af2",
+                          "createdAt": "2026-09-24T16:28:34.160Z",
+                          "updatedAt": "2026-09-24T16:28:34.160Z",
+                          "url": "https://www.coverwalay.com/cdn/shop/files/ROYALBLUE_12_8e01bdad-f578-4a3e-b78c-b5f502cd6aea.jpg?v=1722637269&width=1920",
+                          "key": "seed/iphone-13-pro-max-case-1.jpg",
+                          "productId": "027d0254-dff8-43a5-908f-c1b4f54f608d"
+                      }
+                  ],
+                  "user": {
+                      "firstName": "Cedar",
+                      "lastName": "Daniel",
+                      "photo": null,
+                      "ratingsCount": 0,
+                      "ratingsAverage": 0
+                  }
+              },
+              {
+                  "id": "f2be11c7-6f1e-4d5f-b981-caf4425c2958",
+                  "createdAt": "2026-09-24T16:12:51.246Z",
+                  "updatedAt": "2026-09-24T16:12:51.246Z",
+                  "name": "AirPods Pro 2",
+                  "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+                  "description": "Apple AirPods Pro 2 with active noise cancellation and charging case.",
+                  "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+                  "price": 180000,
+                  "quantity": 3,
+                  "slug": "airpods-pro-2",
+                  "isStoreProduct": false,
+                  "storeCategoryId": null,
+                  "categoryId": "e23ee22e-e05d-4026-b079-37e6b73f1f46",
+                  "storeId": null,
+                  "listingId": "LST-AIR3-03",
+                  "status": "active",
+                  "condition": "brand-new",
+                  "images": [],
+                  "user": {
+                      "firstName": "Cedar",
+                      "lastName": "Daniel",
+                      "photo": null,
+                      "ratingsCount": 0,
+                      "ratingsAverage": 0
+                  }
+              },
+              {
+                  "id": "db31d262-e3e9-4dba-86aa-feaf00974fde",
+                  "createdAt": "2026-09-24T16:12:51.246Z",
+                  "updatedAt": "2026-09-24T16:12:51.246Z",
+                  "name": "iPhone 11 64GB",
+                  "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+                  "description": "Pre-owned iPhone 11, 64GB storage, fully functional and in good condition.",
+                  "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+                  "price": 280000,
+                  "quantity": 1,
+                  "slug": "iphone-11-64gb",
+                  "isStoreProduct": false,
+                  "storeCategoryId": null,
+                  "categoryId": "e23ee22e-e05d-4026-b079-37e6b73f1f46",
+                  "storeId": null,
+                  "listingId": "LST-IP11-05",
+                  "status": "active",
+                  "condition": "fairly-used",
+                  "images": [],
+                  "user": {
+                      "firstName": "Cedar",
+                      "lastName": "Daniel",
+                      "photo": null,
+                      "ratingsCount": 0,
+                      "ratingsAverage": 0
+                  }
+              },
+              {
+                  "id": "b236d5dd-994d-4725-a588-429b8f0dbd7c",
+                  "createdAt": "2026-09-24T16:12:51.246Z",
+                  "updatedAt": "2026-09-24T16:12:51.246Z",
+                  "name": "iPhone 13 128GB",
+                  "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+                  "description": "Clean iPhone 13 with 128GB storage. Fully functional and in good condition.",
+                  "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+                  "price": 650000,
+                  "quantity": 1,
+                  "slug": "iphone-13-128gb",
+                  "isStoreProduct": false,
+                  "storeCategoryId": null,
+                  "categoryId": "e23ee22e-e05d-4026-b079-37e6b73f1f46",
+                  "storeId": null,
+                  "listingId": "LST-IPH1-01",
+                  "status": "active",
+                  "condition": "brand-new",
+                  "images": [],
+                  "user": {
+                      "firstName": "Cedar",
+                      "lastName": "Daniel",
+                      "photo": null,
+                      "ratingsCount": 0,
+                      "ratingsAverage": 0
+                  }
+              },
+              {
+                  "id": "68c70813-8cda-422e-8336-8e49023d67d1",
+                  "createdAt": "2026-09-24T16:12:51.246Z",
+                  "updatedAt": "2026-09-24T16:12:51.246Z",
+                  "name": "Samsung Galaxy A54",
+                  "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+                  "description": "Samsung Galaxy A54 with excellent battery life and 128GB storage.",
+                  "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+                  "price": 320000,
+                  "quantity": 2,
+                  "slug": "samsung-galaxy-a54",
+                  "isStoreProduct": false,
+                  "storeCategoryId": null,
+                  "categoryId": "e23ee22e-e05d-4026-b079-37e6b73f1f46",
+                  "storeId": null,
+                  "listingId": "LST-SAM2-02",
+                  "status": "active",
+                  "condition": "brand-new",
+                  "images": [],
+                  "user": {
+                      "firstName": "Cedar",
+                      "lastName": "Daniel",
+                      "photo": null,
+                      "ratingsCount": 0,
+                      "ratingsAverage": 0
+                  }
+              }
+          ]
+      }
+order: 7000

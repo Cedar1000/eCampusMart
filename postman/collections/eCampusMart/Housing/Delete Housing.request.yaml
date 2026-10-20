@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{URL}}/housings/5abcc1d4-45e7-49b3-a001-57872cd8896f"
+method: DELETE
+body:
+  type: json
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+examples: ./.resources/Delete Housing.resources/examples
+order: 5000

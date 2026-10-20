@@ -1,0 +1,25 @@
+$kind: collection
+description: ""
+variables:
+  - key: json_web_token_0dxt
+    secret: true
+  - key: json_web_token_1cyw
+    secret: true
+  - key: json_web_token_0bv6
+    secret: true
+  - key: json_web_token_05zn
+    secret: true
+  - key: json_web_token_0w06
+    secret: true
+  - key: json_web_token_0yo5
+    secret: true
+  - key: json_web_token_0m21
+    secret: true
+  - key: json_web_token_0xdo
+    secret: true
+  - key: json_web_token_12em
+    secret: true
+  - key: json_web_token_11ff
+    secret: true
+  - key: json_web_token_14hd
+    secret: true

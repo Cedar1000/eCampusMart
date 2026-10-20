@@ -1,0 +1,68 @@
+$kind: http-example
+request:
+  url: "{{URL}}/products?relations=images"
+  method: GET
+  queryParams:
+    relations: images
+  body:
+    type: json
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    X-Powered-By: Express
+    Content-Type: application/json; charset=utf-8
+    Content-Length: "1104"
+    ETag: W/"450-XYeo6ujXeGwfLo1TCn1oH+JB+iU"
+    Date: Sat, 21 Mar 2026 22:24:20 GMT
+    Connection: keep-alive
+    Keep-Alive: timeout=5
+  body:
+    type: text
+    content: |-
+      {
+          "status": "success",
+          "total": 1,
+          "nextPage": null,
+          "prevPage": null,
+          "count": 1,
+          "pages": 1,
+          "currentPage": 1,
+          "data": [
+              {
+                  "id": "1362b65d-b210-43fc-89ae-8e66a98b225e",
+                  "createdAt": "2026-03-21T21:18:49.269Z",
+                  "updatedAt": "2026-03-21T21:18:49.269Z",
+                  "name": "Samsung TV",
+                  "userId": "c846b137-5beb-4c3a-a8af-f53c44b2103f",
+                  "description": "test desc",
+                  "price": "50000.00",
+                  "quantity": 1,
+                  "slug": "samsung-tv",
+                  "isStoreProduct": false,
+                  "storeCategoryId": null,
+                  "categoryId": null,
+                  "status": "active",
+                  "images": [
+                      {
+                          "id": "52a86a96-ec20-42a1-bb17-088a354ff0fb",
+                          "createdAt": "2026-03-21T21:18:49.856Z",
+                          "updatedAt": "2026-03-21T21:18:49.856Z",
+                          "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1774131525/products/oeoufraslauua4uwljfq.jpg",
+                          "key": "products/oeoufraslauua4uwljfq",
+                          "productId": "1362b65d-b210-43fc-89ae-8e66a98b225e"
+                      },
+                      {
+                          "id": "3bfe3354-3905-45fc-972b-3190d0cf8c8e",
+                          "createdAt": "2026-03-21T21:18:49.856Z",
+                          "updatedAt": "2026-03-21T21:18:49.856Z",
+                          "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1774131525/products/erf5j98ppy0eunmcvr1w.jpg",
+                          "key": "products/erf5j98ppy0eunmcvr1w",
+                          "productId": "1362b65d-b210-43fc-89ae-8e66a98b225e"
+                      }
+                  ]
+              }
+          ]
+      }
+order: 1000

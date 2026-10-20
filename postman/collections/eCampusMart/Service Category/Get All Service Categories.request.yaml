@@ -1,0 +1,13 @@
+$kind: http-request
+url: "{{URL}}/service-categories"
+method: GET
+body:
+  type: json
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+settings: {}
+examples: ./.resources/Get All Service Categories.resources/examples
+order: 1000

@@ -9,6 +9,14 @@ import { TransactionDescription } from 'src/transaction/entities/transaction.ent
 import { SubscriptionWebhookService } from './subscription-webhook.service';
 import { WalletWebhookService } from './wallet-webhook.service';
 import { asRecord, asString, PaystackEventData } from './webhook.utils';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
+import {
+  PAYMENT_QUE,
+  PAYSTACK_EVENT_JOB,
+  PAYSTACK_EVENT_JOB_OPTIONS,
+} from './webhook.constants';
+import type { PaystackEventJobData } from './processors/payment.processor';
 
 @Injectable()
 export class WebhookService {
@@ -18,6 +26,9 @@ export class WebhookService {
     private readonly walletWebhookService: WalletWebhookService,
 
     private readonly subscriptionWebhookService: SubscriptionWebhookService,
+
+    @InjectQueue(PAYMENT_QUE)
+    private readonly paymentQueue: Queue<PaystackEventJobData>,
   ) {}
 
   async handlePaystackWebhook({
@@ -51,12 +62,18 @@ export class WebhookService {
       throw new UnauthorizedException('Invalid Paystack webhook signature');
     }
 
-    await this.processEvent(asString(payload.event), asRecord(payload.data));
+    // Answer straight away and settle in a job, which retries on failure. If Redis is
+    // down this throws, Paystack gets a 500 and retries the webhook itself
+    await this.paymentQueue.add(
+      PAYSTACK_EVENT_JOB,
+      { event: asString(payload.event), data: asRecord(payload.data) },
+      PAYSTACK_EVENT_JOB_OPTIONS,
+    );
 
-    return { status: true, message: 'Webhook processed' };
+    return { status: true, message: 'Webhook received' };
   }
 
-  // Also used to settle payments verified directly with Paystack; every handler is idempotent
+  // Run by the webhook job and by GET /payments/verify; every handler is idempotent
   async processEvent(event: string, data: PaystackEventData) {
     const description = this.getDescription(event, data);
 

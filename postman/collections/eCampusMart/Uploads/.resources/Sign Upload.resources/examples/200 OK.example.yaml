@@ -1,0 +1,32 @@
+$kind: http-example
+request:
+  url: "{{URL}}/uploads/signature"
+  method: POST
+  body:
+    type: json
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "181"
+    etag: W/"b5-kOe+9h41qgyoOOraY3ZlCn9dhJ8"
+    date: Wed, 14 Oct 2026 15:50:49 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "data": {
+          "timestamp": 1791993049,
+          "folder": "ECampusMart",
+          "signature": "f61005c2498a8549897996a14f7d9acf9c15233f",
+          "apiKey": "717919858528439",
+          "cloudName": "dkp7wyq3t"
+        }
+      }
+order: 1000

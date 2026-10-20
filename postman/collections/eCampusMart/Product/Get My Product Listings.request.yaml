@@ -1,0 +1,16 @@
+$kind: http-request
+url: "{{URL}}/products/my-listings"
+method: GET
+queryParams:
+  - key: relations
+    value: images
+    disabled: true
+body:
+  type: json
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+examples: ./.resources/Get My Product Listings.resources/examples
+order: 8000

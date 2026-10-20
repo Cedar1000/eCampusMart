@@ -17,6 +17,8 @@ import { Transaction } from 'src/transaction/entities/transaction.entity';
 import { SubscriptionWebhookService } from './subscription-webhook.service';
 import { WalletWebhookService } from './wallet-webhook.service';
 import { WebhookService } from './webhook.service';
+import { getQueueToken } from '@nestjs/bullmq';
+import { PAYMENT_QUE } from './webhook.constants';
 
 jest.mock('utils/sendEmail');
 jest.mock('utils/paystack');
@@ -112,6 +114,18 @@ describe('WebhookService', () => {
           useValue: { get: jest.fn(() => SECRET) },
         },
         {
+          provide: getQueueToken(PAYMENT_QUE),
+          // Runs the job straight away, like the worker would
+          useValue: {
+            add: jest.fn(
+              (
+                _name: string,
+                job: { event: string; data: Record<string, unknown> },
+              ) => service.processEvent(job.event, job.data),
+            ),
+          },
+        },
+        {
           provide: DataSource,
           useValue: {
             manager,
@@ -133,6 +147,7 @@ describe('WebhookService', () => {
   it('activates a subscription on its first charge', async () => {
     await send('charge.success', {
       reference: 'ref-1',
+      amount: 500000,
       metadata: { description: 'store-subscription' },
     });
 
@@ -145,6 +160,18 @@ describe('WebhookService', () => {
       { storeId: 'store-1' },
       { isActive: true },
     );
+  });
+
+  it('does not activate a subscription when the amount paid is wrong', async () => {
+    jest.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    await send('charge.success', {
+      reference: 'ref-1',
+      amount: 100,
+      metadata: { description: 'store-subscription' },
+    });
+
+    expect(subscription.status).toBe(SubscriptionStatus.PENDING);
   });
 
   describe('trial card check', () => {
@@ -211,6 +238,7 @@ describe('WebhookService', () => {
 
     await send('charge.success', {
       reference: 'ref-1',
+      amount: 500000,
       metadata: { description: 'store-subscription' },
     });
 
@@ -423,7 +451,7 @@ describe('WebhookService', () => {
 
     await expect(
       send('subscription.not_renew', { subscription_code: 'SUB_1' }),
-    ).resolves.toEqual({ status: true, message: 'Webhook processed' });
+    ).resolves.toEqual({ status: true, message: 'Webhook received' });
     await flush();
   });
 });

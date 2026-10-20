@@ -1,0 +1,41 @@
+$kind: http-example
+request:
+  url: "{{URL}}/auth/update-password"
+  method: PATCH
+  body:
+    type: json
+    content: "{\r
+
+      \    \"currentPassword\": \"test1234\",\r
+
+      \    \"newPassword\": \"test12345\",\r
+
+      \    \"newConfirmPassword\": \"test12345\"\r
+
+      }"
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    X-Powered-By: Express
+    Content-Type: application/json; charset=utf-8
+    Content-Length: "622"
+    ETag: W/"26e-J88gd8jxr75u7ZHXu7cjutaAOwc"
+    Date: Fri, 06 Feb 2026 06:16:26 GMT
+    Connection: keep-alive
+    Keep-Alive: timeout=5
+  body:
+    type: text
+    content: |-
+      {
+          "status": "success",
+          "token": "{{json_web_token_0xdo}}",
+          "refreshToken": "{{json_web_token_0m21}}",
+          "user": {
+              "id": "2711370f-a4e9-4a8d-8f88-c079bf20656c",
+              "firstName": "Cedar",
+              "lastName": "Daniel",
+              "email": "cedard686+1@gmail.com"
+          }
+      }
+order: 1000

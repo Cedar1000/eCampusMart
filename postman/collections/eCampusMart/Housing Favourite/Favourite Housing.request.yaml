@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{URL}}/housing-favourites"
+method: POST
+body:
+  type: json
+  content: |-
+    {
+        "housingId": "50a32620-ea82-4356-85e2-a55f2f148e18"
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+examples: ./.resources/Favourite Housing.resources/examples
+order: 2000

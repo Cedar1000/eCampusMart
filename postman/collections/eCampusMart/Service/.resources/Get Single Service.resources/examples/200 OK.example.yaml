@@ -1,0 +1,45 @@
+$kind: http-example
+request:
+  url: "{{URL}}/services/410e3470-bee7-46c9-8b66-e3bf11db51ce"
+  method: GET
+  body:
+    type: json
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    :status: "200"
+    cache-control: public, max-age=0, must-revalidate
+    content-type: application/json; charset=utf-8
+    date: Sun, 04 Oct 2026 21:28:31 GMT
+    etag: W/"227-SGYqWZpS6O8crgARVU1rbmHUqtc"
+    server: Vercel
+    strict-transport-security: max-age=63072000; includeSubDomains; preload
+    x-powered-by: Express
+    x-vercel-cache: BYPASS
+    x-vercel-id: cpt1::iad1::f6zmz-1791149310938-dd1aa01e8fb1
+    content-length: "551"
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "Get One successful!",
+        "data": {
+          "id": "410e3470-bee7-46c9-8b66-e3bf11db51ce",
+          "createdAt": "2026-10-04T15:41:09.301Z",
+          "updatedAt": "2026-10-04T15:41:09.301Z",
+          "title": "Computer Repair",
+          "ownerId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+          "categoryId": "a682ec3d-f952-404f-8f1d-cbdd45b60697",
+          "description": "Laptop and desktop computer repair services.",
+          "isNegotiable": true,
+          "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+          "storeId": "e5e9a262-c8bb-4946-ba93-978e581729a6",
+          "listingId": "LST-CRAQ-XG",
+          "price": 5000,
+          "priceUnit": "session"
+        }
+      }
+order: 1000

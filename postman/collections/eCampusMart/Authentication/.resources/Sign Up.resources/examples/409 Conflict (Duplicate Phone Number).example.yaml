@@ -1,0 +1,34 @@
+$kind: http-example
+request:
+  url: "{{URL}}/auth/signup"
+  method: POST
+  body:
+    type: json
+    content: |-
+      {
+          "firstName": "Jeremy",
+          "lastName": "Daniel",
+          "email": "cedard686+1@gmail.com",
+          "phoneNumber": "8164175406",
+          "countryCode": "234"
+      }
+response:
+  statusCode: 409
+  statusText: Conflict
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "81"
+    etag: W/"51-il4Io5RGGAtlakgKsZi9H7syqDA"
+    date: Fri, 04 Sep 2026 14:13:11 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "message": "Phone number is already exists!",
+        "error": "Conflict",
+        "statusCode": 409
+      }
+order: 4000

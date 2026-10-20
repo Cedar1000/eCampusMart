@@ -1,0 +1,17 @@
+$kind: http-request
+description: ""
+url: "{{URL}}/subscriptions/change-plan"
+method: POST
+body:
+  type: json
+  content: |-
+    {
+        "storeId": "513ce376-0dc1-451f-9dc5-eb9686a9d1d8",
+        "planId": "56a195d1-4856-4fae-bcd1-e22669af2562"
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+examples: .resources/Change Plan.resources/examples
+order: 4000

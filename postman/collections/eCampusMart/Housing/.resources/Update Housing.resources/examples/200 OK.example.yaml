@@ -1,0 +1,71 @@
+$kind: http-example
+request:
+  url: "{{URL}}/housings/b827ec76-839f-4302-8d15-8452fbcece8e"
+  method: PATCH
+  body:
+    type: json
+    content: |-
+      {
+          "title": "Modern Self-Contained Apartment",
+          "houseType": "self-contained",
+          "locationId": "80640c55-b4da-4b3b-aaa6-4588b2741606",
+          "whoCanRent": "Students",
+          "description": "A clean and spacious self-contained apartment close to campus.",
+          "isNegotiable": true,
+          "price": 850000,
+          "pricePeriod": "yearly",
+          "images": [
+              {
+                  "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777176/ECampusMart/housing_f7mjrp.jpg",
+                  "key": "housing/apartment-1.jpg"
+              },
+              {
+                  "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777172/ECampusMart/housing_2_kmp3y3.jpg",
+                  "key": "housing/apartment-2.jpg"
+              }
+          ]
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "847"
+    etag: W/"34f-uS+G2QVk2DUYPykMpdl6mX+WJhc"
+    date: Sat, 03 Oct 2026 09:04:47 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "update successful!",
+        "data": {
+          "id": "b827ec76-839f-4302-8d15-8452fbcece8e",
+          "createdAt": "2026-10-02T21:24:08.733Z",
+          "updatedAt": "2026-10-03T08:04:46.395Z",
+          "title": "Modern Self-Contained Apartment",
+          "houseType": "self-contained",
+          "locationId": "80640c55-b4da-4b3b-aaa6-4588b2741606",
+          "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+          "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+          "whoCanRent": "Students",
+          "description": "A clean and spacious self-contained apartment close to campus.",
+          "isNegotiable": true,
+          "price": 850000,
+          "pricePeriod": "yearly",
+          "images": [
+            {
+              "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777176/ECampusMart/housing_f7mjrp.jpg",
+              "key": "housing/apartment-1.jpg"
+            },
+            {
+              "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777172/ECampusMart/housing_2_kmp3y3.jpg",
+              "key": "housing/apartment-2.jpg"
+            }
+          ]
+        }
+      }
+order: 1000

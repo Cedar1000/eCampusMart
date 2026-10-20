@@ -1,0 +1,13 @@
+$kind: http-request
+url: "{{URL}}/auth/users?limit=20"
+method: GET
+queryParams:
+  limit: "20"
+body:
+  type: json
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+order: 15000

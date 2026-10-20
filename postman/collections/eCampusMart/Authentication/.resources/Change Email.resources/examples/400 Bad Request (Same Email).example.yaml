@@ -1,0 +1,31 @@
+$kind: http-example
+request:
+  url: "{{URL}}/auth/change-email"
+  method: POST
+  body:
+    type: json
+    content: |-
+      {
+          "email": "cedard686@gmail.com",
+          "password": "test12345"
+      }
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "79"
+    etag: W/"4f-CdJPwPstOKo6wfSguP/TzEtNwVM"
+    date: Wed, 14 Oct 2026 14:56:09 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "message": "That is already your email",
+        "error": "Bad Request",
+        "statusCode": 400
+      }
+order: 1000

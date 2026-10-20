@@ -1,0 +1,14 @@
+$kind: http-request
+url: "{{URL}}/subscriptions/cancel"
+method: POST
+body:
+  type: json
+  content: |-
+    {
+        "storeId": "8d17eb7c-9015-482d-8330-31f4bff963c0"
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+order: 3000

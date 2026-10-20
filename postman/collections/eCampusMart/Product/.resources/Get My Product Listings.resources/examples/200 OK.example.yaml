@@ -1,0 +1,518 @@
+$kind: http-example
+request:
+  url: "{{URL}}/products/my-listings"
+  method: GET
+  queryParams:
+    - key: relations
+      value: images
+      disabled: true
+  body:
+    type: json
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "13695"
+    etag: W/"357f-PRX21OPsU/n15MUOQ9inBeMEJV0"
+    date: Thu, 08 Oct 2026 00:27:14 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "Get All successful!",
+        "total": 10,
+        "nextPage": 2,
+        "prevPage": null,
+        "count": 19,
+        "pages": 2,
+        "currentPage": 1,
+        "data": [
+          {
+            "id": "a8f0cd8f-dbc1-42ea-b321-16d770683198",
+            "createdAt": "2026-10-07T23:08:36.938Z",
+            "updatedAt": "2026-10-07T23:08:36.938Z",
+            "name": "aldo men shoes",
+            "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "description": "test desc",
+            "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+            "price": "65000.00",
+            "quantity": 3,
+            "viewCount": 0,
+            "favoriteCount": 0,
+            "slug": "aldo-men-shoes",
+            "isStoreProduct": false,
+            "storeCategoryId": null,
+            "categoryId": "29385f1f-d11b-462d-80bb-80f32ba72884",
+            "storeId": null,
+            "listingId": "LST-9P9Z-4Q",
+            "status": "active",
+            "condition": "brand-new",
+            "images": [
+              {
+                "id": "c166f567-6be2-43bf-bbbf-dee6df29b428",
+                "createdAt": "2026-10-07T23:08:37.427Z",
+                "updatedAt": "2026-10-07T23:08:37.427Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790181560/ECampusMart/Frame_1984080275_1_ngyggj.jpg",
+                "key": "key-3",
+                "productId": "a8f0cd8f-dbc1-42ea-b321-16d770683198",
+                "isCoverImage": false
+              },
+              {
+                "id": "a43d3784-d6ec-4234-a968-5e3f2f792bea",
+                "createdAt": "2026-10-07T23:08:37.427Z",
+                "updatedAt": "2026-10-07T23:08:37.427Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790181560/ECampusMart/Frame_1984080275_1_ngyggj.jpg",
+                "key": "key-2",
+                "productId": "a8f0cd8f-dbc1-42ea-b321-16d770683198",
+                "isCoverImage": false
+              },
+              {
+                "id": "a9f71e70-ee4e-4a90-ad6b-1ba54e8b552a",
+                "createdAt": "2026-10-07T23:08:37.427Z",
+                "updatedAt": "2026-10-07T23:08:37.427Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790181560/ECampusMart/Frame_1984080275_1_ngyggj.jpg",
+                "key": "key-1",
+                "productId": "a8f0cd8f-dbc1-42ea-b321-16d770683198",
+                "isCoverImage": true
+              }
+            ],
+            "user": {
+              "firstName": "Cedar",
+              "lastName": "Daniel",
+              "photo": null,
+              "ratingsCount": 0,
+              "ratingsAverage": 0
+            }
+          },
+          {
+            "id": "24bd6b18-fb2a-423b-b4da-f07ad626ac69",
+            "createdAt": "2026-10-07T22:36:35.593Z",
+            "updatedAt": "2026-10-07T22:36:35.593Z",
+            "name": "aldo men shoes",
+            "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "description": "test desc",
+            "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+            "price": "65000.00",
+            "quantity": 3,
+            "viewCount": 0,
+            "favoriteCount": 0,
+            "slug": "aldo-men-shoes",
+            "isStoreProduct": false,
+            "storeCategoryId": null,
+            "categoryId": "29385f1f-d11b-462d-80bb-80f32ba72884",
+            "storeId": null,
+            "listingId": "LST-B72L-TC",
+            "status": "active",
+            "condition": "brand-new",
+            "images": [
+              {
+                "id": "26821351-a4f6-40fc-a6e4-1dd02ddd4d29",
+                "createdAt": "2026-10-07T22:36:36.159Z",
+                "updatedAt": "2026-10-07T22:36:36.159Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790181560/ECampusMart/Frame_1984080275_1_ngyggj.jpg",
+                "key": "key-1",
+                "productId": "24bd6b18-fb2a-423b-b4da-f07ad626ac69",
+                "isCoverImage": true
+              },
+              {
+                "id": "18d4c551-9b65-47b9-bf61-a72fade7659d",
+                "createdAt": "2026-10-07T22:36:36.159Z",
+                "updatedAt": "2026-10-07T22:36:36.159Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790181560/ECampusMart/Frame_1984080275_1_ngyggj.jpg",
+                "key": "key-3",
+                "productId": "24bd6b18-fb2a-423b-b4da-f07ad626ac69",
+                "isCoverImage": false
+              },
+              {
+                "id": "a1cfd97b-0b87-4478-82a9-2cdc6abf2b4a",
+                "createdAt": "2026-10-07T22:36:36.159Z",
+                "updatedAt": "2026-10-07T22:36:36.159Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790181560/ECampusMart/Frame_1984080275_1_ngyggj.jpg",
+                "key": "key-2",
+                "productId": "24bd6b18-fb2a-423b-b4da-f07ad626ac69",
+                "isCoverImage": false
+              }
+            ],
+            "user": {
+              "firstName": "Cedar",
+              "lastName": "Daniel",
+              "photo": null,
+              "ratingsCount": 0,
+              "ratingsAverage": 0
+            }
+          },
+          {
+            "id": "7aa4f6e9-e03e-447c-a432-e1a30c4a745d",
+            "createdAt": "2026-10-07T22:35:17.029Z",
+            "updatedAt": "2026-10-07T22:35:17.029Z",
+            "name": "aldo men shoes",
+            "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "description": "test desc",
+            "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+            "price": "65000.00",
+            "quantity": 3,
+            "viewCount": 0,
+            "favoriteCount": 0,
+            "slug": "aldo-men-shoes",
+            "isStoreProduct": false,
+            "storeCategoryId": null,
+            "categoryId": "29385f1f-d11b-462d-80bb-80f32ba72884",
+            "storeId": null,
+            "listingId": "LST-5GOV-0C",
+            "status": "active",
+            "condition": "brand-new",
+            "images": [
+              {
+                "id": "8ac26cfa-d8a3-40df-ac68-4bdfe2d85e7f",
+                "createdAt": "2026-10-07T22:35:17.645Z",
+                "updatedAt": "2026-10-07T22:35:17.645Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790181560/ECampusMart/Frame_1984080275_1_ngyggj.jpg",
+                "key": "key",
+                "productId": "7aa4f6e9-e03e-447c-a432-e1a30c4a745d",
+                "isCoverImage": true
+              }
+            ],
+            "user": {
+              "firstName": "Cedar",
+              "lastName": "Daniel",
+              "photo": null,
+              "ratingsCount": 0,
+              "ratingsAverage": 0
+            }
+          },
+          {
+            "id": "bf2e8e5b-1ce5-4082-8cf0-5dea84676c97",
+            "createdAt": "2026-10-07T22:03:31.612Z",
+            "updatedAt": "2026-10-07T22:12:20.793Z",
+            "name": "aldo men shoes",
+            "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "description": "test desc",
+            "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+            "price": "65000.00",
+            "quantity": 3,
+            "viewCount": 0,
+            "favoriteCount": 0,
+            "slug": "aldo-men-shoes",
+            "isStoreProduct": true,
+            "storeCategoryId": null,
+            "categoryId": "29385f1f-d11b-462d-80bb-80f32ba72884",
+            "storeId": "ccdfa759-a60f-4a00-8f06-7656779a0c62",
+            "listingId": "LST-UF1S-KP",
+            "status": "active",
+            "condition": "brand-new",
+            "images": [
+              {
+                "id": "9ddf7a4f-c649-483d-9124-942378bf3828",
+                "createdAt": "2026-10-07T22:12:21.578Z",
+                "updatedAt": "2026-10-07T22:12:21.578Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790181560/ECampusMart/Frame_1984080275_1_ngyggj.jpg",
+                "key": "key",
+                "productId": "bf2e8e5b-1ce5-4082-8cf0-5dea84676c97",
+                "isCoverImage": false
+              }
+            ],
+            "user": {
+              "firstName": "Cedar",
+              "lastName": "Daniel",
+              "photo": null,
+              "ratingsCount": 0,
+              "ratingsAverage": 0
+            }
+          },
+          {
+            "id": "c9dc7cc1-6358-4eb7-bcf1-bb2180e8ffe7",
+            "createdAt": "2026-10-05T08:47:22.286Z",
+            "updatedAt": "2026-10-05T08:47:22.286Z",
+            "name": "aldo men shoes",
+            "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "description": "test desc",
+            "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+            "price": "65000.00",
+            "quantity": 3,
+            "viewCount": 0,
+            "favoriteCount": 0,
+            "slug": "aldo-men-shoes",
+            "isStoreProduct": false,
+            "storeCategoryId": null,
+            "categoryId": "29385f1f-d11b-462d-80bb-80f32ba72884",
+            "storeId": null,
+            "listingId": "LST-C6EB-8K",
+            "status": "active",
+            "condition": "brand-new",
+            "images": [
+              {
+                "id": "b2d64f2e-64c3-425f-992d-b7be3deb8cad",
+                "createdAt": "2026-10-05T08:47:23.517Z",
+                "updatedAt": "2026-10-05T08:47:23.517Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790181560/ECampusMart/Frame_1984080275_1_ngyggj.jpg",
+                "key": "key",
+                "productId": "c9dc7cc1-6358-4eb7-bcf1-bb2180e8ffe7",
+                "isCoverImage": false
+              }
+            ],
+            "user": {
+              "firstName": "Cedar",
+              "lastName": "Daniel",
+              "photo": null,
+              "ratingsCount": 0,
+              "ratingsAverage": 0
+            }
+          },
+          {
+            "id": "7b9bf9c9-48e4-42f5-9004-4b4501f197cc",
+            "createdAt": "2026-10-03T12:05:09.097Z",
+            "updatedAt": "2026-10-06T14:37:01.066Z",
+            "name": "aldo men shoes",
+            "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "description": "test desc",
+            "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+            "price": "65000.00",
+            "quantity": 3,
+            "viewCount": 0,
+            "favoriteCount": 0,
+            "slug": "aldo-men-shoes",
+            "isStoreProduct": false,
+            "storeCategoryId": null,
+            "categoryId": "29385f1f-d11b-462d-80bb-80f32ba72884",
+            "storeId": null,
+            "listingId": "LST-V7L5-3W",
+            "status": "active",
+            "condition": "brand-new",
+            "images": [
+              {
+                "id": "ec9e7ec6-4e04-4341-a774-10699b474a2f",
+                "createdAt": "2026-10-06T14:37:02.138Z",
+                "updatedAt": "2026-10-06T14:37:02.138Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790181560/ECampusMart/Frame_1984080275_1_ngyggj.jpg",
+                "key": "key",
+                "productId": "7b9bf9c9-48e4-42f5-9004-4b4501f197cc",
+                "isCoverImage": false
+              }
+            ],
+            "user": {
+              "firstName": "Cedar",
+              "lastName": "Daniel",
+              "photo": null,
+              "ratingsCount": 0,
+              "ratingsAverage": 0
+            }
+          },
+          {
+            "id": "033f44bd-91b6-44d3-b2ab-20e1260c9453",
+            "createdAt": "2026-10-03T12:04:42.422Z",
+            "updatedAt": "2026-10-03T12:04:42.422Z",
+            "name": "aldo men shoes",
+            "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "description": "test desc",
+            "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+            "price": "13207.86",
+            "quantity": 3,
+            "viewCount": 0,
+            "favoriteCount": 0,
+            "slug": "aldo-men-shoes",
+            "isStoreProduct": false,
+            "storeCategoryId": null,
+            "categoryId": "29385f1f-d11b-462d-80bb-80f32ba72884",
+            "storeId": null,
+            "listingId": "LST-ATQM-RW",
+            "status": "active",
+            "condition": "brand-new",
+            "images": [
+              {
+                "id": "ce9d3b60-d39c-4b3e-96d8-c450c2e6d44b",
+                "createdAt": "2026-10-03T12:04:43.168Z",
+                "updatedAt": "2026-10-03T12:04:43.168Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790181560/ECampusMart/Frame_1984080275_1_ngyggj.jpg",
+                "key": "key",
+                "productId": "033f44bd-91b6-44d3-b2ab-20e1260c9453",
+                "isCoverImage": false
+              }
+            ],
+            "user": {
+              "firstName": "Cedar",
+              "lastName": "Daniel",
+              "photo": null,
+              "ratingsCount": 0,
+              "ratingsAverage": 0
+            }
+          },
+          {
+            "id": "a5e848c2-a534-424f-88e7-5353ffe88d2d",
+            "createdAt": "2026-09-24T16:54:20.625Z",
+            "updatedAt": "2026-09-24T16:54:20.625Z",
+            "name": "Classic Blue Denim Jacket",
+            "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "description": "Classic blue denim jacket with button closure and chest pockets.",
+            "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+            "price": "187449.40",
+            "quantity": 3,
+            "viewCount": 0,
+            "favoriteCount": 0,
+            "slug": "classic-blue-denim-jacket",
+            "isStoreProduct": false,
+            "storeCategoryId": null,
+            "categoryId": "d3272d0e-c588-4914-be2a-a2f8a5827b29",
+            "storeId": null,
+            "listingId": "LST-D4N1-M7",
+            "status": "active",
+            "condition": "fairly-used",
+            "images": [
+              {
+                "id": "7b270a69-1728-42f4-bd5f-3075cf15092d",
+                "createdAt": "2026-09-24T16:54:20.625Z",
+                "updatedAt": "2026-09-24T16:54:20.625Z",
+                "url": "https://media.mey-edlich.de/products/mey-edlich/images/1441x1922/EC24_6952_FA.jpg",
+                "key": "seed/classic-blue-denim-jacket-2.jpg",
+                "productId": "a5e848c2-a534-424f-88e7-5353ffe88d2d",
+                "isCoverImage": false
+              },
+              {
+                "id": "e55fa882-92d4-44f6-a924-a0deebd3978c",
+                "createdAt": "2026-09-24T16:54:20.625Z",
+                "updatedAt": "2026-09-24T16:54:20.625Z",
+                "url": "https://www.thejacketmaker.pk/cdn/shop/files/DENIM_TRUCKERS_2048x.webp?v=1771924334",
+                "key": "seed/classic-blue-denim-jacket-1.webp",
+                "productId": "a5e848c2-a534-424f-88e7-5353ffe88d2d",
+                "isCoverImage": false
+              },
+              {
+                "id": "6b1c6d19-c4cc-4080-a376-1d3641e05a15",
+                "createdAt": "2026-09-24T16:54:20.625Z",
+                "updatedAt": "2026-09-24T16:54:20.625Z",
+                "url": "https://vantageapparel.com/Images/ProductImages/High/7025_Denim_front.png",
+                "key": "seed/classic-blue-denim-jacket-3.png",
+                "productId": "a5e848c2-a534-424f-88e7-5353ffe88d2d",
+                "isCoverImage": false
+              }
+            ],
+            "user": {
+              "firstName": "Cedar",
+              "lastName": "Daniel",
+              "photo": null,
+              "ratingsCount": 0,
+              "ratingsAverage": 0
+            }
+          },
+          {
+            "id": "6ac339d9-5f81-4f65-ad36-0e4834521451",
+            "createdAt": "2026-09-24T16:54:20.625Z",
+            "updatedAt": "2026-09-24T16:54:20.625Z",
+            "name": "White Leather Low-Top Sneakers",
+            "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "description": "Minimalist white leather sneakers with durable rubber soles.",
+            "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+            "price": "407981.05",
+            "quantity": 4,
+            "viewCount": 0,
+            "favoriteCount": 0,
+            "slug": "white-leather-low-top-sneakers",
+            "isStoreProduct": false,
+            "storeCategoryId": null,
+            "categoryId": "d3272d0e-c588-4914-be2a-a2f8a5827b29",
+            "storeId": null,
+            "listingId": "LST-W6K3-P9",
+            "status": "active",
+            "condition": "brand-new",
+            "images": [
+              {
+                "id": "f9a1d51e-3c98-4e15-a4d8-6a315a962cf0",
+                "createdAt": "2026-09-24T16:54:20.625Z",
+                "updatedAt": "2026-09-24T16:54:20.625Z",
+                "url": "https://theessential.com/cdn/shop/files/WhiteBlank-Photoroom.jpg?v=1744912737",
+                "key": "seed/white-leather-sneakers-1.jpg",
+                "productId": "6ac339d9-5f81-4f65-ad36-0e4834521451",
+                "isCoverImage": false
+              },
+              {
+                "id": "0c0a7aaa-174c-43d8-8751-ea168635ddf1",
+                "createdAt": "2026-09-24T16:54:20.625Z",
+                "updatedAt": "2026-09-24T16:54:20.625Z",
+                "url": "https://thursdayboots.com/cdn/shop/files/1024x1024-Encore-White-020724-Side_6eaae8c7-6eac-4593-8f8d-1b3267d347dd_600x413.jpg?v=1724087038",
+                "key": "seed/white-leather-sneakers-3.jpg",
+                "productId": "6ac339d9-5f81-4f65-ad36-0e4834521451",
+                "isCoverImage": false
+              },
+              {
+                "id": "b92c49c5-7e0b-4ccc-bc0d-c4105c156513",
+                "createdAt": "2026-09-24T16:54:20.625Z",
+                "updatedAt": "2026-09-24T16:54:20.625Z",
+                "url": "https://nationalstandard.fr/cdn/shop/files/W03_WH000-side-RAW-1_6f162eee-343d-4be0-acee-967faf0e1cec.jpg?v=1771340575&width=1024",
+                "key": "seed/white-leather-sneakers-2.jpg",
+                "productId": "6ac339d9-5f81-4f65-ad36-0e4834521451",
+                "isCoverImage": false
+              }
+            ],
+            "user": {
+              "firstName": "Cedar",
+              "lastName": "Daniel",
+              "photo": null,
+              "ratingsCount": 0,
+              "ratingsAverage": 0
+            }
+          },
+          {
+            "id": "4d0e47ce-2b39-45e3-879c-7916beebe0d9",
+            "createdAt": "2026-09-24T16:54:20.625Z",
+            "updatedAt": "2026-09-24T16:54:20.625Z",
+            "name": "Women's Light Blue Denim Jacket",
+            "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "description": "Light blue denim jacket with a fitted casual silhouette.",
+            "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+            "price": "441084.46",
+            "quantity": 2,
+            "viewCount": 0,
+            "favoriteCount": 0,
+            "slug": "womens-light-blue-denim-jacket",
+            "isStoreProduct": false,
+            "storeCategoryId": null,
+            "categoryId": "d3272d0e-c588-4914-be2a-a2f8a5827b29",
+            "storeId": null,
+            "listingId": "LST-F8Q2-R5",
+            "status": "active",
+            "condition": "brand-new",
+            "images": [
+              {
+                "id": "1a014309-e6e4-433a-8cdb-3b34876fc1e9",
+                "createdAt": "2026-09-24T16:54:20.625Z",
+                "updatedAt": "2026-09-24T16:54:20.625Z",
+                "url": "https://img01.ztat.net/article/spp-media-p1/9bbe981f158242cbba6ddc2c5c001b75/e5d65b0991944a198472410feb42551a.jpg?filter=packshot&imwidth=800",
+                "key": "seed/womens-light-blue-denim-jacket-3.jpg",
+                "productId": "4d0e47ce-2b39-45e3-879c-7916beebe0d9",
+                "isCoverImage": false
+              },
+              {
+                "id": "df80f2f9-aea0-44d7-9204-2ada43be9286",
+                "createdAt": "2026-09-24T16:54:20.625Z",
+                "updatedAt": "2026-09-24T16:54:20.625Z",
+                "url": "https://assets.manufactum.de/p/204/204335/204335_01.jpg/damen-jeansjacke.jpg",
+                "key": "seed/womens-light-blue-denim-jacket-2.jpg",
+                "productId": "4d0e47ce-2b39-45e3-879c-7916beebe0d9",
+                "isCoverImage": false
+              },
+              {
+                "id": "250bab15-3f39-46ba-9563-dced036f7470",
+                "createdAt": "2026-09-24T16:54:20.625Z",
+                "updatedAt": "2026-09-24T16:54:20.625Z",
+                "url": "https://images.veromoda.com/10279492/4090918/001/veromoda-vmlunalsslimdnmjacketmixganoos-blue.png?bg-color=%23f5f5f5&format=webp&key=25-0-3&quality=90&v=ab2e53d3157a02ae0bdc6ff272f52c89&width=1280",
+                "key": "seed/womens-light-blue-denim-jacket-1.webp",
+                "productId": "4d0e47ce-2b39-45e3-879c-7916beebe0d9",
+                "isCoverImage": false
+              }
+            ],
+            "user": {
+              "firstName": "Cedar",
+              "lastName": "Daniel",
+              "photo": null,
+              "ratingsCount": 0,
+              "ratingsAverage": 0
+            }
+          }
+        ]
+      }
+order: 1000

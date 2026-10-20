@@ -1,0 +1,34 @@
+$kind: http-example
+request:
+  url: "{{URL}}/auth/reset-password/aed987448045f852d13b6ce0bed3c88afe9c3afb4ef20f76606a3edd5b4afdb8"
+  method: PATCH
+  body:
+    type: json
+    content: "{\r
+
+      \    \"password\": \"test12345\",\r
+
+      \    \"confirmPassword\": \"test12345\"\r
+
+      }"
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    X-Powered-By: Express
+    Content-Type: application/json; charset=utf-8
+    Content-Length: "462"
+    ETag: W/"1ce-1pmAwA0qSsNtAqmLlaTo96yAWBQ"
+    Date: Fri, 06 Feb 2026 11:30:25 GMT
+    Connection: keep-alive
+    Keep-Alive: timeout=5
+  body:
+    type: text
+    content: |-
+      {
+          "status": "success",
+          "token": "{{json_web_token_05zn}}",
+          "refreshToken": "{{json_web_token_0bv6}}",
+          "message": "Password Reset Successful!"
+      }
+order: 1000

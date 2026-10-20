@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{URL}}/service-favourites/my-favourites"
+method: GET
+body:
+  type: json
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+examples: ./.resources/Get My Favourite Services.resources/examples
+order: 2000

@@ -1,0 +1,60 @@
+$kind: http-example
+request:
+  url: "{{URL}}/products"
+  method: POST
+  body:
+    type: formdata
+    content:
+      - type: text
+        key: name
+        value: Samsung TV
+      - type: text
+        key: description
+        value: test desc
+      - type: text
+        key: price
+        value: "50000"
+      - type: text
+        key: quantity
+        value: "1"
+      - type: file
+        key: images
+        src:
+          - /Users/mac/Downloads/Processador com AI Alexa Built-in Design LaserSlim….jpeg
+      - type: file
+        key: images
+        src:
+          - /Users/mac/Downloads/Processador com AI Alexa Built-in Design LaserSlim….jpeg
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    X-Powered-By: Express
+    Content-Type: application/json; charset=utf-8
+    Content-Length: "376"
+    ETag: W/"178-fZU3dgVZG3JvJNyXSFkQXuJqtB8"
+    Date: Sat, 21 Mar 2026 22:18:50 GMT
+    Connection: keep-alive
+    Keep-Alive: timeout=5
+  body:
+    type: text
+    content: |-
+      {
+          "status": "success",
+          "data": {
+              "id": "1362b65d-b210-43fc-89ae-8e66a98b225e",
+              "createdAt": "2026-03-21T21:18:49.269Z",
+              "updatedAt": "2026-03-21T21:18:49.269Z",
+              "name": "Samsung TV",
+              "userId": "c846b137-5beb-4c3a-a8af-f53c44b2103f",
+              "description": "test desc",
+              "price": "50000",
+              "quantity": 1,
+              "slug": "samsung-tv",
+              "isStoreProduct": false,
+              "storeCategoryId": null,
+              "categoryId": null,
+              "status": "active"
+          }
+      }
+order: 1000

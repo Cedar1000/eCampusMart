@@ -1,0 +1,70 @@
+$kind: http-example
+request:
+  url: "{{URL}}/housings/b13e06ac-025e-439b-9957-4f916a6137a5"
+  method: GET
+  queryParams:
+    - key: locationId
+      value: 80640c55-b4da-4b3b-aaa6-4588b2741606,3be19fd6-e387-46c7-9040-683f436dc271
+      disabled: true
+  body:
+    type: json
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "1295"
+    etag: W/"50f-6jZRlD4rpH88faMBYpU2lF5u+FM"
+    date: Sat, 03 Oct 2026 13:09:06 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "Get One successful!",
+        "data": {
+          "id": "b13e06ac-025e-439b-9957-4f916a6137a5",
+          "createdAt": "2026-09-30T13:59:46.871Z",
+          "updatedAt": "2026-09-30T13:59:46.871Z",
+          "title": "Neat Self-Contained Apartment",
+          "houseType": "self-contained",
+          "locationId": "c2119933-3c05-41c0-a9f5-8d19b3bc021e",
+          "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+          "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+          "whoCanRent": "Students",
+          "description": "A clean and spacious self-contained apartment close to campus.",
+          "isNegotiable": true,
+          "price": "850000.00",
+          "pricePeriod": "yearly",
+          "images": [
+            {
+              "id": "10ed2928-fca0-452b-bc6e-01eb8950b933",
+              "createdAt": "2026-09-30T13:59:47.452Z",
+              "updatedAt": "2026-09-30T13:59:47.452Z",
+              "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777176/ECampusMart/housing_f7mjrp.jpg",
+              "key": "housing/apartment-1.jpg",
+              "housingId": "b13e06ac-025e-439b-9957-4f916a6137a5"
+            },
+            {
+              "id": "b773b77e-874a-4a22-a784-4a91f3261763",
+              "createdAt": "2026-09-30T13:59:47.452Z",
+              "updatedAt": "2026-09-30T13:59:47.452Z",
+              "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777172/ECampusMart/housing_2_kmp3y3.jpg",
+              "key": "housing/apartment-2.jpg",
+              "housingId": "b13e06ac-025e-439b-9957-4f916a6137a5"
+            }
+          ],
+          "user": {
+            "firstName": "Cedar",
+            "lastName": "Daniel",
+            "photo": null,
+            "ratingsCount": 0,
+            "ratingsAverage": 0
+          }
+        }
+      }
+order: 1000

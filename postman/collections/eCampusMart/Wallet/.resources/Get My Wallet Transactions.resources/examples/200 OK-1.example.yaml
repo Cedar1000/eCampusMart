@@ -1,0 +1,65 @@
+$kind: http-example
+name: 200 OK
+request:
+  url: "{{URL}}/transactions/my-transactions"
+  method: GET
+  body:
+    type: json
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "875"
+    etag: W/"36b-9gQ7Vg1Z25495FFCoZDp/fbrevI"
+    date: Wed, 14 Oct 2026 16:23:03 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "Get All successful!",
+        "total": 2,
+        "nextPage": null,
+        "prevPage": null,
+        "count": 2,
+        "pages": 1,
+        "currentPage": 1,
+        "data": [
+          {
+            "id": "71720e47-79e5-4aa1-9129-35f0f9f9a74c",
+            "createdAt": "2026-10-14T15:16:01.626Z",
+            "updatedAt": "2026-10-14T15:16:01.626Z",
+            "walletId": "cb937bf2-efd1-47c0-a606-367b2c986269",
+            "amount": 300,
+            "beforeBalance": 1000,
+            "afterBalance": 700,
+            "type": "debit",
+            "status": "success",
+            "reference": "wS3543835Y",
+            "description": "product-upload",
+            "currency": "NGN",
+            "expiresAt": "2026-10-14T16:16:03.262Z"
+          },
+          {
+            "id": "c50754cd-a721-45d7-9377-dc6e91c1f35f",
+            "createdAt": "2026-10-14T15:13:04.855Z",
+            "updatedAt": "2026-10-14T15:13:28.095Z",
+            "walletId": "cb937bf2-efd1-47c0-a606-367b2c986269",
+            "amount": 1000,
+            "beforeBalance": 0,
+            "afterBalance": 1000,
+            "type": "credit",
+            "status": "success",
+            "reference": "mV5264483u",
+            "description": "fund",
+            "currency": "NGN",
+            "expiresAt": "2026-10-14T16:28:04.046Z"
+          }
+        ]
+      }
+order: 2000

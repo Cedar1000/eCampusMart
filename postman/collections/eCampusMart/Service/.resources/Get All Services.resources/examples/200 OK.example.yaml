@@ -1,0 +1,158 @@
+$kind: http-example
+request:
+  url: "{{URL}}/services"
+  method: GET
+  queryParams:
+    - key: categoryId
+      value: a682ec3d-f952-404f-8f1d-cbdd45b60697,f09eb871-ad67-4749-8398-6ddac3b21d16
+      disabled: true
+    - key: relations
+      value: store
+      disabled: true
+    - key: price[range]
+      value: 19344.68,600000
+      disabled: true
+  body:
+    type: json
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "3573"
+    etag: W/"df5-0A5Vid5dCLsYHJ6fiLLm/YdMP6k"
+    date: Tue, 06 Oct 2026 19:18:21 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "Get All successful!",
+        "total": 6,
+        "nextPage": null,
+        "prevPage": null,
+        "count": 6,
+        "pages": 1,
+        "currentPage": 1,
+        "data": [
+          {
+            "id": "6bcfdef2-fa12-4bdd-9735-1e01b02acccc",
+            "createdAt": "2026-10-06T14:51:53.712Z",
+            "updatedAt": "2026-10-06T14:51:53.712Z",
+            "title": "Computer Repair",
+            "ownerId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "categoryId": "a682ec3d-f952-404f-8f1d-cbdd45b60697",
+            "locationId": "27ed5921-e3b9-454e-a70b-6b4497f1f930",
+            "location": "Mobile Filling Station",
+            "description": "Laptop and desktop computer repair services.",
+            "isNegotiable": true,
+            "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+            "storeId": "e5e9a262-c8bb-4946-ba93-978e581729a6",
+            "listingId": "LST-TN36-T8",
+            "price": "5000.00",
+            "priceUnit": "session",
+            "images": [],
+            "isLiked": true
+          },
+          {
+            "id": "1fd582eb-0093-454d-9de5-609d4daff188",
+            "createdAt": "2026-10-06T13:02:16.569Z",
+            "updatedAt": "2026-10-06T13:02:16.569Z",
+            "title": "Computer Repair",
+            "ownerId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "categoryId": "a682ec3d-f952-404f-8f1d-cbdd45b60697",
+            "locationId": null,
+            "location": null,
+            "description": "Laptop and desktop computer repair services.",
+            "isNegotiable": true,
+            "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+            "storeId": "e5e9a262-c8bb-4946-ba93-978e581729a6",
+            "listingId": "LST-3DKB-WB",
+            "price": "5000.00",
+            "priceUnit": "session",
+            "images": [],
+            "isLiked": false
+          },
+          {
+            "id": "63076bc8-2a01-474d-898e-ff575343188e",
+            "createdAt": "2026-10-06T11:03:50.808Z",
+            "updatedAt": "2026-10-06T11:03:50.808Z",
+            "title": "Griselda Service",
+            "ownerId": "1d9f446a-117c-43e9-b837-a31d0d5462f3",
+            "categoryId": "d9dc5f57-28d3-4ed4-813a-678676e6afa7",
+            "locationId": null,
+            "location": null,
+            "description": "This is to describe that the store I work with is Griselda stores",
+            "isNegotiable": false,
+            "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+            "storeId": "d00a8439-05a6-4c8b-85c4-3bf108c1aa25",
+            "listingId": "LST-2KE8-4S",
+            "price": "10000.00",
+            "priceUnit": "daily",
+            "images": [],
+            "isLiked": false
+          },
+          {
+            "id": "fada4de4-fca3-451d-b0c7-89fda2d83ce1",
+            "createdAt": "2026-10-04T20:33:12.815Z",
+            "updatedAt": "2026-10-04T20:33:12.815Z",
+            "title": "Computer Repair",
+            "ownerId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "categoryId": "a682ec3d-f952-404f-8f1d-cbdd45b60697",
+            "locationId": null,
+            "location": null,
+            "description": "Laptop and desktop computer repair services.",
+            "isNegotiable": true,
+            "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+            "storeId": "e5e9a262-c8bb-4946-ba93-978e581729a6",
+            "listingId": "LST-43LT-IX",
+            "price": "88315.77",
+            "priceUnit": "session",
+            "images": [],
+            "isLiked": false
+          },
+          {
+            "id": "f3b9bb38-930f-4113-be9d-c33cdd342e87",
+            "createdAt": "2026-10-02T16:59:42.671Z",
+            "updatedAt": "2026-10-02T16:59:42.671Z",
+            "title": "Computer Repair",
+            "ownerId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "categoryId": "a682ec3d-f952-404f-8f1d-cbdd45b60697",
+            "locationId": null,
+            "location": null,
+            "description": "Laptop and desktop computer repair services.",
+            "isNegotiable": true,
+            "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+            "storeId": "e5e9a262-c8bb-4946-ba93-978e581729a6",
+            "listingId": "LST-FN4H-9M",
+            "price": "442834.78",
+            "priceUnit": "session",
+            "images": [],
+            "isLiked": false
+          },
+          {
+            "id": "e8881a0e-3adb-4546-a2d9-76f381ebdd80",
+            "createdAt": "2026-09-29T13:30:22.421Z",
+            "updatedAt": "2026-09-29T13:30:22.421Z",
+            "title": "Computer Repair",
+            "ownerId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "categoryId": "a682ec3d-f952-404f-8f1d-cbdd45b60697",
+            "locationId": null,
+            "location": null,
+            "description": "Laptop and desktop computer repair services.",
+            "isNegotiable": true,
+            "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+            "storeId": "e5e9a262-c8bb-4946-ba93-978e581729a6",
+            "listingId": "LST-1OF3-JH",
+            "price": "393356.07",
+            "priceUnit": "session",
+            "images": [],
+            "isLiked": false
+          }
+        ]
+      }
+order: 5000

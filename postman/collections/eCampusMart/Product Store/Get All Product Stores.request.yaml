@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{URL}}/product-stores"
+method: GET
+body:
+  type: json
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+examples: ./.resources/Get All Product Stores.resources/examples
+order: 1000

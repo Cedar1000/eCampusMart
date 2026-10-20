@@ -1,0 +1,33 @@
+$kind: http-request
+url: "{{URL}}/services"
+method: POST
+body:
+  type: json
+  content: |-
+    {
+        "title": "Cups Cakes",
+        "storeId": "5073cd3b-1b0d-4623-87c9-fa96fa866ee3",
+        "description": "The best cup cake services on campus services.",
+        "price": 5000,
+        "priceUnit": "session",
+        "isNegotiable": true,
+        "locationId": "27ed5921-e3b9-454e-a70b-6b4497f1f930",
+        "location": "Mobile Filling Station",
+        "images": [
+            {
+                "key": "key",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1791997199/ECampusMart/cupcakes-2_utk9fz.jpg"
+            },
+            {
+                "key": "key",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1791997192/ECampusMart/cupcakes-1_tijhwr.jpg"
+            }
+        ]
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+settings: {}
+examples: ./.resources/Create Service.resources/examples
+order: 2000

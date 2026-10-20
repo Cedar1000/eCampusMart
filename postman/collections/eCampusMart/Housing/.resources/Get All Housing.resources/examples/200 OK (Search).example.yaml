@@ -1,0 +1,83 @@
+$kind: http-example
+request:
+  url: "{{URL}}/housings?search=3 bedroom"
+  method: GET
+  queryParams:
+    - key: campusId
+      value: 801b075c-10d6-42be-972e-2d83df5580fd
+      disabled: true
+    - key: search
+      value: 3 bedroom
+  body:
+    type: json
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "1437"
+    etag: W/"59d-qmd6i7eNJyY/W6RTrJZvAZsM/24"
+    date: Thu, 08 Oct 2026 01:00:26 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "Get All successful!",
+        "total": 1,
+        "nextPage": null,
+        "prevPage": null,
+        "count": 1,
+        "pages": 1,
+        "currentPage": 1,
+        "data": [
+          {
+            "id": "99010c51-fbe7-4e88-90d3-6353a9ebf304",
+            "createdAt": "2026-10-07T23:52:27.640Z",
+            "updatedAt": "2026-10-07T23:52:27.640Z",
+            "title": "Neat 3 Bedroom Apartment",
+            "houseType": "three-bedroom",
+            "locationId": "c2119933-3c05-41c0-a9f5-8d19b3bc021e",
+            "listingId": "LST-NM4Y-GM",
+            "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+            "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "whoCanRent": "Students",
+            "description": "A clean and spacious self-contained apartment close to campus.",
+            "isNegotiable": true,
+            "price": "850000.00",
+            "pricePeriod": "yearly",
+            "images": [
+              {
+                "id": "7b6a6014-5ce0-4382-bbec-5a345010cbac",
+                "createdAt": "2026-10-07T23:52:28.317Z",
+                "updatedAt": "2026-10-07T23:52:28.317Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777176/ECampusMart/housing_f7mjrp.jpg",
+                "key": "housing/apartment-1.jpg",
+                "housingId": "99010c51-fbe7-4e88-90d3-6353a9ebf304",
+                "isCoverImage": true
+              },
+              {
+                "id": "716e3f8e-ef7e-4aec-b08e-256f4c8d0cc1",
+                "createdAt": "2026-10-07T23:52:28.317Z",
+                "updatedAt": "2026-10-07T23:52:28.317Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777172/ECampusMart/housing_2_kmp3y3.jpg",
+                "key": "housing/apartment-2.jpg",
+                "housingId": "99010c51-fbe7-4e88-90d3-6353a9ebf304",
+                "isCoverImage": false
+              }
+            ],
+            "user": {
+              "firstName": "Cedar",
+              "lastName": "Daniels",
+              "photo": null,
+              "ratingsCount": 0,
+              "ratingsAverage": 0
+            }
+          }
+        ]
+      }
+order: 5000

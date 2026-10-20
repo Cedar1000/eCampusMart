@@ -1,0 +1,54 @@
+$kind: http-example
+request:
+  url: "{{URL}}/auth/clerk"
+  method: POST
+  body:
+    type: json
+    content: |-
+      {
+          "token": "{{json_web_token_0dxt}}"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "1117"
+    etag: W/"45d-j0Ruv0hSWbNV5jrwTWwm/ZGtBL8"
+    date: Thu, 15 Oct 2026 20:50:33 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "token": "{{json_web_token_12em}}",
+        "refreshToken": "{{json_web_token_12em}}",
+        "isNewUser": false,
+        "user": {
+          "id": "48c03f11-8cf5-4249-b1fe-304e3197f9bd",
+          "firstName": "Test",
+          "lastName": "User",
+          "email": "newuser1+clerk_test@example.com",
+          "phoneNumber": null,
+          "countryCode": null,
+          "campusId": null,
+          "photo": "https://img.clerk.com/eyJ0eXBlIjoiZGVmYXVsdCIsImlpZCI6Imluc18zS2s4cWdYNENwNDNZbnVvd2lNb2szV1RtS04iLCJyaWQiOiJ1c2VyXzNLa0x6dzBsWjZ0OFRFQWZrS0lLbEIzcHNpcyIsImluaXRpYWxzIjoiVFUifQ",
+          "isActive": true,
+          "emailVerified": true,
+          "wallet": {
+            "id": "fa4139dc-5b37-4616-8c26-3b281c53a12e",
+            "createdAt": "2026-10-15T19:47:48.773Z",
+            "updatedAt": "2026-10-15T19:47:48.773Z",
+            "userId": "48c03f11-8cf5-4249-b1fe-304e3197f9bd",
+            "balance": 0,
+            "currency": "NGN",
+            "isActive": true
+          },
+          "productStore": null,
+          "serviceStore": null
+        }
+      }
+order: 2000

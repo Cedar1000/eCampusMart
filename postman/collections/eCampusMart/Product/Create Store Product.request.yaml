@@ -1,0 +1,35 @@
+$kind: http-request
+url: "{{URL}}/products/create-store-product"
+method: POST
+body:
+  type: formdata
+  content:
+    - type: text
+      key: name
+      value: Rechargeable Fan
+    - type: text
+      key: description
+      value: test desc for product
+    - type: text
+      key: price
+      value: "15000"
+    - type: text
+      key: quantity
+      value: "1"
+      disabled: true
+    - type: file
+      key: images
+      src: postman-cloud:///1eec631b-ce3d-48d0-999a-39596a912a68
+    - type: file
+      key: images
+      src: postman-cloud:///1eec5d36-9484-47a0-bb3a-010d1daa17d3
+    - type: text
+      key: storeId
+      value: 7263870c-1463-40fd-b683-7187adec022f
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+settings: {}
+examples: ./.resources/Create Store Product.resources/examples
+order: 4000

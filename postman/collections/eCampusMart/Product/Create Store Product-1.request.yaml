@@ -1,0 +1,31 @@
+$kind: http-request
+name: Create Store Product
+url: "{{URL}}/products/create-store-product"
+method: POST
+body:
+  type: json
+  content: |-
+    {
+        "storeId": "ccdfa759-a60f-4a00-8f06-7656779a0c62",
+        "name": "HP Pavilion Laptop",
+        "description": "HP Pavilion laptop with 16GB RAM and 512GB SSD.",
+        "price": 850000,
+        "quantity": 5,
+        "condition": "brand-new",
+        "images": [
+            {
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1791031491/ECampusMart/laptop2_hnorjs.webp",
+                "key": "products/hp-pavilion-1.jpg"
+            },
+            {
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1791031421/ECampusMart/laptop_lwhnqr.jpg",
+                "key": "products/hp-pavilion-2.jpg"
+            }
+        ]
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+examples: ./.resources/Create Store Product-1.resources/examples
+order: 6000

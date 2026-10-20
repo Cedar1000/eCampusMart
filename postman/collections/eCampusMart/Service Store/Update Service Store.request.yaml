@@ -1,0 +1,59 @@
+$kind: http-request
+url: "{{URL}}/service-stores/4f2c8099-4714-4a63-8a9f-fd3e187ca091"
+method: PATCH
+body:
+  type: json
+  content: |-
+    {
+        "categoryId": "5883829e-5e25-4577-8992-b3cdcb4cdbf5",
+        "name": "Sweet Crumbs Bakery",
+        "description": "Fresh cakes, pastries, bread, and custom celebration orders.",
+        "logo": "https://cdn.example.com/service-stores/sweet-crumbs/logo.png",
+        "logoKey": "service-stores/sweet-crumbs/logo.png",
+        "banner": "https://cdn.example.com/service-stores/sweet-crumbs/banner.png",
+        "bannerKey": "service-stores/sweet-crumbs/banner.png",
+        "basePrice": 50000,
+        "availability": {
+            "monday": {
+                "active": true,
+                "openingTime": "09:00",
+                "closingTime": "18:00"
+            },
+            "tuesday": {
+                "active": true,
+                "openingTime": "09:00",
+                "closingTime": "18:00"
+            },
+            "wednesday": {
+                "active": false,
+                "openingTime": null,
+                "closingTime": null
+            },
+            "thursday": {
+                "active": true,
+                "openingTime": "09:00",
+                "closingTime": "18:00"
+            },
+            "friday": {
+                "active": true,
+                "openingTime": "09:00",
+                "closingTime": "18:00"
+            },
+            "saturday": {
+                "active": true,
+                "openingTime": "12:00",
+                "closingTime": "20:00"
+            },
+            "sunday": {
+                "active": false,
+                "openingTime": null,
+                "closingTime": null
+            }
+        }
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+examples: ./.resources/Update Service Store.resources/examples
+order: 3000

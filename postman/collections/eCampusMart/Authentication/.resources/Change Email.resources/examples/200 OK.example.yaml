@@ -1,0 +1,30 @@
+$kind: http-example
+request:
+  url: "{{URL}}/auth/change-email"
+  method: POST
+  body:
+    type: json
+    content: |-
+      {
+          "email": "cedardaniel1998@gmail.com",
+          "password": "test12345"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "44"
+    etag: W/"2c-mmUr3/cN+yUue2q3002rKv9KNWg"
+    date: Wed, 14 Oct 2026 14:56:47 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "email sent!"
+      }
+order: 2000

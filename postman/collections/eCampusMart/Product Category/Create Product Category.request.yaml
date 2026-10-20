@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{URL}}/product-categories"
+method: POST
+body:
+  type: json
+  content: |-
+    {
+        "name": "Technology"
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+examples: ./.resources/Create Product Category.resources/examples
+order: 1000

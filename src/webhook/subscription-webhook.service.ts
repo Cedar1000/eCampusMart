@@ -157,6 +157,11 @@ export class SubscriptionWebhookService {
 
       if (!subscription || !isOpenCheckout) return null;
 
+      // A trial charge only checks the card and is refunded, so its amount can differ
+      if (!subscription.isTrial && !this.isPaidInFull(subscription, data)) {
+        return null;
+      }
+
       subscription.status = SubscriptionStatus.ACTIVE;
 
       // Throws before commit, so Paystack retries the webhook if it fails
@@ -180,6 +185,21 @@ export class SubscriptionWebhookService {
     }
 
     return subscription;
+  }
+
+  // Paystack amounts are in kobo, like ours. Subscriptions don't store a currency
+  private isPaidInFull(subscription: Subscription, data: PaystackEventData) {
+    const matches = Number(data.amount) === Number(subscription.amount);
+
+    if (!matches) {
+      console.error('Subscription not activated: payment does not match', {
+        reference: subscription.reference,
+        expected: subscription.amount,
+        paid: data.amount,
+      });
+    }
+
+    return matches;
   }
 
   // Billing for the plan starts on Paystack when the store's free month ends

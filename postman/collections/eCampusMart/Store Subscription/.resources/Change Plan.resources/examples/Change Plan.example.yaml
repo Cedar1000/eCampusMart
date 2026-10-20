@@ -1,0 +1,46 @@
+$kind: http-example
+request:
+  url: "{{URL}}/subscriptions/change-plan"
+  method: POST
+  body:
+    type: json
+    content: |-
+      {
+          "storeId": "513ce376-0dc1-451f-9dc5-eb9686a9d1d8",
+          "planId": "c6af54a9-453d-49b6-b915-08484265f696"
+      }
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "573"
+    etag: W/"23d-s32cUqcPXpin+FPfTRwicwh7Dv8"
+    date: Tue, 20 Oct 2026 14:57:07 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "Subscription changed to the Monthly Plan plan",
+        "data": {
+          "id": "9b81001e-a6ac-4b00-837d-0c1d4b0c8ccb",
+          "createdAt": "2026-10-20T13:57:05.913Z",
+          "updatedAt": "2026-10-20T13:57:05.913Z",
+          "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+          "planId": "c6af54a9-453d-49b6-b915-08484265f696",
+          "storeId": "513ce376-0dc1-451f-9dc5-eb9686a9d1d8",
+          "paystackId": "PLN_um650l70gw2zz7m",
+          "reference": "RM9416516m",
+          "subscriptionCode": "SUB_s527304ihcqglr1",
+          "emailToken": "p2rqq97tz6kam8s",
+          "amount": 90000,
+          "status": "active",
+          "isTrial": true,
+          "expiresAt": "2026-11-16T20:42:00.000Z"
+        }
+      }
+order: 1000

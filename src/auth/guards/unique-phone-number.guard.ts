@@ -24,8 +24,9 @@ export class UniquePhoneNumberGuard implements CanActivate {
 
     if (!phoneNumber) return true;
 
+    // Unverified signups don't hold a number; they expire (UnverifiedAccountsSweep)
     const existingUser = await this.userRepository.findOne({
-      where: { phoneNumber, countryCode },
+      where: { phoneNumber, countryCode, emailVerified: true },
       select: ['id', 'phoneNumber', 'countryCode'],
     });
 

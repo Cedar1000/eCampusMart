@@ -1,0 +1,142 @@
+$kind: http-example
+request:
+  url: "{{URL}}/transactions/my-transactions"
+  method: GET
+  body:
+    type: json
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    :status: "200"
+    cache-control: public, max-age=0, must-revalidate
+    content-encoding: br
+    content-type: application/json; charset=utf-8
+    date: Mon, 05 Oct 2026 17:59:24 GMT
+    etag: W/"ab9-0bGmfYE9qpwKOp4y9/i9oRkFTlA"
+    server: Vercel
+    strict-transport-security: max-age=63072000; includeSubDomains; preload
+    x-powered-by: Express
+    x-vercel-cache: BYPASS
+    x-vercel-id: cpt1::iad1::l854k-1791223163336-2fed26c26505
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "Get All successful!",
+        "total": 8,
+        "nextPage": null,
+        "prevPage": null,
+        "count": 8,
+        "pages": 1,
+        "currentPage": 1,
+        "data": [
+          {
+            "id": "5eeaec33-17bc-4f55-8e9a-90bdaa8de402",
+            "createdAt": "2026-10-05T17:56:53.624Z",
+            "updatedAt": "2026-10-05T17:57:19.356Z",
+            "walletId": "3be86da2-0379-4364-8265-22f399100954",
+            "amount": 15000,
+            "type": "credit",
+            "status": "success",
+            "reference": "gO2249581S",
+            "description": "fund",
+            "currency": "NGN",
+            "expiresAt": "2026-10-05T18:11:53.587Z"
+          },
+          {
+            "id": "8723ae61-5db2-48bf-865d-81d1754dfb7c",
+            "createdAt": "2026-10-05T16:51:59.724Z",
+            "updatedAt": "2026-10-05T16:52:31.338Z",
+            "walletId": "3be86da2-0379-4364-8265-22f399100954",
+            "amount": 15000,
+            "type": "credit",
+            "status": "success",
+            "reference": "GL8966667L",
+            "description": "fund",
+            "currency": "NGN",
+            "expiresAt": "2026-10-05T17:06:59.687Z"
+          },
+          {
+            "id": "63456c39-b2d1-43a3-bf81-6bd2a18eb2c9",
+            "createdAt": "2026-10-05T15:54:30.001Z",
+            "updatedAt": "2026-10-05T15:55:25.918Z",
+            "walletId": "3be86da2-0379-4364-8265-22f399100954",
+            "amount": 15000,
+            "type": "credit",
+            "status": "success",
+            "reference": "zf0365536Z",
+            "description": "fund",
+            "currency": "NGN",
+            "expiresAt": "2026-10-05T17:09:29.429Z"
+          },
+          {
+            "id": "09e72f45-e347-4b30-ba2d-159b349bf399",
+            "createdAt": "2026-10-05T15:52:14.516Z",
+            "updatedAt": "2026-10-05T15:54:11.957Z",
+            "walletId": "3be86da2-0379-4364-8265-22f399100954",
+            "amount": 15000,
+            "type": "credit",
+            "status": "success",
+            "reference": "bt2681068X",
+            "description": "fund",
+            "currency": "NGN",
+            "expiresAt": "2026-10-05T17:07:13.947Z"
+          },
+          {
+            "id": "cdcbc594-eac2-400f-b52c-76d660026e48",
+            "createdAt": "2026-10-05T15:48:32.787Z",
+            "updatedAt": "2026-10-05T15:48:53.870Z",
+            "walletId": "3be86da2-0379-4364-8265-22f399100954",
+            "amount": 5000,
+            "type": "credit",
+            "status": "success",
+            "reference": "Xt7975291b",
+            "description": "fund",
+            "currency": "NGN",
+            "expiresAt": "2026-10-05T17:03:32.198Z"
+          },
+          {
+            "id": "2b21b9a5-2bcd-490e-a900-285402e7c4c2",
+            "createdAt": "2026-10-05T15:46:02.843Z",
+            "updatedAt": "2026-10-05T15:51:50.470Z",
+            "walletId": "3be86da2-0379-4364-8265-22f399100954",
+            "amount": 5000,
+            "type": "credit",
+            "status": "success",
+            "reference": "GE4223504T",
+            "description": "fund",
+            "currency": "NGN",
+            "expiresAt": "2026-10-05T17:01:02.282Z"
+          },
+          {
+            "id": "c326a318-c35c-4f84-8f19-75ba0ec3724a",
+            "createdAt": "2026-10-05T15:43:28.888Z",
+            "updatedAt": "2026-10-05T15:52:30.258Z",
+            "walletId": "3be86da2-0379-4364-8265-22f399100954",
+            "amount": 5000,
+            "type": "credit",
+            "status": "success",
+            "reference": "BM9324638j",
+            "description": "fund",
+            "currency": "NGN",
+            "expiresAt": "2026-10-05T16:58:28.341Z"
+          },
+          {
+            "id": "65a57dda-40ea-4c8d-9aba-bf141aec340a",
+            "createdAt": "2026-10-05T15:24:04.341Z",
+            "updatedAt": "2026-10-05T15:24:04.341Z",
+            "walletId": "3be86da2-0379-4364-8265-22f399100954",
+            "amount": 500000,
+            "type": "credit",
+            "status": "pending",
+            "reference": "It3699092M",
+            "description": "fund",
+            "currency": "NGN",
+            "expiresAt": "2026-10-05T16:39:03.769Z"
+          }
+        ]
+      }
+order: 1000

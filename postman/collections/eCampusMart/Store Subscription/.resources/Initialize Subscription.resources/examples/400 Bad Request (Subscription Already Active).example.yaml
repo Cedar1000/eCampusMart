@@ -1,0 +1,31 @@
+$kind: http-example
+request:
+  url: "{{URL}}/subscriptions/initialize-subscription"
+  method: POST
+  body:
+    type: json
+    content: |-
+      {
+          "storeId": "8d17eb7c-9015-482d-8330-31f4bff963c0",
+          "planId": "c6af54a9-453d-49b6-b915-08484265f696"
+      }
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "139"
+    etag: W/"8b-vSoCS/JW9UIxrCVifr/f3easRpI"
+    date: Fri, 16 Oct 2026 19:01:28 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "message": "Store already has an active subscription, use the change plan endpoint to switch plans",
+        "error": "Bad Request",
+        "statusCode": 400
+      }
+order: 2000

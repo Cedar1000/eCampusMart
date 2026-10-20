@@ -1,0 +1,21 @@
+$kind: http-request
+url: "{{URL}}/auth/login/phone"
+method: POST
+body:
+  type: json
+  content: |-
+    {
+        "countryCode": "234",
+        "phoneNumber": "8164175406",
+        "password": "test1234"
+    }
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |
+      pm.environment.set("jwt", pm.response.json().token);
+    language: text/javascript
+settings: {}
+examples: ./.resources/Phone Number Login.resources/examples
+order: 9000

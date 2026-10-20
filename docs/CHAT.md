@@ -20,6 +20,7 @@ Base URL in development: `http://localhost:3000` (Socket.IO on `ws://localhost:3
 - [REST endpoints](#rest-endpoints)
   - [List conversations](#list-conversations)
   - [List messages in a conversation](#list-messages-in-a-conversation)
+  - [Clear a chat](#clear-a-chat)
 - [Data shapes](#data-shapes)
 - [Errors](#errors)
 - [Typical flows](#typical-flows)
@@ -61,7 +62,7 @@ sent ──► delivered ──► read
 
 ### Message type
 
-Every message is currently saved with `type: "text"`; the client can't set the type yet. Because of that, **`content` is required on every message, including ones with media.** Use a caption, or a placeholder such as `"📷 Photo"` or `"🎤 Voice note"`.
+Every message is currently saved with `type: "text"`; the client can't set the type yet. Because of that, **`content` is required on every message, including ones with media**, and a message without it is refused. Use a caption, or a placeholder such as `"📷 Photo"` or `"🎤 Voice note"`.
 
 The types that exist are `text`, `image`, `video`, `audio`, `file`, `system` and `voicenote`.
 
@@ -125,7 +126,9 @@ On disconnect, the user and their stores are marked offline (`isOnline: false`).
 
 ## Socket events: client → server
 
-Every payload is validated strictly. **Unknown fields are rejected**, so send only the fields listed for each event. A rejected payload comes back as an [`exception`](#errors) event.
+Every payload is validated strictly. **Unknown fields are rejected**, so send only the fields listed for each event. A rejected payload comes back as an [`exception`](#errors) event that says which field is wrong.
+
+**You can only act as yourself.** `senderId` on `new-message`, `typing`, `stop-typing`, `recording` and `stop-recording`, and `receiverId` on `mark-all-as-read`, must be the connected user's id or the id of one of their stores. Anything else is refused.
 
 Events that return data (`new-message`, `mark-all-as-read`) return it through a Socket.IO **acknowledgement**: pass a callback as the last argument to `emit`, or use `emitWithAck`.
 
@@ -139,7 +142,7 @@ Send a message. The server saves it, sends it to the receiver if they are online
 | ---------------- | ------------- | -------- | --------------------------------------------------------------------------------------- |
 | `senderId`       | UUID          | Yes      | The current user's id, or the id of one of their stores if they're replying as a store. |
 | `receiverId`     | UUID          | Yes      | A user, product store or service store id.                                              |
-| `content`        | string        | Yes\*    | \*Required in practice; see [Message type](#message-type).                              |
+| `content`        | string        | Yes      | Not empty; see [Message type](#message-type).                                           |
 | `conversationId` | UUID          | No       | Leave out for a new chat; the server finds or creates the conversation between the two.  |
 | `productId`      | UUID          | No       | The product this message is about.                                                      |
 | `serviceId`      | UUID          | No       | The service this message is about.                                                      |
@@ -297,7 +300,7 @@ const readIds = await socket.emitWithAck('mark-all-as-read', {
 
 The server also resets the reader's unread count for the conversation (`unReadCount[receiverId]`) and recalculates their total unread count.
 
-If any messages changed, the server emits [`mark-all-as-read`](#mark-all-as-read-1) with the `conversationId` to the **`receiverId`** participant.
+If any messages changed, the server emits [`mark-all-as-read`](#mark-all-as-read-1) with the `conversationId` to the **senders of those messages** (the other participant), so their ticks turn blue, and to the reader. It works out the senders from the messages themselves.
 
 ---
 
@@ -331,7 +334,7 @@ Set those messages' `status` to `delivered`, unless you have already shown them 
 
 ### `mark-all-as-read`
 
-Messages in a conversation were marked as read. The payload is the conversation id as a plain string:
+Messages in a conversation were marked as read. You get it when the other participant reads **your** messages: set every message you sent in that conversation to `read`. The reader gets it too. The payload is the conversation id as a plain string:
 
 ```json
 "0b2ff029-745f-4c0b-a0f4-040d0870e744"
@@ -417,6 +420,7 @@ GET /chat/conversations/48c03f11-8cf5-4249-b1fe-304e3197f9bd?page=1&limit=20
       },
       "mutedBy": {},
       "mutedUntil": {},
+      "clearedAt": {},
       "createdAt": "2026-10-19T14:02:11.004Z",
       "updatedAt": "2026-10-20T09:14:03.540Z",
       "lastMessage": {
@@ -432,7 +436,9 @@ GET /chat/conversations/48c03f11-8cf5-4249-b1fe-304e3197f9bd?page=1&limit=20
         "id": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
         "type": "user",
         "name": "Ada Obi",
-        "photo": "https://cdn.example.com/users/ada.jpg"
+        "photo": "https://cdn.example.com/users/ada.jpg",
+        "ratingsAverage": 4.5,
+        "ratingsCount": 12
       }
     }
   ]
@@ -441,8 +447,9 @@ GET /chat/conversations/48c03f11-8cf5-4249-b1fe-304e3197f9bd?page=1&limit=20
 
 `lastMessage` is the full [`Message`](#message); it's shortened here.
 
-- **`recipient`** is the *other* participant. `name` is a user's full name or a store's name, and `photo` is a user's photo or a store's logo (`null` if none).
+- **`recipient`** is the *other* participant. `name` is a user's full name or a store's name, and `photo` is a user's photo or a store's logo (`null` if none). `ratingsAverage` and `ratingsCount` are the user's or store's rating (`0` if unrated).
 - **Unread badge:** use `unReadCount[participantId]`, the number of unread messages for the participant whose conversations you're listing.
+- **Cleared chats:** `lastMessage` is `null` if the participant [cleared the chat](#clear-a-chat) after it was sent. The conversation itself stays in the list. `clearedAt` maps participant ids to when they last cleared it.
 
 ### List messages in a conversation
 
@@ -585,6 +592,33 @@ A message with a `productId`, `serviceId` or `housingId` gets a matching `produc
 
 **Deleted messages:** messages with `isDeleted: true` are still returned. Show them as "This message was deleted".
 
+**Cleared chats:** messages sent before the logged-in user (or their store in the conversation) [cleared the chat](#clear-a-chat) are left out, and `total` counts only the rest.
+
+### Clear a chat
+
+```
+POST /chat/conversations/:conversationId/clear
+```
+
+Hides every message in the conversation so far, **for the logged-in user only**: the other participant still sees them. Messages sent after this show as normal. There's no body. The logged-in user, or one of their stores, must be a participant; otherwise the response is `403`.
+
+Clearing doesn't mark messages as read and doesn't delete anything.
+
+**Response `200`**
+
+```json
+{
+  "status": "success",
+  "message": "Chat cleared",
+  "data": {
+    "conversationId": "0b2ff029-745f-4c0b-a0f4-040d0870e744",
+    "clearedAt": "2026-10-20T10:02:44.120Z"
+  }
+}
+```
+
+After it succeeds, empty the open conversation in the UI. Reloading the messages returns only ones newer than `clearedAt`.
+
 ---
 
 ## Data shapes
@@ -683,6 +717,7 @@ interface Conversation {
   unReadCount: Record<string, number>;
   mutedBy: Record<string, boolean>;
   mutedUntil: Record<string, string>;
+  clearedAt: Record<string, string>;
   createdAt: string;
   updatedAt: string;
   lastMessage: Message | null;
@@ -691,6 +726,8 @@ interface Conversation {
     type: ParticipantType;
     name: string;
     photo: string | null;
+    ratingsAverage: number;
+    ratingsCount: number;
   } | null;
 }
 
@@ -743,14 +780,21 @@ A failed socket event emits `exception` on the same socket:
 { "status": "error", "message": "Receiver 48c03f11-8cf5-4249-b1fe-304e3197f9bd not found" }
 ```
 
-| Cause                                                                  | `message`                                    |
-| ---------------------------------------------------------------------- | -------------------------------------------- |
-| `senderId` doesn't match a user or store                               | `Sender <id> not found`                      |
-| `receiverId` doesn't match a user or store                             | `Receiver <id> not found`                    |
-| Invalid payload: missing or non-UUID id, unknown field, wrong type     | `Internal server error`                      |
-| Text message without `content`                                         | A database error about the check constraint  |
+| Cause                                                                     | `message` (example)                                       |
+| ------------------------------------------------------------------------- | --------------------------------------------------------- |
+| Unknown field                                                             | `property extra should not exist`                         |
+| Missing or invalid field                                                  | `conversationId must be a UUID; conversationId should not be empty` |
+| `new-message` without `content`                                           | `content should not be empty`                             |
+| Acting as someone who isn't you or your store (`new-message`)             | `You can only send as yourself or one of your stores`     |
+| Acting as someone who isn't you or your store (other events)              | `You can only act as yourself or one of your stores`      |
+| `conversationId` isn't a conversation between the sender and receiver     | `The conversation is not between the sender and receiver` |
+| `senderId` and `receiverId` are the same                                  | `You can't send a message to yourself`                    |
+| `receiverId` doesn't match a user or store                                | `Receiver <id> not found`                                 |
+| Anything unexpected on the server                                         | `Internal server error`                                   |
 
-Validation failures currently come back as the generic `Internal server error`. If you get it, check the payload against the tables above first: an extra field, or a missing `conversationId` on `mark-all-as-read`, is the usual cause.
+Validation messages list every problem with the payload, separated by `; `. Server errors never include database details.
+
+The `exception` payload may also carry a `cause` with the event name and the payload you sent; you can ignore it.
 
 When an event fails, its acknowledgement callback isn't called, so add a timeout to `emitWithAck`:
 
@@ -766,8 +810,7 @@ const message = await socket.timeout(10_000).emitWithAck('new-message', payload)
 
 | Status | When                                                                                 |
 | ------ | ------------------------------------------------------------------------------------ |
-| `400`  | A path id isn't a valid UUID.                                                        |
-| `401`  | Missing or invalid `Authorization` header.                                           |
+| `400`  | A path id isn't a valid UUID.                                                        || `401`  | Missing or invalid `Authorization` header.                                           |
 | `403`  | The participant or conversation doesn't belong to the logged-in user or their stores. |
 
 ---

@@ -1,0 +1,16 @@
+$kind: http-request
+url: "{{URL}}/subscriptions/initialize-subscription"
+method: POST
+body:
+  type: json
+  content: |-
+    {
+        "storeId": "513ce376-0dc1-451f-9dc5-eb9686a9d1d8",
+        "planId": "c6af54a9-453d-49b6-b915-08484265f696"
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+examples: ./.resources/Initialize Subscription.resources/examples
+order: 1000

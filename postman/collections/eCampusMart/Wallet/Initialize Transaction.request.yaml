@@ -1,0 +1,16 @@
+$kind: http-request
+url: "{{URL}}/wallet/initialize-transaction"
+method: POST
+body:
+  type: json
+  content: |-
+    {
+        "amount": 1000
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+settings: {}
+examples: ./.resources/Initialize Transaction.resources/examples
+order: 1000

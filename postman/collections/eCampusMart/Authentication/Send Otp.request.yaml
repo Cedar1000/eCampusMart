@@ -1,0 +1,14 @@
+$kind: http-request
+url: "{{URL}}/auth/send-otp"
+method: POST
+body:
+  type: json
+  content: |-
+    {
+        "email": "cedard686@gmail.com"
+    }
+auth:
+  type: noauth
+settings: {}
+examples: ./.resources/Send Otp.resources/examples
+order: 4000

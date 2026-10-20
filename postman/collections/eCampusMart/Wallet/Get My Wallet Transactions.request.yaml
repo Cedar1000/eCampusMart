@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{URL}}/transactions/my-transactions"
+method: GET
+body:
+  type: json
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+examples: ./.resources/Get My Wallet Transactions.resources/examples
+order: 2000

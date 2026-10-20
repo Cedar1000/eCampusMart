@@ -1,0 +1,35 @@
+$kind: http-example
+request:
+  url: "{{URL}}/product-categories"
+  method: POST
+  body:
+    type: json
+    content: |-
+      {
+          "name": "Technology"
+      }
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "202"
+    etag: W/"ca-FQNSKmF0MO3vitDhIHuqeicuEgo"
+    date: Fri, 04 Sep 2026 16:54:38 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "create successful!",
+        "data": {
+          "id": "33b26ec6-e23b-4a75-a9db-d92bd439ab1a",
+          "createdAt": "2026-09-04T15:54:38.221Z",
+          "updatedAt": "2026-09-04T15:54:38.221Z",
+          "name": "Technology"
+        }
+      }
+order: 1000

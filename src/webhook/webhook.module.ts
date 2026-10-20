@@ -11,6 +11,9 @@ import { Wallet } from 'src/wallet/entities/wallet.entity';
 import { Subscription } from 'src/subscription/entities/subscription.entity';
 import { User } from 'src/auth/entities/user.entity';
 import { ServiceStore } from 'src/service-store/entities/service-store.entity';
+import { BullModule } from '@nestjs/bullmq';
+import { PAYMENT_QUE } from './webhook.constants';
+import { PaymentProcessor } from './processors/payment.processor';
 
 @Module({
   imports: [
@@ -21,6 +24,7 @@ import { ServiceStore } from 'src/service-store/entities/service-store.entity';
       User,
       ServiceStore,
     ]),
+    BullModule.registerQueue({ name: PAYMENT_QUE }),
   ],
   controllers: [WebhookController, PaymentController],
   providers: [
@@ -28,6 +32,7 @@ import { ServiceStore } from 'src/service-store/entities/service-store.entity';
     WalletWebhookService,
     SubscriptionWebhookService,
     PaymentService,
+    PaymentProcessor,
   ],
 })
 export class WebhookModule {}

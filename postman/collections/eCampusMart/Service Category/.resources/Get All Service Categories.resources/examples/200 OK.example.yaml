@@ -1,0 +1,124 @@
+$kind: http-example
+request:
+  url: "{{URL}}/service-categories"
+  method: GET
+  body:
+    type: json
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    X-Powered-By: Express
+    Content-Type: application/json; charset=utf-8
+    Content-Length: "2426"
+    ETag: W/"97a-rdhZrPlpFOAh4UKj1fNwjOUDJGE"
+    Date: Mon, 28 Sep 2026 10:59:56 GMT
+    Connection: keep-alive
+    Keep-Alive: timeout=5
+  body:
+    type: text
+    content: |-
+      {
+          "status": "success",
+          "message": "Get All successful!",
+          "total": 15,
+          "nextPage": null,
+          "prevPage": null,
+          "count": 15,
+          "pages": 1,
+          "currentPage": 1,
+          "data": [
+              {
+                  "id": "eb4ed596-ba38-430a-a98c-a1d0203ba617",
+                  "createdAt": "2026-09-27T20:00:56.686Z",
+                  "updatedAt": "2026-09-27T20:00:56.686Z",
+                  "name": "Entertainment"
+              },
+              {
+                  "id": "d0714cd3-bc05-4fd6-bfa4-4db2569a22c9",
+                  "createdAt": "2026-09-27T20:00:56.686Z",
+                  "updatedAt": "2026-09-27T20:00:56.686Z",
+                  "name": "Clothing & Fashion"
+              },
+              {
+                  "id": "c987bcc1-5b60-4935-96f8-ac01c546267c",
+                  "createdAt": "2026-09-27T20:00:56.686Z",
+                  "updatedAt": "2026-09-27T20:00:56.686Z",
+                  "name": "Transport & Auto"
+              },
+              {
+                  "id": "a2bf0a9b-a091-459c-9046-08a0aab7684e",
+                  "createdAt": "2026-09-27T20:00:56.686Z",
+                  "updatedAt": "2026-09-27T20:00:56.686Z",
+                  "name": "Furniture & Home Items"
+              },
+              {
+                  "id": "a0f6ea5b-adb4-4c0c-8277-09a7e3c29507",
+                  "createdAt": "2026-09-27T20:00:56.686Z",
+                  "updatedAt": "2026-09-27T20:00:56.686Z",
+                  "name": "Delivery & Errands"
+              },
+              {
+                  "id": "7232526c-c15c-44ab-bdae-47e8fb98207c",
+                  "createdAt": "2026-09-27T20:00:56.686Z",
+                  "updatedAt": "2026-09-27T20:00:56.686Z",
+                  "name": "Beauty & Grooming"
+              },
+              {
+                  "id": "67030b34-7d05-45fd-b3b5-be77c552ce67",
+                  "createdAt": "2026-09-27T20:00:56.686Z",
+                  "updatedAt": "2026-09-27T20:00:56.686Z",
+                  "name": "Electronics & Gadgets"
+              },
+              {
+                  "id": "588ed240-fdc9-458b-8bba-a472cd987d9a",
+                  "createdAt": "2026-09-27T20:00:56.686Z",
+                  "updatedAt": "2026-09-27T20:00:56.686Z",
+                  "name": "Phones & Accessories"
+              },
+              {
+                  "id": "5883829e-5e25-4577-8992-b3cdcb4cdbf5",
+                  "createdAt": "2026-09-27T20:00:56.686Z",
+                  "updatedAt": "2026-09-27T20:00:56.686Z",
+                  "name": "Food & Snacks"
+              },
+              {
+                  "id": "3b3f00a4-0d9a-45fc-a584-e144315e76f6",
+                  "createdAt": "2026-09-27T20:00:56.686Z",
+                  "updatedAt": "2026-09-27T20:00:56.686Z",
+                  "name": "Printing & Documentation"
+              },
+              {
+                  "id": "35cafa7e-86f4-40ba-ace1-01500a823fdb",
+                  "createdAt": "2026-09-27T20:00:56.686Z",
+                  "updatedAt": "2026-09-27T20:00:56.686Z",
+                  "name": "Fashion & Tailoring"
+              },
+              {
+                  "id": "2547c0a2-4c16-4e81-99c9-2302c98582a7",
+                  "createdAt": "2026-09-27T20:00:56.686Z",
+                  "updatedAt": "2026-09-27T20:00:56.686Z",
+                  "name": "Creative & Design"
+              },
+              {
+                  "id": "12ac76f8-30d6-40e8-b28a-5898f10026ed",
+                  "createdAt": "2026-09-27T20:00:56.686Z",
+                  "updatedAt": "2026-09-27T20:00:56.686Z",
+                  "name": "Academic & Tutoring"
+              },
+              {
+                  "id": "09adcf6e-fdf9-4f84-bb06-75aa5b9b602f",
+                  "createdAt": "2026-09-27T20:00:56.686Z",
+                  "updatedAt": "2026-09-27T20:00:56.686Z",
+                  "name": "Laundry & Cleaning"
+              },
+              {
+                  "id": "69073ebf-efe6-4478-ae9b-a3653bda527a",
+                  "createdAt": "2026-09-27T20:00:49.941Z",
+                  "updatedAt": "2026-09-27T20:00:49.941Z",
+                  "name": "Photography & Events"
+              }
+          ]
+      }
+order: 1000

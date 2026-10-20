@@ -1,0 +1,69 @@
+$kind: http-example
+request:
+  url: "{{URL}}/campus-locations"
+  method: GET
+  body:
+    type: json
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    X-Powered-By: Express
+    Content-Type: application/json; charset=utf-8
+    Content-Length: "1093"
+    ETag: W/"445-wc9bR9aMzxbZHTu5P9Gd7BfNM7w"
+    Date: Wed, 30 Sep 2026 10:51:31 GMT
+    Connection: keep-alive
+    Keep-Alive: timeout=5
+  body:
+    type: text
+    content: |-
+      {
+          "status": "success",
+          "message": "Get All successful!",
+          "total": 5,
+          "nextPage": null,
+          "prevPage": null,
+          "count": 5,
+          "pages": 1,
+          "currentPage": 1,
+          "data": [
+              {
+                  "id": "7812e6a3-36eb-4862-bfa3-d8a48265fe6a",
+                  "createdAt": "2026-09-30T09:50:24.130Z",
+                  "updatedAt": "2026-09-30T09:50:24.130Z",
+                  "name": "odums",
+                  "campusId": "801b075c-10d6-42be-972e-2d83df5580fd"
+              },
+              {
+                  "id": "816ea514-fc1b-46f3-a9ce-a2fa2be782b0",
+                  "createdAt": "2026-09-30T09:50:18.908Z",
+                  "updatedAt": "2026-09-30T09:50:18.908Z",
+                  "name": "choba",
+                  "campusId": "801b075c-10d6-42be-972e-2d83df5580fd"
+              },
+              {
+                  "id": "c2119933-3c05-41c0-a9f5-8d19b3bc021e",
+                  "createdAt": "2026-09-30T09:49:58.870Z",
+                  "updatedAt": "2026-09-30T09:49:58.870Z",
+                  "name": "back of chem",
+                  "campusId": "801b075c-10d6-42be-972e-2d83df5580fd"
+              },
+              {
+                  "id": "3be19fd6-e387-46c7-9040-683f436dc271",
+                  "createdAt": "2026-09-30T09:49:47.568Z",
+                  "updatedAt": "2026-09-30T09:49:47.568Z",
+                  "name": "aluu",
+                  "campusId": "801b075c-10d6-42be-972e-2d83df5580fd"
+              },
+              {
+                  "id": "80640c55-b4da-4b3b-aaa6-4588b2741606",
+                  "createdAt": "2026-09-30T09:49:31.175Z",
+                  "updatedAt": "2026-09-30T09:49:31.175Z",
+                  "name": "alakahia",
+                  "campusId": "801b075c-10d6-42be-972e-2d83df5580fd"
+              }
+          ]
+      }
+order: 1000

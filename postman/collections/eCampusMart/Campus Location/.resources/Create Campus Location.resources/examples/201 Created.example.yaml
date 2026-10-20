@@ -1,0 +1,37 @@
+$kind: http-example
+request:
+  url: "{{URL}}/campus-locations"
+  method: POST
+  body:
+    type: json
+    content: |-
+      {
+          "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+          "name": "odums"
+      }
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    X-Powered-By: Express
+    Content-Type: application/json; charset=utf-8
+    Content-Length: "247"
+    ETag: W/"f7-NIwM4Z+JyO0E/TTx/elCRcRsyNo"
+    Date: Wed, 30 Sep 2026 10:50:23 GMT
+    Connection: keep-alive
+    Keep-Alive: timeout=5
+  body:
+    type: text
+    content: |-
+      {
+          "status": "success",
+          "message": "create successful!",
+          "data": {
+              "id": "7812e6a3-36eb-4862-bfa3-d8a48265fe6a",
+              "createdAt": "2026-09-30T09:50:24.130Z",
+              "updatedAt": "2026-09-30T09:50:24.130Z",
+              "name": "odums",
+              "campusId": "801b075c-10d6-42be-972e-2d83df5580fd"
+          }
+      }
+order: 1000

@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{URL}}/housings"
+method: GET
+body:
+  type: json
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+examples: ./.resources/Get All Housing.resources/examples
+order: 1000

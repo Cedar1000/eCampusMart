@@ -1,0 +1,30 @@
+$kind: http-example
+request:
+  url: "{{URL}}/auth/verify-password"
+  method: POST
+  body:
+    type: json
+    content: "{\r
+
+      \    \"password\": \"test12345\"\r
+
+      }"
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "52"
+    etag: W/"34-HVbzyy15nBRakT+COtXXTu3Zi+A"
+    date: Wed, 14 Oct 2026 14:27:39 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "Password is correct"
+      }
+order: 1000

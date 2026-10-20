@@ -1,0 +1,31 @@
+$kind: http-example
+request:
+  url: "{{URL}}/auth/verify-otp"
+  method: POST
+  body:
+    type: json
+    content: |-
+      {
+          "email": "cedar.daniel@prognox.co.uk",
+          "otp": 7190
+      }
+response:
+  statusCode: 401
+  statusText: Unauthorized
+  headers:
+    X-Powered-By: Express
+    Content-Type: application/json; charset=utf-8
+    Content-Length: "66"
+    ETag: W/"42-F1yCmTh0AufMsmFBl63JK3E93GQ"
+    Date: Thu, 08 Feb 2024 12:48:51 GMT
+    Connection: keep-alive
+    Keep-Alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+          "message": "Invalid OTP!",
+          "error": "Unauthorized",
+          "statusCode": 401
+      }
+order: 3000

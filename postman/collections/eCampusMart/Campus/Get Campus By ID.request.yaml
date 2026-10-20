@@ -1,0 +1,13 @@
+$kind: http-request
+url: "{{URL}}/campuses/801b075c-10d6-42be-972e-2d83df5580fd"
+method: GET
+body:
+  type: json
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+settings: {}
+examples: ./.resources/Get Campus By ID.resources/examples
+order: 2000

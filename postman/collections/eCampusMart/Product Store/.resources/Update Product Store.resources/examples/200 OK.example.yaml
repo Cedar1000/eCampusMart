@@ -1,0 +1,51 @@
+$kind: http-example
+request:
+  url: "{{URL}}/product-stores/ccdfa759-a60f-4a00-8f06-7656779a0c62"
+  method: PATCH
+  body:
+    type: json
+    content: |-
+      {
+          "categoryId": "3253bb0e-8c0a-4376-aaa5-f2482d3e0b76",
+          "name": "Campus Electronics Store",
+          "description": "A store selling phones, laptops, chargers, and other electronics.",
+          "logo": "https://cdn.example.com/service-stores/sweet-crumbs/logo.png",
+          "logoKey": "service-stores/sweet-crumbs/logo.png",
+          "banner": "https://cdn.example.com/service-stores/sweet-crumbs/banner.png",
+          "bannerKey": "service-stores/sweet-crumbs/banner.png"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "730"
+    etag: W/"2da-u1HbyfEeMpBlg4+pLRJpyWVw4gw"
+    date: Tue, 06 Oct 2026 15:39:56 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "update successful!",
+        "data": {
+          "id": "ccdfa759-a60f-4a00-8f06-7656779a0c62",
+          "createdAt": "2026-10-03T08:51:47.415Z",
+          "updatedAt": "2026-10-03T08:51:47.415Z",
+          "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+          "categoryId": "3253bb0e-8c0a-4376-aaa5-f2482d3e0b76",
+          "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+          "name": "Campus Electronics Store",
+          "ratingsCount": 0,
+          "ratingsAverage": 0,
+          "description": "A store selling phones, laptops, chargers, and other electronics.",
+          "logo": "https://cdn.example.com/service-stores/sweet-crumbs/logo.png",
+          "logoKey": "service-stores/sweet-crumbs/logo.png",
+          "banner": "https://cdn.example.com/service-stores/sweet-crumbs/banner.png",
+          "bannerKey": "service-stores/sweet-crumbs/banner.png"
+        }
+      }
+order: 1000

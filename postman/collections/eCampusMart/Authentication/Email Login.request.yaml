@@ -1,0 +1,20 @@
+$kind: http-request
+url: "{{URL}}/auth/login/email"
+method: POST
+body:
+  type: json
+  content: |-
+    {
+        "email": "cedard686@gmail.com",
+        "password": "test12345"
+    }
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |
+      pm.environment.set("jwt", pm.response.json().token);
+    language: text/javascript
+settings: {}
+examples: ./.resources/Email Login.resources/examples
+order: 2000

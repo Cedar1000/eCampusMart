@@ -1,0 +1,36 @@
+$kind: http-example
+request:
+  url: "{{URL}}/auth/signup"
+  method: POST
+  body:
+    type: json
+    content: |-
+      {
+        "businessName": "TechCorp Solutions",
+        "industry": "Information Technology",
+        "firstName": "Cedar",
+        "lastName": "Daniel",
+        "email": "cedard686@gmail.com",
+        "password": "test1234",
+        "passwordConfirm": "test1234"
+      }
+response:
+  statusCode: 409
+  statusText: Conflict
+  headers:
+    X-Powered-By: Express
+    Content-Type: application/json; charset=utf-8
+    Content-Length: "74"
+    ETag: W/"4a-N8+/oZBkhL2T5m5TvotorCKJuo0"
+    Date: Thu, 05 Feb 2026 16:16:33 GMT
+    Connection: keep-alive
+    Keep-Alive: timeout=5
+  body:
+    type: text
+    content: |-
+      {
+          "message": "Email is already exists!",
+          "error": "Conflict",
+          "statusCode": 409
+      }
+order: 2000

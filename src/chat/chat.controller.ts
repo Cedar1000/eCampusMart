@@ -9,6 +9,8 @@ import {
   UseGuards,
   ParseUUIDPipe,
   UseInterceptors,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { CreateChatDto } from './dto/create-chat.dto';
@@ -24,8 +26,18 @@ export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 
   @Post()
-  create(@Body() createChatDto: CreateChatDto) {
-    return this.chatService.create(createChatDto);
+  create(@Body() createChatDto: CreateChatDto, @CurrentUser() user: User) {
+    return this.chatService.create(createChatDto, user.id);
+  }
+
+  // Hides the conversation's messages so far, for the current user only
+  @Post('conversations/:conversationId/clear')
+  @HttpCode(HttpStatus.OK)
+  clearConversation(
+    @Param('conversationId', ParseUUIDPipe) conversationId: string,
+    @CurrentUser() user: User,
+  ) {
+    return this.chatService.clearConversation(user.id, conversationId);
   }
 
   // participantId is the current user's id or one of their product/service store ids

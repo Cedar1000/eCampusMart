@@ -1,0 +1,21 @@
+$kind: http-request
+url: "{{URL}}/services/my-listings"
+method: GET
+queryParams:
+  - key: categoryId
+    value: a682ec3d-f952-404f-8f1d-cbdd45b60697,f09eb871-ad67-4749-8398-6ddac3b21d16
+    disabled: true
+  - key: relations
+    value: store
+    disabled: true
+  - key: price[range]
+    value: 19344.68,600000
+    disabled: true
+body:
+  type: json
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+order: 6000

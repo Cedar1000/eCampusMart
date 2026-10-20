@@ -1,0 +1,47 @@
+$kind: http-example
+request:
+  url: "{{URL}}/housings"
+  method: POST
+  body:
+    type: json
+    content: |-
+      {
+        "title": "Modern Self-Contained Apartment",
+        "houseType": "self-contained",
+        "locationId": "550e8400-e29b-41d4-a716-446655440000",
+        "whoCanRent": "Students",
+        "description": "A clean and spacious self-contained apartment close to campus.",
+        "isNegotiable": true,
+        "price": 850000,
+        "pricePeriod": "yearly",
+        "images": [
+          {
+            "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777176/ECampusMart/housing_f7mjrp.jpg",
+            "key": "housing/apartment-1.jpg"
+          },
+          {
+            "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777172/ECampusMart/housing_2_kmp3y3.jpg",
+            "key": "housing/apartment-2.jpg"
+          }
+        ]
+      }
+response:
+  statusCode: 404
+  statusText: Not Found
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "76"
+    etag: W/"4c-3k9i4znBf5Sywo5C+eIja+zJSpw"
+    date: Wed, 30 Sep 2026 14:11:27 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "message": "Campus location not found",
+        "error": "Not Found",
+        "statusCode": 404
+      }
+order: 1000

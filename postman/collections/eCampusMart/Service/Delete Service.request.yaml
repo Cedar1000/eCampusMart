@@ -1,0 +1,11 @@
+$kind: http-request
+url: "{{URL}}/services/410e3470-bee7-46c9-8b66-e3bf11db51ce"
+method: DELETE
+body:
+  type: json
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+order: 4000

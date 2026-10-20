@@ -1,0 +1,61 @@
+$kind: http-example
+request:
+  url: "{{URL}}/auth/login/email"
+  method: POST
+  body:
+    type: json
+    content: |-
+      {
+          "email": "cedard686@gmail.com",
+          "password": "test1234"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "1271"
+    etag: W/"4f7-zZx44sgSf0ox8Qjm1uV+HDN/buQ"
+    date: Mon, 05 Oct 2026 15:12:58 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "token": "{{json_web_token_14hd}}",
+        "refreshToken": "{{json_web_token_14hd}}",
+        "user": {
+          "id": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+          "firstName": "Cedar",
+          "lastName": "Daniel",
+          "email": "cedard686@gmail.com",
+          "phoneNumber": "8164175406",
+          "countryCode": "234",
+          "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+          "isActive": true,
+          "emailVerified": true,
+          "wallet": {
+            "id": "3be86da2-0379-4364-8265-22f399100954",
+            "createdAt": "2026-10-05T14:04:43.331Z",
+            "updatedAt": "2026-10-05T14:04:43.331Z",
+            "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "balance": "0.00",
+            "currency": "NGN",
+            "isActive": true
+          },
+          "productStore": {
+            "id": "16744f6a-cdf9-4922-acdc-a6bb8b72f261",
+            "name": "Campus Electronics Store",
+            "logo": "https://cdn.example.com/service-stores/sweet-crumbs/logo.png"
+          },
+          "serviceStore": {
+            "id": "513ce376-0dc1-451f-9dc5-eb9686a9d1d8",
+            "name": "Sweet Crumbs Bakery",
+            "logo": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790619525/ECampusMart/cake_brand_dvpbz5.jpg"
+          }
+        }
+      }
+order: 2000

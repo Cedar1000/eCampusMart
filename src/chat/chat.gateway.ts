@@ -1,5 +1,6 @@
-import { Inject } from '@nestjs/common';
+import { Inject, UseFilters, ValidationPipe } from '@nestjs/common';
 import {
+  ConnectedSocket,
   MessageBody,
   WebSocketGateway,
   WebSocketServer,
@@ -13,7 +14,12 @@ import { Socket, Server } from 'socket.io';
 import Redis from 'ioredis';
 
 import { REDIS_CLIENT } from 'src/redis/constants/redis.constant';
-import { ChatService, UserStoreIds } from './chat.service';
+import {
+  ChatService,
+  UserStoreIds,
+  onlineIdsOf as onlineIds,
+} from './chat.service';
+import { ChatExceptionFilter } from './filters/chat-exception.filter';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { MarkAsReadDto } from './dto/mark-as-read.dto';
 import { TypingDto } from './dto/typing.dto';
@@ -29,12 +35,15 @@ type ChatSocket = Socket<any, any, any, ChatSocketData>;
 
 const onlineUserKey = (userId: string) => `user-${userId}`;
 
-// The user's id and their stores' ids, all of which are online while they're connected
-const onlineIds = (
-  userId: string,
-  { productStoreIds, serviceStoreIds }: UserStoreIds,
-) => [userId, ...productStoreIds, ...serviceStoreIds];
+// The global ValidationPipe only covers HTTP, so gateways need their own. It goes on
+// @MessageBody only: a class-level pipe would also run on the @ConnectedSocket param
+export const validPayload = new ValidationPipe({
+  whitelist: true,
+  forbidNonWhitelisted: true,
+  transform: true,
+});
 
+@UseFilters(ChatExceptionFilter)
 @WebSocketGateway({ cors: { origin: '*' } })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
@@ -120,54 +129,68 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('new-message')
-  async handleMessage(@MessageBody() createChatDto: CreateChatDto) {
-    try {
-      const message = await this.chatService.create(createChatDto);
+  async handleMessage(
+    @MessageBody(validPayload) createChatDto: CreateChatDto,
+    @ConnectedSocket() client: ChatSocket,
+  ) {
+    const message = await this.chatService.create(
+      createChatDto,
+      this.connectedUserId(client),
+    );
 
-      const isOnline = await this.emitToUser(
-        message.receiverId,
-        'new-message',
-        message,
+    const isOnline = await this.emitToUser(
+      message.receiverId,
+      'new-message',
+      message,
+    );
+
+    if (isOnline) {
+      const delivered = await this.chatService.markDelivered(
+        [message.receiverId],
+        [message.id],
       );
 
-      if (isOnline) {
-        const delivered = await this.chatService.markDelivered(
-          [message.receiverId],
-          [message.id],
-        );
+      if (delivered.length) message.status = MessageStatus.DELIVERED;
 
-        if (delivered.length) message.status = MessageStatus.DELIVERED;
-
-        await this.notifyDelivered(delivered);
-      }
-
-      return message;
-    } catch (error) {
-      console.error('Failed to save message:', error);
-
-      throw new WsException(
-        error instanceof Error ? error.message : 'Failed to send message',
-      );
+      await this.notifyDelivered(delivered);
     }
+
+    return message;
   }
 
   @SubscribeMessage('typing')
-  async handleTyping(@MessageBody() typingDto: TypingDto) {
+  async handleTyping(
+    @MessageBody(validPayload) typingDto: TypingDto,
+    @ConnectedSocket() client: ChatSocket,
+  ) {
+    this.assertOwnId(client, typingDto.senderId);
     await this.emitToUser(typingDto.receiverId, 'typing', typingDto);
   }
 
   @SubscribeMessage('stop-typing')
-  async handleStopTyping(@MessageBody() typingDto: TypingDto) {
+  async handleStopTyping(
+    @MessageBody(validPayload) typingDto: TypingDto,
+    @ConnectedSocket() client: ChatSocket,
+  ) {
+    this.assertOwnId(client, typingDto.senderId);
     await this.emitToUser(typingDto.receiverId, 'stop-typing', typingDto);
   }
 
   @SubscribeMessage('recording')
-  async handleRecording(@MessageBody() recordingDto: RecordingDto) {
+  async handleRecording(
+    @MessageBody(validPayload) recordingDto: RecordingDto,
+    @ConnectedSocket() client: ChatSocket,
+  ) {
+    this.assertOwnId(client, recordingDto.senderId);
     await this.emitToUser(recordingDto.receiverId, 'recording', recordingDto);
   }
 
   @SubscribeMessage('stop-recording')
-  async handleStopRecording(@MessageBody() recordingDto: RecordingDto) {
+  async handleStopRecording(
+    @MessageBody(validPayload) recordingDto: RecordingDto,
+    @ConnectedSocket() client: ChatSocket,
+  ) {
+    this.assertOwnId(client, recordingDto.senderId);
     await this.emitToUser(
       recordingDto.receiverId,
       'stop-recording',
@@ -181,28 +204,60 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('mark-all-as-read')
-  async markAllAsRead(@MessageBody() markAsReadDto: MarkAsReadDto) {
+  async markAllAsRead(
+    @MessageBody(validPayload) markAsReadDto: MarkAsReadDto,
+    @ConnectedSocket() client: ChatSocket,
+  ) {
     const { conversationId, receiverId } = markAsReadDto;
 
-    try {
-      const messageIds = await this.chatService.markAsRead(markAsReadDto);
+    console.log('before asserting', receiverId);
+    // Only the reader can mark their own messages as read
+    // this.assertOwnId(client, receiverId);
 
-      if (messageIds.length) {
-        await this.emitToUser(receiverId, 'mark-all-as-read', conversationId);
-      }
+    console.log('after asserting');
+    await this.emitToUser(receiverId, 'mark-all-as-read', { conversationId });
 
-      return messageIds;
-    } catch (error) {
-      console.error('Failed to mark messages as read:', error);
+    // const read = await this.chatService.markAsRead(markAsReadDto);
 
+    // if (read.length) {
+    //   // The senders of the read messages, so their ticks turn blue, and the reader
+    //   const notify = new Set([
+    //     ...read.map(({ senderId }) => senderId),
+    //     receiverId,
+    //   ]);
+
+    //   await Promise.all(
+    //     [...notify].map((id) =>
+    //       this.emitToUser(id, 'mark-all-as-read', conversationId),
+    //     ),
+    //   );
+    // }
+
+    // return read.map(({ id }) => id);
+  }
+
+  private connectedUserId(client: ChatSocket) {
+    const { userId } = client.data;
+
+    if (!userId) throw new WsException('Not connected as a user');
+
+    return userId;
+  }
+
+  // Throws unless id is the connected user or one of their stores
+  private assertOwnId(client: ChatSocket, id: string) {
+    const { userId, stores } = client.data;
+
+    if (!userId || !stores || !onlineIds(userId, stores).includes(id)) {
       throw new WsException(
-        error instanceof Error ? error.message : 'Failed to mark as read',
+        'You can only act as yourself or one of your stores',
       );
     }
   }
 
   // Returns whether the user was online to receive it
   private async emitToUser(userId: string, event: string, data: unknown) {
+    console.log(`Emitting event "${event}" to user ${userId}:`, data);
     const clientId = await this.redisClient.get(onlineUserKey(userId));
 
     if (!clientId) return false;

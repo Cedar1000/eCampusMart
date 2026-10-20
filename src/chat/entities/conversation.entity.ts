@@ -44,4 +44,8 @@ export class Conversation extends BaseEntity {
   // Participant id -> ISO date the mute ends
   @Column({ type: 'jsonb', default: () => "'{}'" })
   mutedUntil: Record<string, string>;
+
+  // Participant id -> ISO date they cleared the chat; older messages are hidden from them
+  @Column({ type: 'jsonb', default: () => "'{}'" })
+  clearedAt: Record<string, string>;
 }

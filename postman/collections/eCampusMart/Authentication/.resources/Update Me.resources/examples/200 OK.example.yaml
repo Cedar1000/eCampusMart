@@ -1,0 +1,51 @@
+$kind: http-example
+request:
+  url: "{{URL}}/auth/update-me"
+  method: PATCH
+  body:
+    type: json
+    content: |-
+      {
+          "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+          "phoneNumber": "8164175407",
+          "countryCode": "234"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "530"
+    etag: W/"212-Ip/vviqP/fJAxGRJGWUBeNzm4eU"
+    date: Fri, 04 Sep 2026 14:30:24 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "update successful!",
+        "data": {
+          "id": "f5c09c74-5b3e-44da-be1e-5942c30a6409",
+          "createdAt": "2026-09-04T13:14:18.614Z",
+          "updatedAt": "2026-09-04T13:28:08.484Z",
+          "firstName": "Jeremy",
+          "lastName": "Daniel",
+          "email": "cedard686+1@gmail.com",
+          "phoneNumber": "8164175407",
+          "countryCode": "234",
+          "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+          "photo": null,
+          "isVerified": false,
+          "isActive": true,
+          "emailVerified": true,
+          "ratingsCount": 0,
+          "ratingsAverage": 0,
+          "lastLoggedIn": "2026-09-04T14:17:47.389Z",
+          "isOnline": false,
+          "role": "user"
+        }
+      }
+order: 2000

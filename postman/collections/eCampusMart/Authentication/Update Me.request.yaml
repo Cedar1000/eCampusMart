@@ -1,0 +1,19 @@
+$kind: http-request
+url: "{{URL}}/auth/update-me"
+method: PATCH
+body:
+  type: json
+  content: |-
+    {
+        "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+        "firstName": "Cedar",
+        "lastName": "Daniel",
+        "phoneNumber": "8164175407",
+        "countryCode": "234"
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+examples: ./.resources/Update Me.resources/examples
+order: 8000

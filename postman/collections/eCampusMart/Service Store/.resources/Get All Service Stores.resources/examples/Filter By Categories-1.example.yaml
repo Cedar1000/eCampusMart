@@ -1,0 +1,153 @@
+$kind: http-example
+name: Filter By Categories
+request:
+  url: "{{URL}}/service-stores?categoryId=a682ec3d-f952-404f-8f1d-cbdd45b60697,f09eb871-ad67-4749-8398-6ddac3b21d16"
+  method: GET
+  queryParams:
+    - key: basePrice[range]
+      value: 10000,25000
+      disabled: true
+    - key: categoryId
+      value: a682ec3d-f952-404f-8f1d-cbdd45b60697,f09eb871-ad67-4749-8398-6ddac3b21d16
+  body:
+    type: json
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "2630"
+    etag: W/"a46-bMVKQ7C1VSxlGz1rCbR/rCbZXr8"
+    date: Sat, 03 Oct 2026 13:35:04 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "Get All successful!",
+        "total": 2,
+        "nextPage": null,
+        "prevPage": null,
+        "count": 2,
+        "pages": 1,
+        "currentPage": 1,
+        "data": [
+          {
+            "id": "e5e9a262-c8bb-4946-ba93-978e581729a6",
+            "createdAt": "2026-09-28T17:05:22.530Z",
+            "updatedAt": "2026-09-28T17:05:22.530Z",
+            "ownerId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "categoryId": "a682ec3d-f952-404f-8f1d-cbdd45b60697",
+            "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+            "name": "Kinks & Curls Salon",
+            "ratingsCount": 0,
+            "servicesCount": 0,
+            "basePrice": 15000,
+            "completedBookings": 0,
+            "ratingsAverage": 0,
+            "description": "Braiding, natural hair care, wash and styling for all hair types.",
+            "logo": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790619525/ECampusMart/cake_brand_dvpbz5.jpg",
+            "logoKey": "ECampusMart/cake_brand_dvpbz5",
+            "banner": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790619808/ECampusMart/cake_banner_s1q20x.jpg",
+            "bannerKey": "ECampusMart/cake_banner_s1q20x",
+            "availability": {
+              "monday": {
+                "active": false,
+                "openingTime": null,
+                "closingTime": null
+              },
+              "tuesday": {
+                "active": false,
+                "openingTime": null,
+                "closingTime": null
+              },
+              "wednesday": {
+                "active": false,
+                "openingTime": null,
+                "closingTime": null
+              },
+              "thursday": {
+                "active": false,
+                "openingTime": null,
+                "closingTime": null
+              },
+              "friday": {
+                "active": false,
+                "openingTime": null,
+                "closingTime": null
+              },
+              "saturday": {
+                "active": false,
+                "openingTime": null,
+                "closingTime": null
+              },
+              "sunday": {
+                "active": false,
+                "openingTime": null,
+                "closingTime": null
+              }
+            }
+          },
+          {
+            "id": "015e192b-d37d-4134-8a94-591dba4cd58b",
+            "createdAt": "2026-09-28T17:05:22.530Z",
+            "updatedAt": "2026-09-28T17:05:22.530Z",
+            "ownerId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "categoryId": "f09eb871-ad67-4749-8398-6ddac3b21d16",
+            "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+            "name": "ExamEdge Academy",
+            "ratingsCount": 0,
+            "servicesCount": 0,
+            "basePrice": 15000,
+            "completedBookings": 0,
+            "ratingsAverage": 0,
+            "description": "Exam prep, past question drills and revision classes.",
+            "logo": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790619525/ECampusMart/cake_brand_dvpbz5.jpg",
+            "logoKey": "ECampusMart/cake_brand_dvpbz5",
+            "banner": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790619808/ECampusMart/cake_banner_s1q20x.jpg",
+            "bannerKey": "ECampusMart/cake_banner_s1q20x",
+            "availability": {
+              "monday": {
+                "active": false,
+                "openingTime": null,
+                "closingTime": null
+              },
+              "tuesday": {
+                "active": false,
+                "openingTime": null,
+                "closingTime": null
+              },
+              "wednesday": {
+                "active": false,
+                "openingTime": null,
+                "closingTime": null
+              },
+              "thursday": {
+                "active": false,
+                "openingTime": null,
+                "closingTime": null
+              },
+              "friday": {
+                "active": false,
+                "openingTime": null,
+                "closingTime": null
+              },
+              "saturday": {
+                "active": false,
+                "openingTime": null,
+                "closingTime": null
+              },
+              "sunday": {
+                "active": false,
+                "openingTime": null,
+                "closingTime": null
+              }
+            }
+          }
+        ]
+      }
+order: 5000

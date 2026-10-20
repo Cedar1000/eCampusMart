@@ -1,0 +1,32 @@
+$kind: http-example
+request:
+  url: "{{URL}}/auth/login/phone"
+  method: POST
+  body:
+    type: json
+    content: |-
+      {
+          "countryCode": "234",
+          "phoneNumber": "8164175409",
+          "password": "test1234"
+      }
+response:
+  statusCode: 404
+  statusText: Not Found
+  headers:
+    X-Powered-By: Express
+    Content-Type: application/json; charset=utf-8
+    Content-Length: "88"
+    ETag: W/"58-teh1NYh+SCqLFG3LxG4cstilCY4"
+    Date: Wed, 23 Sep 2026 15:04:24 GMT
+    Connection: keep-alive
+    Keep-Alive: timeout=5
+  body:
+    type: text
+    content: |-
+      {
+          "message": "Email/Number or password is incorrect",
+          "error": "Not Found",
+          "statusCode": 404
+      }
+order: 1000

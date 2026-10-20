@@ -1,0 +1,17 @@
+$kind: http-request
+url: "{{URL}}/products"
+method: GET
+queryParams:
+  - key: storeId
+    value: ccdfa759-a60f-4a00-8f06-7656779a0c62
+    disabled: true
+body:
+  type: json
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+settings: {}
+examples: ./.resources/Get All Products.resources/examples
+order: 1000

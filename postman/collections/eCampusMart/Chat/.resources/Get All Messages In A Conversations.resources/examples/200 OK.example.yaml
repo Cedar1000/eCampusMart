@@ -1,0 +1,140 @@
+$kind: http-example
+request:
+  url: "{{URL}}/chat/conversations/c0000000-0000-4000-8000-000000000005/messages"
+  method: GET
+  queryParams:
+    - key: categoryId
+      value: a682ec3d-f952-404f-8f1d-cbdd45b60697,f09eb871-ad67-4749-8398-6ddac3b21d16
+      disabled: true
+  body:
+    type: json
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "2898"
+    etag: W/"b52-4tl4ByzUAD0sq11qO1K0qsIgGEw"
+    date: Mon, 19 Oct 2026 18:28:21 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "Get All successful!",
+        "total": 5,
+        "nextPage": null,
+        "prevPage": null,
+        "count": 5,
+        "pages": 1,
+        "currentPage": 1,
+        "data": [
+          {
+            "id": "21523ace-e827-45d6-bbdd-e2e837781742",
+            "createdAt": "2026-10-19T17:18:27.918Z",
+            "updatedAt": "2026-10-19T17:18:29.953Z",
+            "conversationId": "c0000000-0000-4000-8000-000000000005",
+            "senderId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "senderType": "user",
+            "receiverType": "user",
+            "receiverId": "1d9f446a-117c-43e9-b837-a31d0d5462f3",
+            "productId": "cfd29227-ffe2-4e0b-ae08-cf09f7374de4",
+            "type": "text",
+            "content": "hey, how much last for this",
+            "media": null,
+            "status": "delivered",
+            "replyToId": null,
+            "isDeleted": false,
+            "isEdited": false,
+            "metadata": null,
+            "product": {
+              "id": "cfd29227-ffe2-4e0b-ae08-cf09f7374de4",
+              "name": "testing product",
+              "description": "It is a new product",
+              "price": "25000.00",
+              "photo": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1791998163/ECampusMart/zi9mvgjnieoptqdp4i1m.jpg"
+            }
+          },
+          {
+            "id": "87aa7372-ad0a-4ae6-a433-cc7cb8dbc0aa",
+            "createdAt": "2026-10-16T07:31:00.000Z",
+            "updatedAt": "2026-10-16T07:31:00.000Z",
+            "conversationId": "c0000000-0000-4000-8000-000000000005",
+            "senderId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "senderType": "user",
+            "receiverType": "user",
+            "receiverId": "1d9f446a-117c-43e9-b837-a31d0d5462f3",
+            "productId": null,
+            "type": "text",
+            "content": "Will do 👍",
+            "media": null,
+            "status": "read",
+            "replyToId": null,
+            "isDeleted": false,
+            "isEdited": false,
+            "metadata": null
+          },
+          {
+            "id": "7c37fa9b-aab3-47fa-94dd-bbd572625300",
+            "createdAt": "2026-10-16T07:30:00.000Z",
+            "updatedAt": "2026-10-16T07:30:00.000Z",
+            "conversationId": "c0000000-0000-4000-8000-000000000005",
+            "senderId": "1d9f446a-117c-43e9-b837-a31d0d5462f3",
+            "senderType": "user",
+            "receiverType": "user",
+            "receiverId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "productId": null,
+            "type": "text",
+            "content": "Cool. Bring the slides please.",
+            "media": null,
+            "status": "read",
+            "replyToId": null,
+            "isDeleted": false,
+            "isEdited": false,
+            "metadata": null
+          },
+          {
+            "id": "b81e6da5-3e4d-44d0-9d17-8cba810aabd5",
+            "createdAt": "2026-10-16T07:26:00.000Z",
+            "updatedAt": "2026-10-16T07:26:00.000Z",
+            "conversationId": "c0000000-0000-4000-8000-000000000005",
+            "senderId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "senderType": "user",
+            "receiverType": "user",
+            "receiverId": "1d9f446a-117c-43e9-b837-a31d0d5462f3",
+            "productId": null,
+            "type": "text",
+            "content": "Yes, I'll be there by 10.",
+            "media": null,
+            "status": "read",
+            "replyToId": null,
+            "isDeleted": false,
+            "isEdited": false,
+            "metadata": null
+          },
+          {
+            "id": "050f8781-4aa2-4aca-9f3c-f1a48bb22c7e",
+            "createdAt": "2026-10-16T07:20:00.000Z",
+            "updatedAt": "2026-10-16T07:20:00.000Z",
+            "conversationId": "c0000000-0000-4000-8000-000000000005",
+            "senderId": "1d9f446a-117c-43e9-b837-a31d0d5462f3",
+            "senderType": "user",
+            "receiverType": "user",
+            "receiverId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "productId": null,
+            "type": "text",
+            "content": "Hey Cedar, are you coming for the project meeting today?",
+            "media": null,
+            "status": "read",
+            "replyToId": null,
+            "isDeleted": false,
+            "isEdited": false,
+            "metadata": null
+          }
+        ]
+      }
+order: 1000

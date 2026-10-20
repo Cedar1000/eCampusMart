@@ -1,0 +1,50 @@
+$kind: http-example
+request:
+  url: "{{URL}}/auth/signup"
+  method: POST
+  body:
+    type: json
+    content: |-
+      {
+          "lastName": "John",
+          "firstName": "Snow",
+          "email": "cedard686+9@gmail.com",
+          "phoneNumber": "(234) 88164175406"
+      }
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "559"
+    etag: W/"22f-rhx76DKHrMhnXcxOpPC+c10pdiQ"
+    date: Tue, 01 Sep 2026 16:40:19 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "data": {
+          "id": "d911bca3-3d0d-47f7-9cfa-d9dde5d2ada2",
+          "createdAt": "2026-09-01T15:40:15.408Z",
+          "updatedAt": "2026-09-01T15:40:15.408Z",
+          "firstName": "Snow",
+          "lastName": "John",
+          "email": "cedard686+9@gmail.com",
+          "phoneNumber": "(234) 88164175406",
+          "campusId": null,
+          "photo": null,
+          "isVerified": false,
+          "isActive": true,
+          "emailVerified": false,
+          "ratingsCount": 0,
+          "ratingsAverage": 0,
+          "lastLoggedIn": null,
+          "isOnline": false,
+          "role": "user"
+        }
+      }
+order: 3000

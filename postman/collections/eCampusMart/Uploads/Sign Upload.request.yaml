@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{URL}}/uploads/signature"
+method: POST
+body:
+  type: json
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+examples: ./.resources/Sign Upload.resources/examples
+order: 1000

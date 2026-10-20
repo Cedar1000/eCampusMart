@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{URL}}/service-stores/3b81f613-5611-4e70-bc4f-d9b1b86f5a3f"
+method: GET
+body:
+  type: json
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+examples: ./.resources/Get Single Service Store.resources/examples
+order: 4000

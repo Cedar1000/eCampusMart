@@ -1,0 +1,21 @@
+$kind: http-request
+url: "{{URL}}/auth/signup"
+method: POST
+body:
+  type: json
+  content: |-
+    {
+        "firstName": "Jeremy",
+        "lastName": "Daniel",
+        "email": "cedard686+1@gmail.com",
+        "phoneNumber": "8164175407",
+        "countryCode": "234"
+    }
+scripts:
+  - type: afterResponse
+    code: |
+      pm.environment.set("jwt", pm.response.json().token);
+    language: text/javascript
+settings: {}
+examples: ./.resources/Sign Up.resources/examples
+order: 1000

@@ -1,0 +1,94 @@
+$kind: http-example
+request:
+  url: "{{URL}}/product-categories"
+  method: GET
+  body:
+    type: json
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    X-Powered-By: Express
+    Content-Type: application/json; charset=utf-8
+    Content-Length: "1693"
+    ETag: W/"69d-P1yZS8yC07SMbZ6Rh0Epu2ky37c"
+    Date: Wed, 23 Sep 2026 18:13:05 GMT
+    Connection: keep-alive
+    Keep-Alive: timeout=5
+  body:
+    type: text
+    content: |-
+      {
+          "status": "success",
+          "message": "Get All successful!",
+          "total": 10,
+          "nextPage": 2,
+          "prevPage": null,
+          "count": 15,
+          "pages": 2,
+          "currentPage": 1,
+          "data": [
+              {
+                  "id": "e23ee22e-e05d-4026-b079-37e6b73f1f46",
+                  "createdAt": "2026-09-23T17:12:13.606Z",
+                  "updatedAt": "2026-09-23T17:12:13.606Z",
+                  "name": "Phones & Accessories"
+              },
+              {
+                  "id": "dc1e3297-69b8-4b87-9556-dff761adce6b",
+                  "createdAt": "2026-09-23T17:12:13.606Z",
+                  "updatedAt": "2026-09-23T17:12:13.606Z",
+                  "name": "Electronics & Gadgets"
+              },
+              {
+                  "id": "d3272d0e-c588-4914-be2a-a2f8a5827b29",
+                  "createdAt": "2026-09-23T17:12:13.606Z",
+                  "updatedAt": "2026-09-23T17:12:13.606Z",
+                  "name": "Clothing & Fashion"
+              },
+              {
+                  "id": "b282a72f-bd89-4456-acf1-b7998adb2751",
+                  "createdAt": "2026-09-23T17:12:13.606Z",
+                  "updatedAt": "2026-09-23T17:12:13.606Z",
+                  "name": "School Supplies & Stationery"
+              },
+              {
+                  "id": "8cea0da1-b1af-4269-be56-c55078914bb2",
+                  "createdAt": "2026-09-23T17:12:13.606Z",
+                  "updatedAt": "2026-09-23T17:12:13.606Z",
+                  "name": "Hostel & Room Essentials"
+              },
+              {
+                  "id": "87c64db2-3b5c-4eb3-a7e5-2e5d6ca75db8",
+                  "createdAt": "2026-09-23T17:12:13.606Z",
+                  "updatedAt": "2026-09-23T17:12:13.606Z",
+                  "name": "Laptops & Computer Accessories"
+              },
+              {
+                  "id": "799eea08-5c45-48ce-88cc-0bb66c3bd6c1",
+                  "createdAt": "2026-09-23T17:12:13.606Z",
+                  "updatedAt": "2026-09-23T17:12:13.606Z",
+                  "name": "Groceries & Provisions"
+              },
+              {
+                  "id": "75d1fcb1-3129-4958-9d39-948220a11fd3",
+                  "createdAt": "2026-09-23T17:12:13.606Z",
+                  "updatedAt": "2026-09-23T17:12:13.606Z",
+                  "name": "Food & Snacks"
+              },
+              {
+                  "id": "5250bb44-a5d2-49a9-872d-87fa6f9cdf99",
+                  "createdAt": "2026-09-23T17:12:13.606Z",
+                  "updatedAt": "2026-09-23T17:12:13.606Z",
+                  "name": "Second-Hand / Pre-owned"
+              },
+              {
+                  "id": "44795ff9-3e54-46cd-ac78-592fd9b0c10f",
+                  "createdAt": "2026-09-23T17:12:13.606Z",
+                  "updatedAt": "2026-09-23T17:12:13.606Z",
+                  "name": "Bags & Backpacks"
+              }
+          ]
+      }
+order: 1000

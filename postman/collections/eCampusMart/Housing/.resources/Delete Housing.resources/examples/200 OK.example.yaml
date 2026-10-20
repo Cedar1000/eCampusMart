@@ -1,0 +1,26 @@
+$kind: http-example
+request:
+  url: "{{URL}}/housings/5abcc1d4-45e7-49b3-a001-57872cd8896f"
+  method: DELETE
+  body:
+    type: json
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "51"
+    etag: W/"33-KNrpR5c1zdsS8xVZzC7awnD9CVU"
+    date: Sat, 03 Oct 2026 09:26:53 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "delete successful!"
+      }
+order: 1000

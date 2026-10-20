@@ -1,0 +1,75 @@
+$kind: http-example
+request:
+  url: "{{URL}}/service-stores?basePrice[range]=10000,15000&categoryId=a682ec3d-f952-404f-8f1d-cbdd45b60697,2dd564f0-ad8f-4a41-a606-b32bad98f645"
+  method: GET
+  queryParams:
+    basePrice[range]: 10000,15000
+    categoryId: a682ec3d-f952-404f-8f1d-cbdd45b60697,2dd564f0-ad8f-4a41-a606-b32bad98f645
+  body:
+    type: json
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    X-Powered-By: Express
+    Content-Type: application/json; charset=utf-8
+    Content-Length: "1703"
+    ETag: W/"6a7-9TZiyiIH/Z3yDUJf1nOSppibrJQ"
+    Date: Wed, 30 Sep 2026 08:02:23 GMT
+    Connection: keep-alive
+    Keep-Alive: timeout=5
+  body:
+    type: text
+    content: |-
+      {
+          "status": "success",
+          "message": "Get All successful!",
+          "total": 2,
+          "nextPage": null,
+          "prevPage": null,
+          "count": 2,
+          "pages": 1,
+          "currentPage": 1,
+          "data": [
+              {
+                  "id": "e5e9a262-c8bb-4946-ba93-978e581729a6",
+                  "createdAt": "2026-09-28T17:05:22.530Z",
+                  "updatedAt": "2026-09-28T17:05:22.530Z",
+                  "ownerId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+                  "categoryId": "a682ec3d-f952-404f-8f1d-cbdd45b60697",
+                  "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+                  "name": "Kinks & Curls Salon",
+                  "ratingsCount": 0,
+                  "servicesCount": 0,
+                  "basePrice": 15000,
+                  "completedBookings": 0,
+                  "ratingsAverage": 0,
+                  "description": "Braiding, natural hair care, wash and styling for all hair types.",
+                  "logo": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790619525/ECampusMart/cake_brand_dvpbz5.jpg",
+                  "logoKey": "ECampusMart/cake_brand_dvpbz5",
+                  "banner": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790619808/ECampusMart/cake_banner_s1q20x.jpg",
+                  "bannerKey": "ECampusMart/cake_banner_s1q20x"
+              },
+              {
+                  "id": "c9c83fc8-c7f9-4927-b71a-4b4dcc79f28b",
+                  "createdAt": "2026-09-28T17:05:22.530Z",
+                  "updatedAt": "2026-09-28T17:05:22.530Z",
+                  "ownerId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+                  "categoryId": "2dd564f0-ad8f-4a41-a606-b32bad98f645",
+                  "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+                  "name": "Crown & Co Barbers",
+                  "ratingsCount": 0,
+                  "servicesCount": 0,
+                  "basePrice": 15000,
+                  "completedBookings": 0,
+                  "ratingsAverage": 0,
+                  "description": "Premium haircuts and styling for students who want to look their best.",
+                  "logo": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790619525/ECampusMart/cake_brand_dvpbz5.jpg",
+                  "logoKey": "ECampusMart/cake_brand_dvpbz5",
+                  "banner": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790619808/ECampusMart/cake_banner_s1q20x.jpg",
+                  "bannerKey": "ECampusMart/cake_banner_s1q20x"
+              }
+          ]
+      }
+order: 4000

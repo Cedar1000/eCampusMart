@@ -1,0 +1,41 @@
+$kind: http-example
+request:
+  url: "{{URL}}/services"
+  method: POST
+  body:
+    type: json
+    content: |-
+      {
+          "title": "Computer Repair",
+          "storeId": "e5e9a262-c8bb-4946-ba93-978e581729a7",
+          "description": "Laptop and desktop computer repair services.",
+          "price": 5000,
+          "priceUnit": "session",
+          "isNegotiable": true,
+          "images": [
+              {
+                  "key": "key",
+                  "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790181560/ECampusMart/Frame_1984080275_1_ngyggj.jpg"
+              }
+          ]
+      }
+response:
+  statusCode: 404
+  statusText: Not Found
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "74"
+    etag: W/"4a-HHVYr7ZGCqqTDPxBvDVSwOcnuFI"
+    date: Sun, 04 Oct 2026 16:27:36 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "message": "Service store not found",
+        "error": "Not Found",
+        "statusCode": 404
+      }
+order: 3000

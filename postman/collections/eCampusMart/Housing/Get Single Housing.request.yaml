@@ -1,0 +1,16 @@
+$kind: http-request
+url: "{{URL}}/housings/50a32620-ea82-4356-85e2-a55f2f148e18"
+method: GET
+queryParams:
+  - key: locationId
+    value: 80640c55-b4da-4b3b-aaa6-4588b2741606,3be19fd6-e387-46c7-9040-683f436dc271
+    disabled: true
+body:
+  type: json
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+examples: ./.resources/Get Single Housing.resources/examples
+order: 3000

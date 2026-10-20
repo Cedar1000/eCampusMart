@@ -1,0 +1,11 @@
+$kind: http-request
+url: "{{URL}}/products/68034295-e834-4d15-9ff9-681c920566fc"
+method: DELETE
+body:
+  type: json
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+order: 5000

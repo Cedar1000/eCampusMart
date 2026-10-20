@@ -1,0 +1,17 @@
+$kind: http-request
+url: "{{URL}}/campus-locations"
+method: POST
+body:
+  type: json
+  content: |-
+    {
+        "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+        "name": "odums"
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+settings: {}
+examples: ./.resources/Create Campus Location.resources/examples
+order: 1000

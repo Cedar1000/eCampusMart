@@ -1,0 +1,199 @@
+$kind: http-example
+request:
+  url: "{{URL}}/chat/conversations/c0000000-0000-4000-8000-000000000002/messages"
+  method: GET
+  queryParams:
+    - key: categoryId
+      value: a682ec3d-f952-404f-8f1d-cbdd45b60697,f09eb871-ad67-4749-8398-6ddac3b21d16
+      disabled: true
+  body:
+    type: json
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "4567"
+    etag: W/"11d7-XbEk3eMJCMGKna+2FKK4ciyZ8Pg"
+    date: Mon, 19 Oct 2026 19:30:48 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "Get All successful!",
+        "total": 7,
+        "nextPage": null,
+        "prevPage": null,
+        "count": 7,
+        "pages": 1,
+        "currentPage": 1,
+        "data": [
+          {
+            "id": "9a378b3b-0b0d-4e86-82c6-205eed2d4493",
+            "createdAt": "2026-10-19T18:27:50.179Z",
+            "updatedAt": "2026-10-19T18:27:58.326Z",
+            "conversationId": "c0000000-0000-4000-8000-000000000002",
+            "senderId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "senderType": "user",
+            "receiverType": "service-store",
+            "receiverId": "3a1453a5-ed1a-4b7e-8797-da2e5a5fc83d",
+            "productId": null,
+            "serviceId": "328fbf94-c55b-41a3-9598-0db65dc274a2",
+            "housingId": null,
+            "type": "text",
+            "content": "Nwanem... last price egole for this one?",
+            "media": null,
+            "status": "delivered",
+            "replyToId": null,
+            "isDeleted": false,
+            "isEdited": false,
+            "metadata": null,
+            "service": {
+              "id": "328fbf94-c55b-41a3-9598-0db65dc274a2",
+              "title": "Hendo",
+              "description": "He will teach you",
+              "price": "1000.00",
+              "photo": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1791998590/ECampusMart/ymdzjgohft4budtznozu.jpg"
+            }
+          },
+          {
+            "id": "282b7a94-5ecc-4b7a-b2c1-402982ab4ee7",
+            "createdAt": "2026-10-19T17:42:24.360Z",
+            "updatedAt": "2026-10-19T17:42:26.482Z",
+            "conversationId": "c0000000-0000-4000-8000-000000000002",
+            "senderId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "senderType": "user",
+            "receiverType": "service-store",
+            "receiverId": "3a1453a5-ed1a-4b7e-8797-da2e5a5fc83d",
+            "productId": "cfd29227-ffe2-4e0b-ae08-cf09f7374de4",
+            "serviceId": null,
+            "housingId": null,
+            "type": "text",
+            "content": "hey, how much last for this",
+            "media": null,
+            "status": "delivered",
+            "replyToId": null,
+            "isDeleted": false,
+            "isEdited": false,
+            "metadata": null,
+            "product": {
+              "id": "cfd29227-ffe2-4e0b-ae08-cf09f7374de4",
+              "name": "testing product",
+              "description": "It is a new product",
+              "price": "25000.00",
+              "photo": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1791998163/ECampusMart/zi9mvgjnieoptqdp4i1m.jpg"
+            }
+          },
+          {
+            "id": "aa34fc36-e612-42c6-8d53-12dcd3df3bbd",
+            "createdAt": "2026-10-13T13:25:00.000Z",
+            "updatedAt": "2026-10-13T13:25:00.000Z",
+            "conversationId": "c0000000-0000-4000-8000-000000000002",
+            "senderId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "senderType": "user",
+            "receiverType": "service-store",
+            "receiverId": "3a1453a5-ed1a-4b7e-8797-da2e5a5fc83d",
+            "productId": null,
+            "serviceId": null,
+            "housingId": null,
+            "type": "text",
+            "content": "Great, thanks!",
+            "media": null,
+            "status": "read",
+            "replyToId": null,
+            "isDeleted": false,
+            "isEdited": false,
+            "metadata": null
+          },
+          {
+            "id": "db24f976-1cdf-4d04-92ab-3848a62439e5",
+            "createdAt": "2026-10-13T13:21:00.000Z",
+            "updatedAt": "2026-10-13T13:21:00.000Z",
+            "conversationId": "c0000000-0000-4000-8000-000000000002",
+            "senderId": "3a1453a5-ed1a-4b7e-8797-da2e5a5fc83d",
+            "senderType": "service-store",
+            "receiverType": "user",
+            "receiverId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "productId": null,
+            "serviceId": null,
+            "housingId": null,
+            "type": "text",
+            "content": "Perfect, Saturdays run 12:00 to 20:00. You can book a slot from our store page.",
+            "media": null,
+            "status": "read",
+            "replyToId": null,
+            "isDeleted": false,
+            "isEdited": false,
+            "metadata": null
+          },
+          {
+            "id": "57b3503a-ffa7-48e1-b8fa-0a9f47e9d5f6",
+            "createdAt": "2026-10-13T13:15:00.000Z",
+            "updatedAt": "2026-10-13T13:15:00.000Z",
+            "conversationId": "c0000000-0000-4000-8000-000000000002",
+            "senderId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "senderType": "user",
+            "receiverType": "service-store",
+            "receiverId": "3a1453a5-ed1a-4b7e-8797-da2e5a5fc83d",
+            "productId": null,
+            "serviceId": null,
+            "housingId": null,
+            "type": "text",
+            "content": "Saturday afternoons would be best.",
+            "media": null,
+            "status": "read",
+            "replyToId": null,
+            "isDeleted": false,
+            "isEdited": false,
+            "metadata": null
+          },
+          {
+            "id": "f177ad12-4f31-4991-83e2-2383609ecb72",
+            "createdAt": "2026-10-13T13:10:00.000Z",
+            "updatedAt": "2026-10-13T13:10:00.000Z",
+            "conversationId": "c0000000-0000-4000-8000-000000000002",
+            "senderId": "3a1453a5-ed1a-4b7e-8797-da2e5a5fc83d",
+            "senderType": "service-store",
+            "receiverType": "user",
+            "receiverId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "productId": null,
+            "serviceId": null,
+            "housingId": null,
+            "type": "text",
+            "content": "Yes we do. We have sessions Monday to Saturday. Which days work for you?",
+            "media": null,
+            "status": "read",
+            "replyToId": null,
+            "isDeleted": false,
+            "isEdited": false,
+            "metadata": null
+          },
+          {
+            "id": "bb01cfaa-8d0b-4499-bfc9-98d9a588a30a",
+            "createdAt": "2026-10-13T13:02:00.000Z",
+            "updatedAt": "2026-10-13T13:02:00.000Z",
+            "conversationId": "c0000000-0000-4000-8000-000000000002",
+            "senderId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "senderType": "user",
+            "receiverType": "service-store",
+            "receiverId": "3a1453a5-ed1a-4b7e-8797-da2e5a5fc83d",
+            "productId": null,
+            "serviceId": null,
+            "housingId": null,
+            "type": "text",
+            "content": "Good afternoon. Do you offer tutoring for MTH 101?",
+            "media": null,
+            "status": "read",
+            "replyToId": null,
+            "isDeleted": false,
+            "isEdited": false,
+            "metadata": null
+          }
+        ]
+      }
+order: 2000

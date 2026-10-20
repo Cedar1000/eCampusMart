@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{URL}}/auth/change-email/verify"
+method: POST
+body:
+  type: json
+  content: |-
+    {
+        "otp": "671645"
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+examples: ./.resources/Verify Changed Email.resources/examples
+order: 13000

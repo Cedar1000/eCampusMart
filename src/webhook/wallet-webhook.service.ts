@@ -1,21 +1,23 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import {
   Transaction,
   TransactionStatus,
 } from 'src/transaction/entities/transaction.entity';
 import { Wallet } from 'src/wallet/entities/wallet.entity';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, EntityManager } from 'typeorm';
 import { asString, PaystackEventData } from './webhook.utils';
 
+// A failed top-up can still be paid later on the same reference (e.g. after it expired)
+const UNPAID_STATUSES = [TransactionStatus.PENDING, TransactionStatus.FAILED];
+
+/**
+ * Settles wallet top-ups. The webhook and GET /payments/verify both go through here,
+ * often for the same payment at the same time, so every change is a conditional
+ * UPDATE: only the one that actually changes the row credits the wallet.
+ */
 @Injectable()
 export class WalletWebhookService {
-  constructor(
-    @InjectRepository(Transaction)
-    private readonly transactionRepository: Repository<Transaction>,
-
-    private readonly dataSource: DataSource,
-  ) {}
+  constructor(private readonly dataSource: DataSource) {}
 
   async handle(event: string, data: PaystackEventData) {
     const reference = asString(data.reference);
@@ -25,7 +27,7 @@ export class WalletWebhookService {
     }
 
     if (event === 'charge.success') {
-      await this.markTransactionSuccessful(reference);
+      await this.markTransactionSuccessful(reference, data);
     }
 
     if (event === 'charge.failed') {
@@ -33,46 +35,99 @@ export class WalletWebhookService {
     }
   }
 
-  private async markTransactionSuccessful(reference: string) {
+  // Credits the wallet once, and only if Paystack took the amount and currency we expect
+  private async markTransactionSuccessful(
+    reference: string,
+    data: PaystackEventData,
+  ) {
     await this.dataSource.transaction(async (manager) => {
       const transaction = await manager.findOne(Transaction, {
         where: { reference },
-        lock: { mode: 'pessimistic_write' },
       });
 
+      // Thrown so the webhook job retries, in case the row isn't committed yet
       if (!transaction) {
         throw new BadRequestException('Transaction not found');
       }
 
-      if (transaction.status === TransactionStatus.SUCCESS) {
-        return;
-      }
+      if (transaction.status === TransactionStatus.SUCCESS) return;
 
-      const wallet = await manager.findOne(Wallet, {
-        where: { id: transaction.walletId },
-        lock: { mode: 'pessimistic_write' },
-      });
+      if (!this.isPaidInFull(transaction, data)) return;
 
-      if (!wallet) throw new BadRequestException('Wallet not found');
+      const marked = await manager
+        .createQueryBuilder()
+        .update(Transaction)
+        .set({ status: TransactionStatus.SUCCESS })
+        .where('reference = :reference AND status IN (:...unpaid)', {
+          reference,
+          unpaid: UNPAID_STATUSES,
+        })
+        .execute();
 
-      transaction.status = TransactionStatus.SUCCESS;
-      wallet.balance = Number(wallet.balance) + Number(transaction.amount);
+      // Someone else settled it between the read and the update
+      if (!marked.affected) return;
 
-      await manager.save(transaction);
-      await manager.save(wallet);
+      await this.creditWallet(manager, transaction);
     });
   }
 
-  private async markTransactionFailed(reference: string) {
-    const transaction = await this.transactionRepository.findOne({
-      where: { reference },
-    });
+  private async creditWallet(manager: EntityManager, transaction: Transaction) {
+    const amount = Number(transaction.amount);
 
-    if (!transaction || transaction.status === TransactionStatus.SUCCESS) {
-      return;
+    const result = await manager
+      .createQueryBuilder()
+      .update(Wallet)
+      .set({ balance: () => 'balance + :amount' })
+      .where('id = :walletId', { walletId: transaction.walletId })
+      .setParameters({ amount })
+      .returning(['balance'])
+      .execute();
+
+    const [wallet] = result.raw as { balance: string }[];
+
+    if (!wallet) throw new BadRequestException('Wallet not found');
+
+    // The balances stored at checkout are guesses; record the real ones
+    const afterBalance = Number(wallet.balance);
+
+    await manager.update(Transaction, transaction.id, {
+      beforeBalance: afterBalance - amount,
+      afterBalance,
+    });
+  }
+
+  // Paystack amounts are in kobo, like ours
+  private isPaidInFull(transaction: Transaction, data: PaystackEventData) {
+    const paidAmount = Number(data.amount);
+    const paidCurrency = asString(data.currency).toUpperCase();
+
+    const matches =
+      paidAmount === Number(transaction.amount) &&
+      paidCurrency === transaction.currency.toUpperCase();
+
+    if (!matches) {
+      console.error('Top-up not credited: payment does not match', {
+        reference: transaction.reference,
+        expected: {
+          amount: transaction.amount,
+          currency: transaction.currency,
+        },
+        paid: { amount: data.amount, currency: data.currency },
+      });
     }
 
-    transaction.status = TransactionStatus.FAILED;
-    await this.transactionRepository.save(transaction);
+    return matches;
+  }
+
+  private async markTransactionFailed(reference: string) {
+    await this.dataSource
+      .createQueryBuilder()
+      .update(Transaction)
+      .set({ status: TransactionStatus.FAILED })
+      .where('reference = :reference AND status = :pending', {
+        reference,
+        pending: TransactionStatus.PENDING,
+      })
+      .execute();
   }
 }

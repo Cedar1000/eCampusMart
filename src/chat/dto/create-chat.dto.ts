@@ -70,7 +70,8 @@ export class CreateChatDto {
   @IsUUID()
   housingId: string;
 
-  @IsOptional()
+  // Every message is saved as text, which the database requires content for
+  @IsNotEmpty()
   @IsString()
   content: string;
 

@@ -1,0 +1,475 @@
+$kind: http-example
+request:
+  url: "{{URL}}/products?sort=asc-price"
+  method: GET
+  queryParams:
+    - key: categoryId
+      value: d3272d0e-c588-4914-be2a-a2f8a5827b29,e23ee22e-e05d-4026-b079-37e6b73f1f46
+      disabled: true
+    - key: lte
+      value: price,15000
+      disabled: true
+    - key: range
+      value: price,10000-15000
+      disabled: true
+    - key: sort
+      value: asc-price
+  body:
+    type: json
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    X-Powered-By: Express
+    Content-Type: application/json; charset=utf-8
+    Content-Length: "13203"
+    ETag: W/"3393-RpooOWuZtmCVpByhNiCeUsq2Bg4"
+    Date: Fri, 25 Sep 2026 12:03:20 GMT
+    Connection: keep-alive
+    Keep-Alive: timeout=5
+  body:
+    type: text
+    content: |-
+      {
+          "status": "success",
+          "message": "Get All successful!",
+          "total": 10,
+          "nextPage": 2,
+          "prevPage": null,
+          "count": 12,
+          "pages": 2,
+          "currentPage": 1,
+          "data": [
+              {
+                  "id": "027d0254-dff8-43a5-908f-c1b4f54f608d",
+                  "createdAt": "2026-09-24T16:28:34.160Z",
+                  "updatedAt": "2026-09-24T16:28:34.160Z",
+                  "name": "iPhone 13 Pro Max Case",
+                  "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+                  "description": "Blue silicone MagSafe case for iPhone 13 Pro Max.",
+                  "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+                  "price": 8500,
+                  "quantity": 5,
+                  "slug": "iphone-13-pro-max-case",
+                  "isStoreProduct": false,
+                  "storeCategoryId": null,
+                  "categoryId": "e23ee22e-e05d-4026-b079-37e6b73f1f46",
+                  "storeId": null,
+                  "listingId": "LST-3K9P-X4",
+                  "status": "active",
+                  "condition": "brand-new",
+                  "images": [
+                      {
+                          "id": "c171bdf5-2e7e-404c-86e0-01e3f0b83af2",
+                          "createdAt": "2026-09-24T16:28:34.160Z",
+                          "updatedAt": "2026-09-24T16:28:34.160Z",
+                          "url": "https://www.coverwalay.com/cdn/shop/files/ROYALBLUE_12_8e01bdad-f578-4a3e-b78c-b5f502cd6aea.jpg?v=1722637269&width=1920",
+                          "key": "seed/iphone-13-pro-max-case-1.jpg",
+                          "productId": "027d0254-dff8-43a5-908f-c1b4f54f608d"
+                      },
+                      {
+                          "id": "8b254363-6d3c-4470-848c-1db796d6250f",
+                          "createdAt": "2026-09-24T16:28:34.160Z",
+                          "updatedAt": "2026-09-24T16:28:34.160Z",
+                          "url": "https://www.seller.gsmprice.com/image/cache/catalog/Margoun/Margoun_Silicone_Case_Cover_Apple_iPhone_13_Pro_Max_Blue__2_-650x650.jpg",
+                          "key": "seed/iphone-13-pro-max-case-2.jpg",
+                          "productId": "027d0254-dff8-43a5-908f-c1b4f54f608d"
+                      },
+                      {
+                          "id": "bb57a3ae-58c1-4731-9e56-12c4009c8c22",
+                          "createdAt": "2026-09-24T16:28:34.160Z",
+                          "updatedAt": "2026-09-24T16:28:34.160Z",
+                          "url": "https://im9.cz/iR/importprodukt-orig/aed/aed5c697f9fb0d5b9cfe6278455ee0bf--mm800x800.jpg",
+                          "key": "seed/iphone-13-pro-max-case-3.jpg",
+                          "productId": "027d0254-dff8-43a5-908f-c1b4f54f608d"
+                      }
+                  ],
+                  "user": {
+                      "firstName": "Cedar",
+                      "lastName": "Daniel",
+                      "photo": null,
+                      "ratingsCount": 0,
+                      "ratingsAverage": 0
+                  }
+              },
+              {
+                  "id": "bdabddfa-d3d8-4305-b89a-eea87e14ad63",
+                  "createdAt": "2026-09-24T16:28:34.160Z",
+                  "updatedAt": "2026-09-24T16:28:34.160Z",
+                  "name": "Anker 20W USB-C Charger",
+                  "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+                  "description": "Compact 20W USB-C fast charging wall adapter.",
+                  "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+                  "price": 12000,
+                  "quantity": 8,
+                  "slug": "anker-20w-usb-c-charger",
+                  "isStoreProduct": false,
+                  "storeCategoryId": null,
+                  "categoryId": "e23ee22e-e05d-4026-b079-37e6b73f1f46",
+                  "storeId": null,
+                  "listingId": "LST-7Q2M-B8",
+                  "status": "active",
+                  "condition": "brand-new",
+                  "images": [
+                      {
+                          "id": "4bf9125f-69c9-4177-9bab-31f3105b6dec",
+                          "createdAt": "2026-09-24T16:28:34.160Z",
+                          "updatedAt": "2026-09-24T16:28:34.160Z",
+                          "url": "https://cdn.tgdd.vn/Products/Images/9499/322898/adapter-sac-type-c-iq3-20w-anker-a2347-1-750x500.jpg",
+                          "key": "seed/anker-20w-charger-3.jpg",
+                          "productId": "bdabddfa-d3d8-4305-b89a-eea87e14ad63"
+                      },
+                      {
+                          "id": "e204246a-56d2-4280-8650-326a474e787d",
+                          "createdAt": "2026-09-24T16:28:34.160Z",
+                          "updatedAt": "2026-09-24T16:28:34.160Z",
+                          "url": "https://anker.ph/cdn/shop/files/A2347J21_800x.png?v=1757478736",
+                          "key": "seed/anker-20w-charger-1.png",
+                          "productId": "bdabddfa-d3d8-4305-b89a-eea87e14ad63"
+                      },
+                      {
+                          "id": "ca7f8213-44a0-47e5-8015-832c1df569a1",
+                          "createdAt": "2026-09-24T16:28:34.160Z",
+                          "updatedAt": "2026-09-24T16:28:34.160Z",
+                          "url": "https://product.hstatic.net/1000153276/product/sac_nhanh_anker_20w_-_a2347_0a4af478f9334443a35d9642482a43a1_master.png",
+                          "key": "seed/anker-20w-charger-2.png",
+                          "productId": "bdabddfa-d3d8-4305-b89a-eea87e14ad63"
+                      }
+                  ],
+                  "user": {
+                      "firstName": "Cedar",
+                      "lastName": "Daniel",
+                      "photo": null,
+                      "ratingsCount": 0,
+                      "ratingsAverage": 0
+                  }
+              },
+              {
+                  "id": "a5e848c2-a534-424f-88e7-5353ffe88d2d",
+                  "createdAt": "2026-09-24T16:54:20.625Z",
+                  "updatedAt": "2026-09-24T16:54:20.625Z",
+                  "name": "Classic Blue Denim Jacket",
+                  "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+                  "description": "Classic blue denim jacket with button closure and chest pockets.",
+                  "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+                  "price": 18000,
+                  "quantity": 3,
+                  "slug": "classic-blue-denim-jacket",
+                  "isStoreProduct": false,
+                  "storeCategoryId": null,
+                  "categoryId": "d3272d0e-c588-4914-be2a-a2f8a5827b29",
+                  "storeId": null,
+                  "listingId": "LST-D4N1-M7",
+                  "status": "active",
+                  "condition": "fairly-used",
+                  "images": [
+                      {
+                          "id": "7b270a69-1728-42f4-bd5f-3075cf15092d",
+                          "createdAt": "2026-09-24T16:54:20.625Z",
+                          "updatedAt": "2026-09-24T16:54:20.625Z",
+                          "url": "https://media.mey-edlich.de/products/mey-edlich/images/1441x1922/EC24_6952_FA.jpg",
+                          "key": "seed/classic-blue-denim-jacket-2.jpg",
+                          "productId": "a5e848c2-a534-424f-88e7-5353ffe88d2d"
+                      },
+                      {
+                          "id": "6b1c6d19-c4cc-4080-a376-1d3641e05a15",
+                          "createdAt": "2026-09-24T16:54:20.625Z",
+                          "updatedAt": "2026-09-24T16:54:20.625Z",
+                          "url": "https://vantageapparel.com/Images/ProductImages/High/7025_Denim_front.png",
+                          "key": "seed/classic-blue-denim-jacket-3.png",
+                          "productId": "a5e848c2-a534-424f-88e7-5353ffe88d2d"
+                      },
+                      {
+                          "id": "e55fa882-92d4-44f6-a924-a0deebd3978c",
+                          "createdAt": "2026-09-24T16:54:20.625Z",
+                          "updatedAt": "2026-09-24T16:54:20.625Z",
+                          "url": "https://www.thejacketmaker.pk/cdn/shop/files/DENIM_TRUCKERS_2048x.webp?v=1771924334",
+                          "key": "seed/classic-blue-denim-jacket-1.webp",
+                          "productId": "a5e848c2-a534-424f-88e7-5353ffe88d2d"
+                      }
+                  ],
+                  "user": {
+                      "firstName": "Cedar",
+                      "lastName": "Daniel",
+                      "photo": null,
+                      "ratingsCount": 0,
+                      "ratingsAverage": 0
+                  }
+              },
+              {
+                  "id": "4d0e47ce-2b39-45e3-879c-7916beebe0d9",
+                  "createdAt": "2026-09-24T16:54:20.625Z",
+                  "updatedAt": "2026-09-24T16:54:20.625Z",
+                  "name": "Women's Light Blue Denim Jacket",
+                  "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+                  "description": "Light blue denim jacket with a fitted casual silhouette.",
+                  "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+                  "price": 22000,
+                  "quantity": 2,
+                  "slug": "womens-light-blue-denim-jacket",
+                  "isStoreProduct": false,
+                  "storeCategoryId": null,
+                  "categoryId": "d3272d0e-c588-4914-be2a-a2f8a5827b29",
+                  "storeId": null,
+                  "listingId": "LST-F8Q2-R5",
+                  "status": "active",
+                  "condition": "brand-new",
+                  "images": [
+                      {
+                          "id": "1a014309-e6e4-433a-8cdb-3b34876fc1e9",
+                          "createdAt": "2026-09-24T16:54:20.625Z",
+                          "updatedAt": "2026-09-24T16:54:20.625Z",
+                          "url": "https://img01.ztat.net/article/spp-media-p1/9bbe981f158242cbba6ddc2c5c001b75/e5d65b0991944a198472410feb42551a.jpg?filter=packshot&imwidth=800",
+                          "key": "seed/womens-light-blue-denim-jacket-3.jpg",
+                          "productId": "4d0e47ce-2b39-45e3-879c-7916beebe0d9"
+                      },
+                      {
+                          "id": "250bab15-3f39-46ba-9563-dced036f7470",
+                          "createdAt": "2026-09-24T16:54:20.625Z",
+                          "updatedAt": "2026-09-24T16:54:20.625Z",
+                          "url": "https://images.veromoda.com/10279492/4090918/001/veromoda-vmlunalsslimdnmjacketmixganoos-blue.png?bg-color=%23f5f5f5&format=webp&key=25-0-3&quality=90&v=ab2e53d3157a02ae0bdc6ff272f52c89&width=1280",
+                          "key": "seed/womens-light-blue-denim-jacket-1.webp",
+                          "productId": "4d0e47ce-2b39-45e3-879c-7916beebe0d9"
+                      },
+                      {
+                          "id": "df80f2f9-aea0-44d7-9204-2ada43be9286",
+                          "createdAt": "2026-09-24T16:54:20.625Z",
+                          "updatedAt": "2026-09-24T16:54:20.625Z",
+                          "url": "https://assets.manufactum.de/p/204/204335/204335_01.jpg/damen-jeansjacke.jpg",
+                          "key": "seed/womens-light-blue-denim-jacket-2.jpg",
+                          "productId": "4d0e47ce-2b39-45e3-879c-7916beebe0d9"
+                      }
+                  ],
+                  "user": {
+                      "firstName": "Cedar",
+                      "lastName": "Daniel",
+                      "photo": null,
+                      "ratingsCount": 0,
+                      "ratingsAverage": 0
+                  }
+              },
+              {
+                  "id": "45a309e5-8535-4139-aa86-f6ce105bacce",
+                  "createdAt": "2026-09-24T16:28:34.160Z",
+                  "updatedAt": "2026-09-24T16:28:34.160Z",
+                  "name": "Samsung Galaxy Buds2",
+                  "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+                  "description": "Fairly used Galaxy Buds2 wireless earbuds with charging case.",
+                  "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+                  "price": 28000,
+                  "quantity": 1,
+                  "slug": "samsung-galaxy-buds2",
+                  "isStoreProduct": false,
+                  "storeCategoryId": null,
+                  "categoryId": "e23ee22e-e05d-4026-b079-37e6b73f1f46",
+                  "storeId": null,
+                  "listingId": "LST-N5R1-C9",
+                  "status": "active",
+                  "condition": "fairly-used",
+                  "images": [
+                      {
+                          "id": "d237cae8-4ecd-400f-bb8b-ce7450858c88",
+                          "createdAt": "2026-09-24T16:28:34.160Z",
+                          "updatedAt": "2026-09-24T16:28:34.160Z",
+                          "url": "https://media.ldlc.com/r1600/ld/products/00/05/87/00/LD0005870058_1.jpg",
+                          "key": "seed/samsung-galaxy-buds2-1.jpg",
+                          "productId": "45a309e5-8535-4139-aa86-f6ce105bacce"
+                      },
+                      {
+                          "id": "a76c1e63-bb35-4c67-8e89-b688840187af",
+                          "createdAt": "2026-09-24T16:28:34.160Z",
+                          "updatedAt": "2026-09-24T16:28:34.160Z",
+                          "url": "https://www.three.ie/content/dam/accessories/samsung-galaxy/SamsungGalaxyBuds2_Lavender_1.png",
+                          "key": "seed/samsung-galaxy-buds2-3.png",
+                          "productId": "45a309e5-8535-4139-aa86-f6ce105bacce"
+                      },
+                      {
+                          "id": "0e901d7b-e6af-4881-900e-14ee4a3c9bed",
+                          "createdAt": "2026-09-24T16:28:34.160Z",
+                          "updatedAt": "2026-09-24T16:28:34.160Z",
+                          "url": "https://eshop.1010.com.hk/on/demandware.static/-/Sites-master-hkt-hk/default/dw03c3ab3c/images/4118251scol/sm-r177_006_case_front-open-combination_lavender_1.jpg",
+                          "key": "seed/samsung-galaxy-buds2-2.jpg",
+                          "productId": "45a309e5-8535-4139-aa86-f6ce105bacce"
+                      }
+                  ],
+                  "user": {
+                      "firstName": "Cedar",
+                      "lastName": "Daniel",
+                      "photo": null,
+                      "ratingsCount": 0,
+                      "ratingsAverage": 0
+                  }
+              },
+              {
+                  "id": "6ac339d9-5f81-4f65-ad36-0e4834521451",
+                  "createdAt": "2026-09-24T16:54:20.625Z",
+                  "updatedAt": "2026-09-24T16:54:20.625Z",
+                  "name": "White Leather Low-Top Sneakers",
+                  "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+                  "description": "Minimalist white leather sneakers with durable rubber soles.",
+                  "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+                  "price": 35000,
+                  "quantity": 4,
+                  "slug": "white-leather-low-top-sneakers",
+                  "isStoreProduct": false,
+                  "storeCategoryId": null,
+                  "categoryId": "d3272d0e-c588-4914-be2a-a2f8a5827b29",
+                  "storeId": null,
+                  "listingId": "LST-W6K3-P9",
+                  "status": "active",
+                  "condition": "brand-new",
+                  "images": [
+                      {
+                          "id": "b92c49c5-7e0b-4ccc-bc0d-c4105c156513",
+                          "createdAt": "2026-09-24T16:54:20.625Z",
+                          "updatedAt": "2026-09-24T16:54:20.625Z",
+                          "url": "https://nationalstandard.fr/cdn/shop/files/W03_WH000-side-RAW-1_6f162eee-343d-4be0-acee-967faf0e1cec.jpg?v=1771340575&width=1024",
+                          "key": "seed/white-leather-sneakers-2.jpg",
+                          "productId": "6ac339d9-5f81-4f65-ad36-0e4834521451"
+                      },
+                      {
+                          "id": "f9a1d51e-3c98-4e15-a4d8-6a315a962cf0",
+                          "createdAt": "2026-09-24T16:54:20.625Z",
+                          "updatedAt": "2026-09-24T16:54:20.625Z",
+                          "url": "https://theessential.com/cdn/shop/files/WhiteBlank-Photoroom.jpg?v=1744912737",
+                          "key": "seed/white-leather-sneakers-1.jpg",
+                          "productId": "6ac339d9-5f81-4f65-ad36-0e4834521451"
+                      },
+                      {
+                          "id": "0c0a7aaa-174c-43d8-8751-ea168635ddf1",
+                          "createdAt": "2026-09-24T16:54:20.625Z",
+                          "updatedAt": "2026-09-24T16:54:20.625Z",
+                          "url": "https://thursdayboots.com/cdn/shop/files/1024x1024-Encore-White-020724-Side_6eaae8c7-6eac-4593-8f8d-1b3267d347dd_600x413.jpg?v=1724087038",
+                          "key": "seed/white-leather-sneakers-3.jpg",
+                          "productId": "6ac339d9-5f81-4f65-ad36-0e4834521451"
+                      }
+                  ],
+                  "user": {
+                      "firstName": "Cedar",
+                      "lastName": "Daniel",
+                      "photo": null,
+                      "ratingsCount": 0,
+                      "ratingsAverage": 0
+                  }
+              },
+              {
+                  "id": "085abe07-480b-4850-b4e9-872388f38280",
+                  "createdAt": "2026-09-24T16:12:51.246Z",
+                  "updatedAt": "2026-09-24T16:12:51.246Z",
+                  "name": "Anker 20W Power Bank",
+                  "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+                  "description": "Portable Anker power bank suitable for phones and other USB devices.",
+                  "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+                  "price": 45000,
+                  "quantity": 5,
+                  "slug": "anker-20w-power-bank",
+                  "isStoreProduct": false,
+                  "storeCategoryId": null,
+                  "categoryId": "e23ee22e-e05d-4026-b079-37e6b73f1f46",
+                  "storeId": null,
+                  "listingId": "LST-ANK4-04",
+                  "status": "active",
+                  "condition": "brand-new",
+                  "images": [],
+                  "user": {
+                      "firstName": "Cedar",
+                      "lastName": "Daniel",
+                      "photo": null,
+                      "ratingsCount": 0,
+                      "ratingsAverage": 0
+                  }
+              },
+              {
+                  "id": "878c55fe-35fe-472d-b1f8-67613fbad978",
+                  "createdAt": "2026-09-24T15:46:19.109Z",
+                  "updatedAt": "2026-09-24T15:46:19.109Z",
+                  "name": "aldo men shoes",
+                  "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+                  "description": "test desc",
+                  "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+                  "price": 65000,
+                  "quantity": 1,
+                  "slug": "aldo-men-shoes",
+                  "isStoreProduct": false,
+                  "storeCategoryId": null,
+                  "categoryId": "29385f1f-d11b-462d-80bb-80f32ba72884",
+                  "storeId": null,
+                  "listingId": "LST-49OT-XP",
+                  "status": "active",
+                  "condition": "brand-new",
+                  "images": [
+                      {
+                          "id": "44ceae78-4754-4c81-9673-1291c36ed9de",
+                          "createdAt": "2026-09-24T15:46:19.987Z",
+                          "updatedAt": "2026-09-24T15:46:19.987Z",
+                          "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790181560/ECampusMart/Frame_1984080275_1_ngyggj.jpg",
+                          "key": "key",
+                          "productId": "878c55fe-35fe-472d-b1f8-67613fbad978"
+                      }
+                  ],
+                  "user": {
+                      "firstName": "Cedar",
+                      "lastName": "Daniel",
+                      "photo": null,
+                      "ratingsCount": 0,
+                      "ratingsAverage": 0
+                  }
+              },
+              {
+                  "id": "f2be11c7-6f1e-4d5f-b981-caf4425c2958",
+                  "createdAt": "2026-09-24T16:12:51.246Z",
+                  "updatedAt": "2026-09-24T16:12:51.246Z",
+                  "name": "AirPods Pro 2",
+                  "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+                  "description": "Apple AirPods Pro 2 with active noise cancellation and charging case.",
+                  "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+                  "price": 180000,
+                  "quantity": 3,
+                  "slug": "airpods-pro-2",
+                  "isStoreProduct": false,
+                  "storeCategoryId": null,
+                  "categoryId": "e23ee22e-e05d-4026-b079-37e6b73f1f46",
+                  "storeId": null,
+                  "listingId": "LST-AIR3-03",
+                  "status": "active",
+                  "condition": "brand-new",
+                  "images": [],
+                  "user": {
+                      "firstName": "Cedar",
+                      "lastName": "Daniel",
+                      "photo": null,
+                      "ratingsCount": 0,
+                      "ratingsAverage": 0
+                  }
+              },
+              {
+                  "id": "db31d262-e3e9-4dba-86aa-feaf00974fde",
+                  "createdAt": "2026-09-24T16:12:51.246Z",
+                  "updatedAt": "2026-09-24T16:12:51.246Z",
+                  "name": "iPhone 11 64GB",
+                  "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+                  "description": "Pre-owned iPhone 11, 64GB storage, fully functional and in good condition.",
+                  "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+                  "price": 280000,
+                  "quantity": 1,
+                  "slug": "iphone-11-64gb",
+                  "isStoreProduct": false,
+                  "storeCategoryId": null,
+                  "categoryId": "e23ee22e-e05d-4026-b079-37e6b73f1f46",
+                  "storeId": null,
+                  "listingId": "LST-IP11-05",
+                  "status": "active",
+                  "condition": "fairly-used",
+                  "images": [],
+                  "user": {
+                      "firstName": "Cedar",
+                      "lastName": "Daniel",
+                      "photo": null,
+                      "ratingsCount": 0,
+                      "ratingsAverage": 0
+                  }
+              }
+          ]
+      }
+order: 5000

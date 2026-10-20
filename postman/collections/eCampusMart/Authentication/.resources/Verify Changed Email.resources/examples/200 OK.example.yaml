@@ -1,0 +1,30 @@
+$kind: http-example
+request:
+  url: "{{URL}}/auth/change-email/verify"
+  method: POST
+  body:
+    type: json
+    content: |-
+      {
+          "otp": "176056"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "77"
+    etag: W/"4d-+qtLqk4T5VBY5p+9vVsVqIX89XY"
+    date: Wed, 14 Oct 2026 14:59:43 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "Email updated!",
+        "email": "cedard686@gmail.com"
+      }
+order: 1000

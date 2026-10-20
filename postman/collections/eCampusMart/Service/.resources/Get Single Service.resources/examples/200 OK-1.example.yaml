@@ -1,0 +1,65 @@
+$kind: http-example
+name: 200 OK
+request:
+  url: "{{URL}}/services/e6ff73b6-6933-4cbe-8d9b-bc4e1417d5fd"
+  method: GET
+  body:
+    type: json
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "1310"
+    etag: W/"51e-Um+NfA2KxfdLB8ep7gJYvbPxutY"
+    date: Wed, 07 Oct 2026 23:49:18 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "Get One successful!",
+        "data": {
+          "id": "e6ff73b6-6933-4cbe-8d9b-bc4e1417d5fd",
+          "createdAt": "2026-10-07T22:48:54.449Z",
+          "updatedAt": "2026-10-07T22:48:54.449Z",
+          "title": "Computer Repair",
+          "ownerId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+          "categoryId": "a682ec3d-f952-404f-8f1d-cbdd45b60697",
+          "locationId": "27ed5921-e3b9-454e-a70b-6b4497f1f930",
+          "location": "Mobile Filling Station",
+          "description": "Laptop and desktop computer repair services.",
+          "isNegotiable": true,
+          "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+          "storeId": "e5e9a262-c8bb-4946-ba93-978e581729a6",
+          "listingId": "LST-6IE7-S5",
+          "price": "5000.00",
+          "priceUnit": "session",
+          "images": [
+            {
+              "id": "c5ba0661-83ba-473f-9807-bcdcaf02ce86",
+              "createdAt": "2026-10-07T22:48:54.954Z",
+              "updatedAt": "2026-10-07T22:48:54.954Z",
+              "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790181560/ECampusMart/Frame_1984080275_1_ngyggj.jpg",
+              "key": "key",
+              "serviceId": "e6ff73b6-6933-4cbe-8d9b-bc4e1417d5fd",
+              "isCoverImage": true
+            },
+            {
+              "id": "d5b84eba-aa51-416a-993a-15068d8bf378",
+              "createdAt": "2026-10-07T22:48:54.954Z",
+              "updatedAt": "2026-10-07T22:48:54.954Z",
+              "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790181560/ECampusMart/Frame_1984080275_1_ngyggj.jpg",
+              "key": "key",
+              "serviceId": "e6ff73b6-6933-4cbe-8d9b-bc4e1417d5fd",
+              "isCoverImage": false
+            }
+          ],
+          "isLiked": false
+        }
+      }
+order: 2000

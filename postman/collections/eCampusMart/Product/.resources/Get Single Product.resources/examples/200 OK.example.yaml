@@ -1,0 +1,88 @@
+$kind: http-example
+request:
+  url: "{{URL}}/products/24bd6b18-fb2a-423b-b4da-f07ad626ac69"
+  method: GET
+  queryParams:
+    - key: relations
+      value: images
+      disabled: true
+  body:
+    type: json
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "1690"
+    etag: W/"69a-lFaf5KHrTNFDCd+RQvCZE2ntJPg"
+    date: Wed, 07 Oct 2026 23:36:53 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "Get One successful!",
+        "data": {
+          "id": "24bd6b18-fb2a-423b-b4da-f07ad626ac69",
+          "createdAt": "2026-10-07T22:36:35.593Z",
+          "updatedAt": "2026-10-07T22:36:35.593Z",
+          "name": "aldo men shoes",
+          "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+          "description": "test desc",
+          "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+          "price": "65000.00",
+          "quantity": 3,
+          "viewCount": 0,
+          "favoriteCount": 0,
+          "slug": "aldo-men-shoes",
+          "isStoreProduct": false,
+          "storeCategoryId": null,
+          "categoryId": "29385f1f-d11b-462d-80bb-80f32ba72884",
+          "storeId": null,
+          "listingId": "LST-B72L-TC",
+          "status": "active",
+          "condition": "brand-new",
+          "images": [
+            {
+              "id": "26821351-a4f6-40fc-a6e4-1dd02ddd4d29",
+              "createdAt": "2026-10-07T22:36:36.159Z",
+              "updatedAt": "2026-10-07T22:36:36.159Z",
+              "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790181560/ECampusMart/Frame_1984080275_1_ngyggj.jpg",
+              "key": "key-1",
+              "productId": "24bd6b18-fb2a-423b-b4da-f07ad626ac69",
+              "isCoverImage": true
+            },
+            {
+              "id": "a1cfd97b-0b87-4478-82a9-2cdc6abf2b4a",
+              "createdAt": "2026-10-07T22:36:36.159Z",
+              "updatedAt": "2026-10-07T22:36:36.159Z",
+              "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790181560/ECampusMart/Frame_1984080275_1_ngyggj.jpg",
+              "key": "key-2",
+              "productId": "24bd6b18-fb2a-423b-b4da-f07ad626ac69",
+              "isCoverImage": false
+            },
+            {
+              "id": "18d4c551-9b65-47b9-bf61-a72fade7659d",
+              "createdAt": "2026-10-07T22:36:36.159Z",
+              "updatedAt": "2026-10-07T22:36:36.159Z",
+              "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790181560/ECampusMart/Frame_1984080275_1_ngyggj.jpg",
+              "key": "key-3",
+              "productId": "24bd6b18-fb2a-423b-b4da-f07ad626ac69",
+              "isCoverImage": false
+            }
+          ],
+          "isLiked": false,
+          "user": {
+            "firstName": "Cedar",
+            "lastName": "Daniel",
+            "photo": null,
+            "ratingsCount": 0,
+            "ratingsAverage": 0
+          }
+        }
+      }
+order: 1000

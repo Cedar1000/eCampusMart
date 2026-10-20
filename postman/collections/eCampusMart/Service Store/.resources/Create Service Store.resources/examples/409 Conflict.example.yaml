@@ -1,0 +1,36 @@
+$kind: http-example
+request:
+  url: "{{URL}}/service-stores"
+  method: POST
+  body:
+    type: json
+    content: |-
+      {
+          "categoryId": "5883829e-5e25-4577-8992-b3cdcb4cdbf5",
+          "name": "Sweet Crumbs Bakery",
+          "description": "Fresh cakes, pastries, bread, and custom celebration orders.",
+          "logo": "https://cdn.example.com/service-stores/sweet-crumbs/logo.png",
+          "logoKey": "service-stores/sweet-crumbs/logo.png",
+          "banner": "https://cdn.example.com/service-stores/sweet-crumbs/banner.png",
+          "bannerKey": "service-stores/sweet-crumbs/banner.png"
+      }
+response:
+  statusCode: 409
+  statusText: Conflict
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "82"
+    etag: W/"52-BOUAGFR+kvNdttntm7n1C/j9ntE"
+    date: Mon, 05 Oct 2026 09:33:23 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "message": "You already have a service store",
+        "error": "Conflict",
+        "statusCode": 409
+      }
+order: 2000

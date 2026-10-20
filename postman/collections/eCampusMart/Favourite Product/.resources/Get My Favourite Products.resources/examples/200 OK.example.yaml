@@ -1,0 +1,72 @@
+$kind: http-example
+request:
+  url: "{{URL}}/product-favourites/my-favourites"
+  method: GET
+  body:
+    type: json
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "1257"
+    etag: W/"4e9-MGss16Ia1tkC1tfU0g3OaSoHOR0"
+    date: Tue, 06 Oct 2026 18:51:31 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "Get All successful!",
+        "total": 1,
+        "nextPage": null,
+        "prevPage": null,
+        "count": 1,
+        "pages": 1,
+        "currentPage": 1,
+        "data": [
+          {
+            "id": "fe3989a4-e8b6-475a-a8cf-5626ec84a941",
+            "createdAt": "2026-10-06T17:47:43.797Z",
+            "updatedAt": "2026-10-06T17:47:43.797Z",
+            "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "productId": "5052d464-7a53-469a-a5eb-e7e94f897271",
+            "product": {
+              "id": "5052d464-7a53-469a-a5eb-e7e94f897271",
+              "createdAt": "2026-10-06T11:31:10.072Z",
+              "updatedAt": "2026-10-06T11:31:10.072Z",
+              "name": "new washing",
+              "userId": "1d9f446a-117c-43e9-b837-a31d0d5462f3",
+              "description": "It is a brand new product",
+              "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+              "price": "10000.00",
+              "quantity": 1,
+              "viewCount": 0,
+              "favoriteCount": 0,
+              "slug": "new-washing",
+              "isStoreProduct": false,
+              "storeCategoryId": null,
+              "categoryId": "d3272d0e-c588-4914-be2a-a2f8a5827b29",
+              "storeId": null,
+              "listingId": "LST-CQOY-8L",
+              "status": "active",
+              "condition": "brand-new",
+              "images": [
+                {
+                  "id": "b2f371be-5aa3-4755-b63c-1dcfd062052c",
+                  "createdAt": "2026-10-06T11:31:10.396Z",
+                  "updatedAt": "2026-10-06T11:31:10.396Z",
+                  "url": "https://res.cloudinary.com/dnued3o6t/image/upload/v1791289868/ECampusMart/pkrujjhg1kyn7p5z2y57.jpg",
+                  "key": "ECampusMart/pkrujjhg1kyn7p5z2y57",
+                  "productId": "5052d464-7a53-469a-a5eb-e7e94f897271"
+                }
+              ]
+            }
+          }
+        ]
+      }
+order: 1000

@@ -1,0 +1,33 @@
+$kind: http-example
+request:
+  url: "{{URL}}/auth/verify-otp"
+  method: POST
+  body:
+    type: json
+    content: |-
+      {
+          "email": "cedar.daniel@prognox.co.uk",
+          "otp": 4860
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    X-Powered-By: Express
+    Content-Type: application/json; charset=utf-8
+    Content-Length: "549"
+    ETag: W/"225-d+3iNrDmyJMpTOZoeNOc36E0K3g"
+    Date: Thu, 11 Jul 2024 15:27:36 GMT
+    Connection: keep-alive
+    Keep-Alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+          "status": "success",
+          "message": "Otp verification success!",
+          "token": "{{json_web_token_0yo5}}",
+          "resetPasswordToken": "b9293a0ff6c4dddaac90774a77e35196fba7cc815d0786d053cac61937b71f59",
+          "refreshToken": "{{json_web_token_0w06}}"
+      }
+order: 4000

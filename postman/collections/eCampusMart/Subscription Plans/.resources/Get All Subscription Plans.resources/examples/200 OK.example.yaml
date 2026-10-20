@@ -1,0 +1,52 @@
+$kind: http-example
+request:
+  url: "{{URL}}/subscription-plans"
+  method: GET
+  body:
+    type: json
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "561"
+    etag: W/"231-GaACtGrcftLqH1GyLR2aRK4waGY"
+    date: Mon, 12 Oct 2026 17:26:25 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "Get All successful!",
+        "total": 2,
+        "nextPage": null,
+        "prevPage": null,
+        "count": 2,
+        "pages": 1,
+        "currentPage": 1,
+        "data": [
+          {
+            "id": "c6af54a9-453d-49b6-b915-08484265f696",
+            "createdAt": "2026-10-12T16:22:23.356Z",
+            "updatedAt": "2026-10-12T16:22:23.356Z",
+            "name": "Monthly Plan",
+            "paystackId": "PLN_um650l70gw2zz7m",
+            "amount": 900,
+            "type": "monthly"
+          },
+          {
+            "id": "56a195d1-4856-4fae-bcd1-e22669af2562",
+            "createdAt": "2026-10-12T16:22:23.356Z",
+            "updatedAt": "2026-10-12T16:22:23.356Z",
+            "name": "Yearly Plan",
+            "paystackId": "PLN_ay59ndw1jp5bkbp",
+            "amount": 10000,
+            "type": "yearly"
+          }
+        ]
+      }
+order: 1000

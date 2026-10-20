@@ -1,0 +1,23 @@
+$kind: http-request
+url: "{{URL}}/services/9ed60bf5-9fd0-4b11-bfd7-51da38b956c8"
+method: PATCH
+body:
+  type: json
+  content: |-
+    {
+        "title": "A School Of Thought",
+        "price": 5050,
+        "priceUnit": "session",
+        "images": [
+            {
+                "key": "ECampusMart/asbbok8ywswwaecuaatk",
+                "url": "https://res.cloudinary.com/dnued3o6t/image/upload/v1791481188/ECampusMart/asbbok8ywswwaecuaatk.jpg"
+            }
+        ]
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+examples: ./.resources/Update Service.resources/examples
+order: 5000

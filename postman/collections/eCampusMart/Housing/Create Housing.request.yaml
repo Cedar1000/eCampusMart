@@ -1,0 +1,32 @@
+$kind: http-request
+url: "{{URL}}/housings"
+method: POST
+body:
+  type: json
+  content: |-
+    {
+      "title": "Neat 4 Bedroom Apartment",
+      "houseType": "three-bedroom", // one-bedroom, two-bedroom, three-bedroom
+      "locationId": "c2119933-3c05-41c0-a9f5-8d19b3bc021e",
+      "whoCanRent": "Students",
+      "description": "A clean and spacious self-contained apartment close to campus.",
+      "isNegotiable": true,
+      "price": 850000,
+      "pricePeriod": "yearly",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777176/ECampusMart/housing_f7mjrp.jpg",
+          "key": "housing/apartment-1.jpg"
+        },
+        {
+          "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777172/ECampusMart/housing_2_kmp3y3.jpg",
+          "key": "housing/apartment-2.jpg"
+        }
+      ]
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+examples: ./.resources/Create Housing.resources/examples
+order: 2000

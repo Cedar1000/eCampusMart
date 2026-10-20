@@ -1,0 +1,18 @@
+$kind: http-request
+url: "{{URL}}/auth/clerk"
+method: POST
+body:
+  type: json
+  content: |-
+    {
+        "token": "{{json_web_token_0dxt}}"
+    }
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |
+      pm.environment.set("jwt", pm.response.json().token);
+    language: text/javascript
+examples: ./.resources/Clerk Sign In.resources/examples
+order: 14000

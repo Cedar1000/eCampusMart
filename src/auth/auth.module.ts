@@ -9,6 +9,7 @@ import { Campus } from 'src/campus/entities/campus.entity';
 import { DuplicateEmailGuard } from './guards/duplicate-email.guard';
 import { ValidCampusGuard } from './guards/valid-campus.guard';
 import { UniquePhoneNumberGuard } from './guards/unique-phone-number.guard';
+import { UnverifiedAccountsSweep } from './unverified-accounts.sweep';
 import { WalletModule } from 'src/wallet/wallet.module';
 import { ProductStoreModule } from 'src/product-store/product-store.module';
 import { ServiceStoreModule } from 'src/service-store/service-store.module';
@@ -38,6 +39,7 @@ import { ServiceStore } from 'src/service-store/entities/service-store.entity';
     DuplicateEmailGuard,
     ValidCampusGuard,
     UniquePhoneNumberGuard,
+    UnverifiedAccountsSweep,
   ],
 })
 export class AuthModule {}

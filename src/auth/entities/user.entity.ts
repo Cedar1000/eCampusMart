@@ -107,4 +107,27 @@ export class User extends BaseEntity {
 
   @Column({ type: 'enum', enum: UserRole, default: UserRole.USER })
   role?: UserRole;
+
+  // select: false doesn't help once a field is loaded or set in memory (e.g. after save),
+  // so strip them here: res.json and socket emits both serialize through toJSON
+  toJSON() {
+    const user: Partial<User> = { ...this };
+
+    for (const field of USER_SECRET_FIELDS) delete user[field];
+
+    return user;
+  }
 }
+
+export const USER_SECRET_FIELDS = [
+  'password',
+  'otp',
+  'otpExpiration',
+  'otpAttempts',
+  'passwordChangedAt',
+  'passwordResetToken',
+  'passwordResetTokenExpires',
+  'emailChangeOtpHash',
+  'emailChangeOtpExpiration',
+  'emailChangeAttempts',
+] as const satisfies readonly (keyof User)[];

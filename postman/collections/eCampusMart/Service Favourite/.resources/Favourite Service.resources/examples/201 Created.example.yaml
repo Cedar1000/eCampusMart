@@ -1,0 +1,36 @@
+$kind: http-example
+request:
+  url: "{{URL}}/service-favourites"
+  method: POST
+  body:
+    type: json
+    content: |-
+      {
+          "serviceId": "6bcfdef2-fa12-4bdd-9735-1e01b02acccc"
+      }
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "281"
+    etag: W/"119-W2IYD0qw4HbZ/gWiKwXkjp2sVeE"
+    date: Tue, 06 Oct 2026 19:18:13 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "create successful!",
+        "data": {
+          "id": "1c95fb38-1d0b-472c-8475-d7c906911f10",
+          "createdAt": "2026-10-06T18:03:16.722Z",
+          "updatedAt": "2026-10-06T18:03:16.722Z",
+          "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+          "serviceId": "6bcfdef2-fa12-4bdd-9735-1e01b02acccc"
+        }
+      }
+order: 1000

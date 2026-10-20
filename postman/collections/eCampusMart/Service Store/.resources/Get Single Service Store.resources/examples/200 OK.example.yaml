@@ -1,0 +1,82 @@
+$kind: http-example
+request:
+  url: "{{URL}}/service-stores/4f2c8099-4714-4a63-8a9f-fd3e187ca091"
+  method: GET
+  body:
+    type: json
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "1283"
+    etag: W/"503-V9Fp0yvXHBtIoG+7AG9XxQYzgDE"
+    date: Mon, 05 Oct 2026 10:08:23 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "Get One successful!",
+        "data": {
+          "id": "4f2c8099-4714-4a63-8a9f-fd3e187ca091",
+          "createdAt": "2026-10-05T09:04:10.235Z",
+          "updatedAt": "2026-10-05T09:06:54.033Z",
+          "ownerId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+          "categoryId": "5883829e-5e25-4577-8992-b3cdcb4cdbf5",
+          "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+          "name": "Sweet Crumbs Bakery",
+          "ratingsCount": 0,
+          "servicesCount": 0,
+          "basePrice": "50000.00",
+          "completedBookings": 0,
+          "ratingsAverage": 0,
+          "description": "Fresh cakes, pastries, bread, and custom celebration orders.",
+          "logo": "https://cdn.example.com/service-stores/sweet-crumbs/logo.png",
+          "logoKey": "service-stores/sweet-crumbs/logo.png",
+          "banner": "https://cdn.example.com/service-stores/sweet-crumbs/banner.png",
+          "bannerKey": "service-stores/sweet-crumbs/banner.png",
+          "availability": {
+            "monday": {
+              "active": true,
+              "openingTime": "09:00",
+              "closingTime": "18:00"
+            },
+            "tuesday": {
+              "active": true,
+              "openingTime": "09:00",
+              "closingTime": "18:00"
+            },
+            "wednesday": {
+              "active": false,
+              "openingTime": null,
+              "closingTime": null
+            },
+            "thursday": {
+              "active": true,
+              "openingTime": "09:00",
+              "closingTime": "18:00"
+            },
+            "friday": {
+              "active": true,
+              "openingTime": "09:00",
+              "closingTime": "18:00"
+            },
+            "saturday": {
+              "active": true,
+              "openingTime": "12:00",
+              "closingTime": "20:00"
+            },
+            "sunday": {
+              "active": false,
+              "openingTime": null,
+              "closingTime": null
+            }
+          }
+        }
+      }
+order: 1000

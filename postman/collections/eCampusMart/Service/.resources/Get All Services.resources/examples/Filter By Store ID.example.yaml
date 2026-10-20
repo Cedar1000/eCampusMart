@@ -1,0 +1,85 @@
+$kind: http-example
+request:
+  url: "{{URL}}/services?storeId=e5e9a262-c8bb-4946-ba93-978e581729a6"
+  method: GET
+  queryParams:
+    storeId: e5e9a262-c8bb-4946-ba93-978e581729a6
+  body:
+    type: json
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    :status: "200"
+    cache-control: public, max-age=0, must-revalidate
+    content-encoding: br
+    content-type: application/json; charset=utf-8
+    date: Sun, 04 Oct 2026 21:25:10 GMT
+    etag: W/"64f-Z6YGyptlZV43/7kMmkfKolakf4c"
+    server: Vercel
+    strict-transport-security: max-age=63072000; includeSubDomains; preload
+    x-powered-by: Express
+    x-vercel-cache: BYPASS
+    x-vercel-id: cpt1::iad1::8hbh6-1791149109950-f5905d21e664
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "Get All successful!",
+        "total": 3,
+        "nextPage": null,
+        "prevPage": null,
+        "count": 3,
+        "pages": 1,
+        "currentPage": 1,
+        "data": [
+          {
+            "id": "410e3470-bee7-46c9-8b66-e3bf11db51ce",
+            "createdAt": "2026-10-04T15:41:09.301Z",
+            "updatedAt": "2026-10-04T15:41:09.301Z",
+            "title": "Computer Repair",
+            "ownerId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "categoryId": "a682ec3d-f952-404f-8f1d-cbdd45b60697",
+            "description": "Laptop and desktop computer repair services.",
+            "isNegotiable": true,
+            "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+            "storeId": "e5e9a262-c8bb-4946-ba93-978e581729a6",
+            "listingId": "LST-CRAQ-XG",
+            "price": 5000,
+            "priceUnit": "session"
+          },
+          {
+            "id": "f3b9bb38-930f-4113-be9d-c33cdd342e87",
+            "createdAt": "2026-10-02T17:59:42.671Z",
+            "updatedAt": "2026-10-02T17:59:42.671Z",
+            "title": "Computer Repair",
+            "ownerId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "categoryId": "a682ec3d-f952-404f-8f1d-cbdd45b60697",
+            "description": "Laptop and desktop computer repair services.",
+            "isNegotiable": true,
+            "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+            "storeId": "e5e9a262-c8bb-4946-ba93-978e581729a6",
+            "listingId": "LST-FN4H-9M",
+            "price": 5000,
+            "priceUnit": "session"
+          },
+          {
+            "id": "e8881a0e-3adb-4546-a2d9-76f381ebdd80",
+            "createdAt": "2026-09-29T14:30:22.421Z",
+            "updatedAt": "2026-09-29T14:30:22.421Z",
+            "title": "Computer Repair",
+            "ownerId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "categoryId": "a682ec3d-f952-404f-8f1d-cbdd45b60697",
+            "description": "Laptop and desktop computer repair services.",
+            "isNegotiable": true,
+            "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+            "storeId": "e5e9a262-c8bb-4946-ba93-978e581729a6",
+            "listingId": "LST-1OF3-JH",
+            "price": 5000,
+            "priceUnit": "session"
+          }
+        ]
+      }
+order: 3000

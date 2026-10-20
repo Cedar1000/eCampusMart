@@ -1,0 +1,11 @@
+$kind: http-request
+url: "{{URL}}/product-favourites/c4b46ada-ae8b-4e7a-97b3-bcfd770f8842"
+method: DELETE
+body:
+  type: json
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+order: 2000

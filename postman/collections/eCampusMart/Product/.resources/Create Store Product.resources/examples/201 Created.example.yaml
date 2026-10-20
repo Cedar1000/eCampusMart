@@ -1,0 +1,63 @@
+$kind: http-example
+request:
+  url: "{{URL}}/products/create-store-product"
+  method: POST
+  body:
+    type: formdata
+    content:
+      - type: text
+        key: name
+        value: PS4
+      - type: text
+        key: description
+        value: test desc for product
+      - type: text
+        key: price
+        value: "15000"
+      - type: text
+        key: quantity
+        value: "1"
+        disabled: true
+      - type: file
+        key: images
+        src: postman-cloud:///1eec631b-ce3d-48d0-999a-39596a912a68
+      - type: file
+        key: images
+        src: postman-cloud:///1eec5d36-9484-47a0-bb3a-010d1daa17d3
+      - type: text
+        key: storeId
+        value: 7263870c-1463-40fd-b683-7187adec022f
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    X-Powered-By: Express
+    Content-Type: application/json; charset=utf-8
+    Content-Length: "456"
+    ETag: W/"1c8-jrnpQPWjR2wmcXyzm02T8F+4Xhg"
+    Date: Thu, 28 May 2026 07:29:31 GMT
+    Connection: keep-alive
+    Keep-Alive: timeout=5
+  body:
+    type: text
+    content: |-
+      {
+          "status": "success",
+          "data": {
+              "id": "0e7cebcb-723b-4a1a-93a9-184ad3cbf7bf",
+              "createdAt": "2026-05-28T06:29:30.255Z",
+              "updatedAt": "2026-05-28T06:29:30.255Z",
+              "name": "PS4",
+              "userId": "c846b137-5beb-4c3a-a8af-f53c44b2103f",
+              "description": "test desc for product",
+              "price": 1500000,
+              "quantity": 1,
+              "slug": "ps4",
+              "isStoreProduct": true,
+              "storeCategoryId": null,
+              "categoryId": "621bd321-094a-471a-85c3-6ca1cb46a629",
+              "storeId": "7263870c-1463-40fd-b683-7187adec022f",
+              "status": "active"
+          }
+      }
+order: 1000

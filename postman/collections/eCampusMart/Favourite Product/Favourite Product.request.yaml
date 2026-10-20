@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{URL}}/product-favourites"
+method: POST
+body:
+  type: json
+  content: |-
+    {
+        "productId": "c4b46ada-ae8b-4e7a-97b3-bcfd770f8842"
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+examples: ./.resources/Favourite Product.resources/examples
+order: 1000

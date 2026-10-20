@@ -1,0 +1,312 @@
+$kind: http-example
+request:
+  url: "{{URL}}/housings?price[range]=100000,6500000"
+  method: GET
+  queryParams:
+    - key: locationId
+      value: 80640c55-b4da-4b3b-aaa6-4588b2741606,3be19fd6-e387-46c7-9040-683f436dc271
+      disabled: true
+    - key: price[range]
+      value: 100000,6500000
+  body:
+    type: json
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "9266"
+    etag: W/"2432-PygeGB7fWVi4YLd7ar0exv8D3tw"
+    date: Wed, 30 Sep 2026 15:11:12 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "Get All successful!",
+        "total": 8,
+        "nextPage": null,
+        "prevPage": null,
+        "count": 8,
+        "pages": 1,
+        "currentPage": 1,
+        "data": [
+          {
+            "id": "55555555-5555-4555-8555-555555555555",
+            "createdAt": "2026-09-30T14:03:00.654Z",
+            "updatedAt": "2026-09-30T14:03:00.654Z",
+            "title": "Two-Bedroom Apartment in Alakahia",
+            "houseType": "two-bedroom",
+            "locationId": "80640c55-b4da-4b3b-aaa6-4588b2741606",
+            "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+            "whoCanRent": "Students and families",
+            "description": "A spacious two-bedroom apartment located in Alakahia.",
+            "isNegotiable": true,
+            "price": "1500000.00",
+            "pricePeriod": "yearly",
+            "images": [
+              {
+                "id": "a5555555-5555-4555-8555-555555555552",
+                "createdAt": "2026-09-30T14:03:00.654Z",
+                "updatedAt": "2026-09-30T14:03:00.654Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777172/ECampusMart/housing_2_kmp3y3.jpg",
+                "key": "housing/apartment-2.jpg",
+                "housingId": "55555555-5555-4555-8555-555555555555",
+                "listingId": "LST-ALAK-02"
+              },
+              {
+                "id": "a5555555-5555-4555-8555-555555555551",
+                "createdAt": "2026-09-30T14:03:00.654Z",
+                "updatedAt": "2026-09-30T14:03:00.654Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777176/ECampusMart/housing_f7mjrp.jpg",
+                "key": "housing/apartment-1.jpg",
+                "housingId": "55555555-5555-4555-8555-555555555555",
+                "listingId": "LST-ALAK-01"
+              }
+            ]
+          },
+          {
+            "id": "44444444-4444-4444-8444-444444444444",
+            "createdAt": "2026-09-30T14:03:00.654Z",
+            "updatedAt": "2026-09-30T14:03:00.654Z",
+            "title": "Self-Contained Apartment in Aluu",
+            "houseType": "self-contained",
+            "locationId": "3be19fd6-e387-46c7-9040-683f436dc271",
+            "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+            "whoCanRent": "Students",
+            "description": "An affordable self-contained apartment in Aluu.",
+            "isNegotiable": true,
+            "price": "650000.00",
+            "pricePeriod": "yearly",
+            "images": [
+              {
+                "id": "a4444444-4444-4444-8444-444444444442",
+                "createdAt": "2026-09-30T14:03:00.654Z",
+                "updatedAt": "2026-09-30T14:03:00.654Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777172/ECampusMart/housing_2_kmp3y3.jpg",
+                "key": "housing/apartment-2.jpg",
+                "housingId": "44444444-4444-4444-8444-444444444444",
+                "listingId": "LST-ALUU-02"
+              },
+              {
+                "id": "a4444444-4444-4444-8444-444444444441",
+                "createdAt": "2026-09-30T14:03:00.654Z",
+                "updatedAt": "2026-09-30T14:03:00.654Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777176/ECampusMart/housing_f7mjrp.jpg",
+                "key": "housing/apartment-1.jpg",
+                "housingId": "44444444-4444-4444-8444-444444444444",
+                "listingId": "LST-ALUU-01"
+              }
+            ]
+          },
+          {
+            "id": "33333333-3333-4333-8333-333333333333",
+            "createdAt": "2026-09-30T14:03:00.654Z",
+            "updatedAt": "2026-09-30T14:03:00.654Z",
+            "title": "One-Bedroom Apartment Behind Chem",
+            "houseType": "one-bedroom",
+            "locationId": "c2119933-3c05-41c0-a9f5-8d19b3bc021e",
+            "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+            "whoCanRent": "Students",
+            "description": "A convenient one-bedroom apartment located behind Chem.",
+            "isNegotiable": false,
+            "price": "1200000.00",
+            "pricePeriod": "yearly",
+            "images": [
+              {
+                "id": "a3333333-3333-4333-8333-333333333331",
+                "createdAt": "2026-09-30T14:03:00.654Z",
+                "updatedAt": "2026-09-30T14:03:00.654Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777176/ECampusMart/housing_f7mjrp.jpg",
+                "key": "housing/apartment-1.jpg",
+                "housingId": "33333333-3333-4333-8333-333333333333",
+                "listingId": "LST-CHEM-01"
+              },
+              {
+                "id": "a3333333-3333-4333-8333-333333333332",
+                "createdAt": "2026-09-30T14:03:00.654Z",
+                "updatedAt": "2026-09-30T14:03:00.654Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777172/ECampusMart/housing_2_kmp3y3.jpg",
+                "key": "housing/apartment-2.jpg",
+                "housingId": "33333333-3333-4333-8333-333333333333",
+                "listingId": "LST-CHEM-02"
+              }
+            ]
+          },
+          {
+            "id": "22222222-2222-4222-8222-222222222222",
+            "createdAt": "2026-09-30T14:03:00.654Z",
+            "updatedAt": "2026-09-30T14:03:00.654Z",
+            "title": "Self-Contained Apartment in Choba",
+            "houseType": "self-contained",
+            "locationId": "816ea514-fc1b-46f3-a9ce-a2fa2be782b0",
+            "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+            "whoCanRent": "Students",
+            "description": "A clean and spacious apartment located in Choba.",
+            "isNegotiable": true,
+            "price": "800000.00",
+            "pricePeriod": "yearly",
+            "images": [
+              {
+                "id": "a2222222-2222-4222-8222-222222222221",
+                "createdAt": "2026-09-30T14:03:00.654Z",
+                "updatedAt": "2026-09-30T14:03:00.654Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777176/ECampusMart/housing_f7mjrp.jpg",
+                "key": "housing/apartment-1.jpg",
+                "housingId": "22222222-2222-4222-8222-222222222222",
+                "listingId": "LST-CHOB-01"
+              },
+              {
+                "id": "a2222222-2222-4222-8222-222222222222",
+                "createdAt": "2026-09-30T14:03:00.654Z",
+                "updatedAt": "2026-09-30T14:03:00.654Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777172/ECampusMart/housing_2_kmp3y3.jpg",
+                "key": "housing/apartment-2.jpg",
+                "housingId": "22222222-2222-4222-8222-222222222222",
+                "listingId": "LST-CHOB-02"
+              }
+            ]
+          },
+          {
+            "id": "11111111-1111-4111-8111-111111111111",
+            "createdAt": "2026-09-30T14:03:00.654Z",
+            "updatedAt": "2026-09-30T14:03:00.654Z",
+            "title": "Self-Contained Apartment in Odums",
+            "houseType": "self-contained",
+            "locationId": "7812e6a3-36eb-4862-bfa3-d8a48265fe6a",
+            "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+            "whoCanRent": "Students",
+            "description": "A comfortable self-contained apartment located in Odums.",
+            "isNegotiable": true,
+            "price": "850000.00",
+            "pricePeriod": "yearly",
+            "images": [
+              {
+                "id": "a1111111-1111-4111-8111-111111111111",
+                "createdAt": "2026-09-30T14:03:00.654Z",
+                "updatedAt": "2026-09-30T14:03:00.654Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777176/ECampusMart/housing_f7mjrp.jpg",
+                "key": "housing/apartment-1.jpg",
+                "housingId": "11111111-1111-4111-8111-111111111111",
+                "listingId": "LST-ODUM-01"
+              },
+              {
+                "id": "a1111111-1111-4111-8111-111111111112",
+                "createdAt": "2026-09-30T14:03:00.654Z",
+                "updatedAt": "2026-09-30T14:03:00.654Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777172/ECampusMart/housing_2_kmp3y3.jpg",
+                "key": "housing/apartment-2.jpg",
+                "housingId": "11111111-1111-4111-8111-111111111111",
+                "listingId": "LST-ODUM-02"
+              }
+            ]
+          },
+          {
+            "id": "b13e06ac-025e-439b-9957-4f916a6137a5",
+            "createdAt": "2026-09-30T13:59:46.871Z",
+            "updatedAt": "2026-09-30T13:59:46.871Z",
+            "title": "Neat Self-Contained Apartment",
+            "houseType": "self-contained",
+            "locationId": "c2119933-3c05-41c0-a9f5-8d19b3bc021e",
+            "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+            "whoCanRent": "Students",
+            "description": "A clean and spacious self-contained apartment close to campus.",
+            "isNegotiable": true,
+            "price": "850000.00",
+            "pricePeriod": "yearly",
+            "images": [
+              {
+                "id": "10ed2928-fca0-452b-bc6e-01eb8950b933",
+                "createdAt": "2026-09-30T13:59:47.452Z",
+                "updatedAt": "2026-09-30T13:59:47.452Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777176/ECampusMart/housing_f7mjrp.jpg",
+                "key": "housing/apartment-1.jpg",
+                "housingId": "b13e06ac-025e-439b-9957-4f916a6137a5",
+                "listingId": "LST-AHI7-RP"
+              },
+              {
+                "id": "b773b77e-874a-4a22-a784-4a91f3261763",
+                "createdAt": "2026-09-30T13:59:47.452Z",
+                "updatedAt": "2026-09-30T13:59:47.452Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777172/ECampusMart/housing_2_kmp3y3.jpg",
+                "key": "housing/apartment-2.jpg",
+                "housingId": "b13e06ac-025e-439b-9957-4f916a6137a5",
+                "listingId": "LST-N8MC-LM"
+              }
+            ]
+          },
+          {
+            "id": "523642d4-e5a4-4a96-90ee-230cf86b9ff5",
+            "createdAt": "2026-09-30T13:58:43.412Z",
+            "updatedAt": "2026-09-30T13:58:43.412Z",
+            "title": "Fully Furnished Self-Contained Apartment",
+            "houseType": "self-contained",
+            "locationId": "80640c55-b4da-4b3b-aaa6-4588b2741606",
+            "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+            "whoCanRent": "Students",
+            "description": "A clean and spacious self-contained apartment close to campus.",
+            "isNegotiable": true,
+            "price": "850000.00",
+            "pricePeriod": "yearly",
+            "images": [
+              {
+                "id": "296c957d-946a-4195-a1f0-df5d99ba6886",
+                "createdAt": "2026-09-30T13:58:44.222Z",
+                "updatedAt": "2026-09-30T13:58:44.222Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777172/ECampusMart/housing_2_kmp3y3.jpg",
+                "key": "housing/apartment-2.jpg",
+                "housingId": "523642d4-e5a4-4a96-90ee-230cf86b9ff5",
+                "listingId": "LST-0Z71-7N"
+              },
+              {
+                "id": "fe156eb5-5df9-43a5-b34c-fd203c88951e",
+                "createdAt": "2026-09-30T13:58:44.222Z",
+                "updatedAt": "2026-09-30T13:58:44.222Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777176/ECampusMart/housing_f7mjrp.jpg",
+                "key": "housing/apartment-1.jpg",
+                "housingId": "523642d4-e5a4-4a96-90ee-230cf86b9ff5",
+                "listingId": "LST-EE41-EW"
+              }
+            ]
+          },
+          {
+            "id": "e3e2673b-c829-49e2-83cb-732741cd98ff",
+            "createdAt": "2026-09-30T13:12:50.677Z",
+            "updatedAt": "2026-09-30T13:12:50.677Z",
+            "title": "Modern Self-Contained Apartment",
+            "houseType": "self-contained",
+            "locationId": "80640c55-b4da-4b3b-aaa6-4588b2741606",
+            "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+            "whoCanRent": "Students",
+            "description": "A clean and spacious self-contained apartment close to campus.",
+            "isNegotiable": true,
+            "price": "850000.00",
+            "pricePeriod": "yearly",
+            "images": [
+              {
+                "id": "a4c0a663-890e-4cd1-9f4b-3ccbe1222393",
+                "createdAt": "2026-09-30T13:12:51.325Z",
+                "updatedAt": "2026-09-30T13:12:51.325Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777176/ECampusMart/housing_f7mjrp.jpg",
+                "key": "housing/apartment-1.jpg",
+                "housingId": "e3e2673b-c829-49e2-83cb-732741cd98ff",
+                "listingId": "LST-EDK6-3S"
+              },
+              {
+                "id": "0ee74949-db75-4c88-9cb8-8584cbdcdb82",
+                "createdAt": "2026-09-30T13:12:51.325Z",
+                "updatedAt": "2026-09-30T13:12:51.325Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777172/ECampusMart/housing_2_kmp3y3.jpg",
+                "key": "housing/apartment-2.jpg",
+                "housingId": "e3e2673b-c829-49e2-83cb-732741cd98ff",
+                "listingId": "LST-7VY5-SE"
+              }
+            ]
+          }
+        ]
+      }
+order: 2000

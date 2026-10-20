@@ -1,0 +1,34 @@
+$kind: http-example
+request:
+  url: "{{URL}}/housings"
+  method: POST
+  body:
+    type: json
+    content: |-
+      {
+        "title": "Modern Self-Contained Apartment",
+        "houseType": "self-contained",
+        "locationId": "80640c55-b4da-4b3b-aaa6-4588b2741606",
+        "whoCanRent": "Students",
+        "description": "A clean and spacious self-contained apartment close to campus.",
+        "isNegotiable": true,
+        "price": 850000,
+        "pricePeriod": "yearly",
+        "images": [
+          {
+            "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777176/ECampusMart/housing_f7mjrp.jpg",
+            "key": "housing/apartment-1.jpg"
+          },
+          {
+            "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777172/ECampusMart/housing_2_kmp3y3.jpg",
+            "key": "housing/apartment-2.jpg"
+          }
+        ]
+      }
+response:
+  statusCode: 201
+  statusText: Created
+  body:
+    type: json
+    content: '{"status":"success","message":"create successful!","data":{"id":"e3e2673b-c829-49e2-83cb-732741cd98ff","createdAt":"2026-09-30T13:12:50.677Z","updatedAt":"2026-09-30T13:12:50.677Z","title":"Modern Self-Contained Apartment","houseType":"self-contained","locationId":"80640c55-b4da-4b3b-aaa6-4588b2741606","campusId":"801b075c-10d6-42be-972e-2d83df5580fd","whoCanRent":"Students","description":"A clean and spacious self-contained apartment close to campus.","isNegotiable":true,"price":850000,"pricePeriod":"yearly","images":[{"url":"https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777176/ECampusMart/housing_f7mjrp.jpg","key":"housing/apartment-1.jpg"},{"url":"https://res.cloudinary.com/dkp7wyq3t/image/upload/v1790777172/ECampusMart/housing_2_kmp3y3.jpg","key":"housing/apartment-2.jpg"}]}}'
+order: 2000

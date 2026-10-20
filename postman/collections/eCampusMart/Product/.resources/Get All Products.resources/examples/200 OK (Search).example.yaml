@@ -1,0 +1,224 @@
+$kind: http-example
+request:
+  url: "{{URL}}/products?search=pavilion"
+  method: GET
+  queryParams:
+    - key: storeId
+      value: ccdfa759-a60f-4a00-8f06-7656779a0c62
+      disabled: true
+    - key: search
+      value: pavilion
+  body:
+    type: json
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-powered-by: Express
+    content-type: application/json; charset=utf-8
+    content-length: "5547"
+    etag: W/"15ab-8RI827GFAtYv0JHAI1Byk3jkSa4"
+    date: Mon, 05 Oct 2026 17:20:08 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "Get All successful!",
+        "total": 4,
+        "nextPage": null,
+        "prevPage": null,
+        "count": 4,
+        "pages": 1,
+        "currentPage": 1,
+        "data": [
+          {
+            "id": "74f5354c-f84f-4d41-a30c-5ba1094c2053",
+            "createdAt": "2026-10-04T20:19:51.247Z",
+            "updatedAt": "2026-10-04T20:19:51.247Z",
+            "name": "hp pavilion laptop",
+            "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "description": "HP Pavilion laptop with 16GB RAM and 512GB SSD.",
+            "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+            "price": "238802.16",
+            "quantity": 5,
+            "viewCount": 0,
+            "favoriteCount": 0,
+            "slug": "hp-pavilion-laptop",
+            "isStoreProduct": true,
+            "storeCategoryId": null,
+            "categoryId": "3253bb0e-8c0a-4376-aaa5-f2482d3e0b76",
+            "storeId": "ccdfa759-a60f-4a00-8f06-7656779a0c62",
+            "listingId": "LST-0JT3-5R",
+            "status": "active",
+            "condition": "brand-new",
+            "images": [
+              {
+                "id": "eeb1e509-f3be-4cb7-a9c3-3b656d3d7306",
+                "createdAt": "2026-10-04T20:19:51.459Z",
+                "updatedAt": "2026-10-04T20:19:51.459Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1791031491/ECampusMart/laptop2_hnorjs.webp",
+                "key": "products/hp-pavilion-1.jpg",
+                "productId": "74f5354c-f84f-4d41-a30c-5ba1094c2053"
+              },
+              {
+                "id": "3f49b2a8-1739-4a2d-856d-e7bfff7550ce",
+                "createdAt": "2026-10-04T20:19:51.459Z",
+                "updatedAt": "2026-10-04T20:19:51.459Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1791031421/ECampusMart/laptop_lwhnqr.jpg",
+                "key": "products/hp-pavilion-2.jpg",
+                "productId": "74f5354c-f84f-4d41-a30c-5ba1094c2053"
+              }
+            ],
+            "user": {
+              "firstName": "Cedar",
+              "lastName": "Daniel",
+              "photo": null,
+              "ratingsCount": 0,
+              "ratingsAverage": 0
+            }
+          },
+          {
+            "id": "b1b83938-fb99-46ba-ac62-074d6ee214f3",
+            "createdAt": "2026-10-04T20:17:02.406Z",
+            "updatedAt": "2026-10-04T20:17:02.406Z",
+            "name": "hp pavilion laptop",
+            "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "description": "HP Pavilion laptop with 16GB RAM and 512GB SSD.",
+            "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+            "price": "157965.17",
+            "quantity": 5,
+            "viewCount": 0,
+            "favoriteCount": 0,
+            "slug": "hp-pavilion-laptop",
+            "isStoreProduct": true,
+            "storeCategoryId": null,
+            "categoryId": "3253bb0e-8c0a-4376-aaa5-f2482d3e0b76",
+            "storeId": "ccdfa759-a60f-4a00-8f06-7656779a0c62",
+            "listingId": "LST-8PWB-KD",
+            "status": "active",
+            "condition": "brand-new",
+            "images": [
+              {
+                "id": "780c0070-b545-4aa7-9a98-a1e85547c15b",
+                "createdAt": "2026-10-04T20:17:02.650Z",
+                "updatedAt": "2026-10-04T20:17:02.650Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1791031491/ECampusMart/laptop2_hnorjs.webp",
+                "key": "products/hp-pavilion-1.jpg",
+                "productId": "b1b83938-fb99-46ba-ac62-074d6ee214f3"
+              },
+              {
+                "id": "084d24d6-96d0-4bc3-891b-62740f70ba89",
+                "createdAt": "2026-10-04T20:17:02.650Z",
+                "updatedAt": "2026-10-04T20:17:02.650Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1791031421/ECampusMart/laptop_lwhnqr.jpg",
+                "key": "products/hp-pavilion-2.jpg",
+                "productId": "b1b83938-fb99-46ba-ac62-074d6ee214f3"
+              }
+            ],
+            "user": {
+              "firstName": "Cedar",
+              "lastName": "Daniel",
+              "photo": null,
+              "ratingsCount": 0,
+              "ratingsAverage": 0
+            }
+          },
+          {
+            "id": "afd42840-327a-48ce-a290-837c33c89cb7",
+            "createdAt": "2026-10-03T11:51:37.473Z",
+            "updatedAt": "2026-10-03T11:51:37.473Z",
+            "name": "hp pavilion laptop",
+            "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "description": "HP Pavilion laptop with 16GB RAM and 512GB SSD.",
+            "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+            "price": "199565.44",
+            "quantity": 5,
+            "viewCount": 0,
+            "favoriteCount": 0,
+            "slug": "hp-pavilion-laptop",
+            "isStoreProduct": true,
+            "storeCategoryId": null,
+            "categoryId": "3253bb0e-8c0a-4376-aaa5-f2482d3e0b76",
+            "storeId": "ccdfa759-a60f-4a00-8f06-7656779a0c62",
+            "listingId": "LST-W3YG-AA",
+            "status": "active",
+            "condition": "brand-new",
+            "images": [
+              {
+                "id": "fe4e6092-7a32-4d14-8b15-13fc4da7ca82",
+                "createdAt": "2026-10-03T11:51:39.025Z",
+                "updatedAt": "2026-10-03T11:51:39.025Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1791031491/ECampusMart/laptop2_hnorjs.webp",
+                "key": "products/hp-pavilion-1.jpg",
+                "productId": "afd42840-327a-48ce-a290-837c33c89cb7"
+              },
+              {
+                "id": "2003434a-0363-4f5e-b2fe-5deb62547294",
+                "createdAt": "2026-10-03T11:51:39.025Z",
+                "updatedAt": "2026-10-03T11:51:39.025Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1791031421/ECampusMart/laptop_lwhnqr.jpg",
+                "key": "products/hp-pavilion-2.jpg",
+                "productId": "afd42840-327a-48ce-a290-837c33c89cb7"
+              }
+            ],
+            "user": {
+              "firstName": "Cedar",
+              "lastName": "Daniel",
+              "photo": null,
+              "ratingsCount": 0,
+              "ratingsAverage": 0
+            }
+          },
+          {
+            "id": "15f0f47c-f75e-43a1-8cf6-454ffd4cd905",
+            "createdAt": "2026-10-03T11:50:43.577Z",
+            "updatedAt": "2026-10-03T11:50:43.577Z",
+            "name": "hp pavilion laptop",
+            "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "description": "HP Pavilion laptop with 16GB RAM and 512GB SSD.",
+            "campusId": "801b075c-10d6-42be-972e-2d83df5580fd",
+            "price": "302792.77",
+            "quantity": 5,
+            "viewCount": 0,
+            "favoriteCount": 0,
+            "slug": "hp-pavilion-laptop",
+            "isStoreProduct": true,
+            "storeCategoryId": null,
+            "categoryId": "3253bb0e-8c0a-4376-aaa5-f2482d3e0b76",
+            "storeId": "ccdfa759-a60f-4a00-8f06-7656779a0c62",
+            "listingId": "LST-O25P-OA",
+            "status": "active",
+            "condition": "brand-new",
+            "images": [
+              {
+                "id": "f706f476-bb25-4201-a616-ea8816558d02",
+                "createdAt": "2026-10-03T11:50:44.149Z",
+                "updatedAt": "2026-10-03T11:50:44.149Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1791031491/ECampusMart/laptop2_hnorjs.webp",
+                "key": "products/hp-pavilion-1.jpg",
+                "productId": "15f0f47c-f75e-43a1-8cf6-454ffd4cd905"
+              },
+              {
+                "id": "92e7108e-f619-429c-9521-9266c2fe2189",
+                "createdAt": "2026-10-03T11:50:44.149Z",
+                "updatedAt": "2026-10-03T11:50:44.149Z",
+                "url": "https://res.cloudinary.com/dkp7wyq3t/image/upload/v1791031421/ECampusMart/laptop_lwhnqr.jpg",
+                "key": "products/hp-pavilion-2.jpg",
+                "productId": "15f0f47c-f75e-43a1-8cf6-454ffd4cd905"
+              }
+            ],
+            "user": {
+              "firstName": "Cedar",
+              "lastName": "Daniel",
+              "photo": null,
+              "ratingsCount": 0,
+              "ratingsAverage": 0
+            }
+          }
+        ]
+      }
+order: 9000
