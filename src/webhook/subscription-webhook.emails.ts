@@ -2,11 +2,11 @@ import { Subscription } from 'src/subscription/entities/subscription.entity';
 import { SubscriptionStatus } from 'src/subscription/enums/subscription-status.enum';
 import { PlanType } from 'src/subscription-plan/enums/plan-type.enum';
 
-const formatDate = (date: Date) =>
+export const formatDate = (date: Date) =>
   new Date(date).toLocaleDateString('en-NG', { dateStyle: 'long' });
 
 // Amounts are stored in the smallest currency unit
-const formatAmount = (amount: number) =>
+export const formatAmount = (amount: number) =>
   `NGN ${(Number(amount) / 100).toLocaleString('en-NG')}`;
 
 export const getSubscriptionEmail = (

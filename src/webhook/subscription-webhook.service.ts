@@ -6,13 +6,24 @@ import { Subscription } from 'src/subscription/entities/subscription.entity';
 import { SubscriptionStatus } from 'src/subscription/enums/subscription-status.enum';
 import { SubscriptionPlan } from 'src/subscription-plan/entities/subscription-plan.entity';
 import { PlanType } from 'src/subscription-plan/enums/plan-type.enum';
-import { DataSource, EntityManager, In, IsNull, Repository } from 'typeorm';
+import {
+  DataSource,
+  EntityManager,
+  In,
+  IsNull,
+  Not,
+  Repository,
+} from 'typeorm';
 import sendEmail from 'utils/sendEmail';
 import {
   createPaystackSubscription,
+  disablePaystackSubscription,
   refundPaystackTransaction,
 } from 'utils/paystack';
-import { syncStoreVisibility } from 'src/service-store/store-visibility';
+import {
+  PAID_STATUSES,
+  syncStoreVisibility,
+} from 'src/service-store/store-visibility';
 import { getSubscriptionEmail } from './subscription-webhook.emails';
 import { asRecord, asString, PaystackEventData } from './webhook.utils';
 
@@ -142,11 +153,25 @@ export class SubscriptionWebhookService {
     reference: string,
     data: PaystackEventData,
   ) {
+    let storeDeleted = false;
+
     const subscription = await this.dataSource.transaction(async (manager) => {
       const subscription = await manager.findOne(Subscription, {
         where: { reference },
         lock: { mode: 'pessimistic_write' },
       });
+
+      // A checkout paid after its store was deleted: nothing to activate, so refund it
+      if (
+        subscription &&
+        !subscription.subscriptionCode &&
+        !(await manager.exists(ServiceStore, {
+          where: { id: subscription.storeId },
+        }))
+      ) {
+        storeDeleted = true;
+        return null;
+      }
 
       // Only the first charge uses our reference; renewals are settled by invoice.update.
       // A checkout replaced by a newer one is expired with no code, but was still paid.
@@ -175,6 +200,25 @@ export class SubscriptionWebhookService {
       return subscription;
     });
 
+    if (storeDeleted) {
+      console.error(
+        'Subscription paid for a deleted store, refunding',
+        reference,
+      );
+
+      try {
+        await refundPaystackTransaction(reference);
+      } catch (error) {
+        console.error('Deleted store refund failed', reference, error);
+      }
+
+      return null;
+    }
+
+    // Runs on every delivery, not only the one that activated the plan, so a failed
+    // Paystack call is retried with the job
+    await this.cancelReplacedTrials(reference);
+
     // The trial charge only checked the card, so give it back
     if (subscription?.isTrial) {
       try {
@@ -185,6 +229,55 @@ export class SubscriptionWebhookService {
     }
 
     return subscription;
+  }
+
+  /**
+   * A plan paid during a free trial replaces the trial: cancel the trial's Paystack
+   * subscription so the store isn't billed twice when the trial ends. Throws if
+   * Paystack can't be reached, so the job retries; already-cancelled trials are skipped.
+   */
+  private async cancelReplacedTrials(reference: string) {
+    const paid = await this.subscriptionRepository.findOne({
+      where: { reference },
+    });
+
+    if (!paid || paid.isTrial || !PAID_STATUSES.includes(paid.status)) return;
+
+    const trials = await this.subscriptionRepository.find({
+      where: {
+        storeId: paid.storeId,
+        isTrial: true,
+        status: In(PAID_STATUSES),
+        id: Not(paid.id),
+      },
+    });
+
+    for (const trial of trials) {
+      // A trial paid moments ago gets its code from subscription.create; retry until then
+      if (!trial.subscriptionCode || !trial.emailToken) {
+        throw new Error(
+          `Trial ${trial.id} has no Paystack subscription yet, so it can't be cancelled`,
+        );
+      }
+
+      await disablePaystackSubscription(
+        trial.subscriptionCode,
+        trial.emailToken,
+      );
+
+      trial.status = SubscriptionStatus.CANCELLED;
+      await this.subscriptionRepository.save(trial);
+    }
+
+    if (!trials.length) return;
+
+    // The trial's free time is over, so it can't keep the store listed later
+    await this.dataSource.transaction(async (manager) => {
+      await manager.update(ServiceStore, paid.storeId, {
+        trialEndsAt: new Date(),
+      });
+      await syncStoreVisibility(manager, paid.storeId);
+    });
   }
 
   // Paystack amounts are in kobo, like ours. Subscriptions don't store a currency

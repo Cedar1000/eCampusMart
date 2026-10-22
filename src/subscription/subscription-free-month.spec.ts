@@ -74,6 +74,7 @@ describe('SubscriptionService free month', () => {
           run(manager),
         ),
       } as never,
+      { exists: jest.fn(() => false) } as never,
     );
   });
 
@@ -179,6 +180,43 @@ describe('SubscriptionService free month', () => {
         { storeId: 'store-1', status: SubscriptionStatus.PENDING },
         { status: SubscriptionStatus.EXPIRED },
       );
+    });
+
+    describe('during a free trial', () => {
+      const trial = (fields: object = {}) => ({
+        id: 'trial-1',
+        storeId: 'store-1',
+        isTrial: true,
+        status: SubscriptionStatus.ACTIVE,
+        expiresAt: new Date(Date.now() + 20 * DAY),
+        ...fields,
+      });
+
+      it('opens a checkout billed now, leaving the trial until it is paid', async () => {
+        store.trialEndsAt = new Date(Date.now() + 20 * DAY);
+        subscriptionRepo.findOne.mockReturnValue(trial());
+
+        await checkout();
+
+        const [row] = subscriptionRepo.create.mock.calls[0] as [
+          { isTrial: boolean; expiresAt: Date },
+        ];
+
+        expect(row.isTrial).toBe(false);
+        expect(Math.round((row.expiresAt.getTime() - Date.now()) / DAY)).toBe(
+          30,
+        );
+        // Cancelled by the webhook once this checkout is paid
+        expect(disablePaystackSubscription).not.toHaveBeenCalled();
+      });
+
+      it('still refuses a store on a paid plan', async () => {
+        subscriptionRepo.findOne.mockReturnValue(trial({ isTrial: false }));
+
+        await expect(checkout()).rejects.toThrow(
+          'use the change plan endpoint',
+        );
+      });
     });
 
     it('keeps the rest of the free month, billing when it ends', async () => {

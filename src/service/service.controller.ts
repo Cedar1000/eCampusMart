@@ -21,6 +21,7 @@ import { ServiceService } from './service.service';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { ValidServiceStoreGuard } from './guards/valid-service-store.guard';
+import { HasCampusGuard } from 'src/common/guards/has-campus.guard';
 import { IncludeIsLikedServiceInterceptor } from './interceptors/has-liked-service.interceptor';
 import { ValidServiceOwnerGuard } from './guards/valid-service-owner.guard';
 
@@ -29,7 +30,7 @@ export class ServiceController {
   constructor(private readonly serviceService: ServiceService) {}
 
   @Post()
-  @UseGuards(ValidServiceStoreGuard)
+  @UseGuards(HasCampusGuard, ValidServiceStoreGuard)
   @UsePipes(ValidationPipe)
   create(
     @Body() createServiceDto: CreateServiceDto,

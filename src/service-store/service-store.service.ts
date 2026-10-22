@@ -1,5 +1,6 @@
 import {
   BadGatewayException,
+  BadRequestException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -15,8 +16,12 @@ import { SubscriptionStatus } from 'src/subscription/enums/subscription-status.e
 import { CreateServiceStoreDto } from './dto/create-service-store.dto';
 import { UpdateServiceStoreDto } from './dto/update-service-store.dto';
 import { ServiceStore } from './entities/service-store.entity';
-import { TRIAL_DAYS } from 'src/subscription/subscription.constants';
-import { getTrialEnd, isInFreeMonth, PAID_STATUSES } from './store-visibility';
+import {
+  getTrialEnd,
+  isInFreeMonth,
+  isRunningTrial,
+  PAID_STATUSES,
+} from './store-visibility';
 
 @Injectable()
 export class ServiceStoreService {
@@ -33,12 +38,14 @@ export class ServiceStoreService {
     private readonly listingCleanupService: ListingCleanupService,
   ) {}
 
-  // Every store starts with a free month on Explore
+  // New stores are off Explore until they start their free trial (POST
+  // /subscriptions/start-free-trial) or a plan. trialEndsAt is set so getTrialEnd
+  // doesn't fall back to the old automatic free month
   async createServiceStore(createServiceStoreDto: CreateServiceStoreDto) {
     return await factory.createOne(this.serviceStoreRepo, {
       ...createServiceStoreDto,
-      trialEndsAt: new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000),
-      hasActiveSubscription: true,
+      trialEndsAt: new Date(),
+      hasActiveSubscription: false,
     });
   }
 
@@ -87,9 +94,11 @@ export class ServiceStoreService {
   }
 
   /**
-   * trial: in the free month · active: on a paid plan · canceled: the seller cancelled
-   * the free month or plan · expired: the free month or plan ran out.
-   * isOnExplore is what Explore currently shows.
+   * trial: in the free trial (a plan starting after it) or an old free month · active:
+   * on a paid plan · canceled: the seller cancelled the free month or plan · expired:
+   * the free month or plan ran out. isFreeTrial is true while the store isn't paying
+   * yet (a free trial or an old free month), isOnExplore is what Explore currently
+   * shows, and canStartFreeTrial whether POST /subscriptions/start-free-trial would be allowed.
    */
   private async getSubscriptionState(store: ServiceStore) {
     const trialEndsAt = getTrialEnd(store);
@@ -105,27 +114,33 @@ export class ServiceStoreService {
         select: ['id', 'name', 'type'],
       });
 
+      const isFreeTrial = isRunningTrial(paid);
+
       return {
-        status: 'active',
+        status: isFreeTrial ? 'trial' : 'active',
+        isFreeTrial,
         plan,
-        // Billing starts when the free month ends for plans taken during it
+        // Billing starts when the trial ends for plans taken during it
         endsAt: paid.expiresAt,
         renews: paid.status === SubscriptionStatus.ACTIVE,
         trialEndsAt,
         isOnExplore: store.hasActiveSubscription,
         canRestartFree: false,
+        canStartFreeTrial: false,
       };
     }
 
     if (isInFreeMonth(store)) {
       return {
         status: 'trial',
+        isFreeTrial: true,
         plan: null,
         endsAt: trialEndsAt,
         renews: false,
         trialEndsAt,
         isOnExplore: store.hasActiveSubscription,
         canRestartFree: false,
+        canStartFreeTrial: false,
       };
     }
 
@@ -142,12 +157,14 @@ export class ServiceStoreService {
         canRestartFree || lastPlan?.status === SubscriptionStatus.CANCELLED
           ? 'canceled'
           : 'expired',
+      isFreeTrial: false,
       plan: null,
       endsAt: null,
       renews: false,
       trialEndsAt,
       isOnExplore: store.hasActiveSubscription,
       canRestartFree,
+      canStartFreeTrial: !!store.hasFreeTrial,
     };
   }
 
@@ -163,6 +180,7 @@ export class ServiceStoreService {
         'trialEndsAt',
         'trialCancelled',
         'hasActiveSubscription',
+        'hasFreeTrial',
       ],
     });
 
@@ -214,9 +232,22 @@ export class ServiceStoreService {
           SubscriptionStatus.NON_RENEWING,
           SubscriptionStatus.INACTIVE,
         ]),
-        subscriptionCode: Not(IsNull()),
       },
     });
+
+    // Just paid: Paystack hasn't sent the subscription code yet, so it can't be
+    // cancelled, and deleting now would leave Paystack billing a deleted store
+    if (subscriptions.some(({ subscriptionCode }) => !subscriptionCode)) {
+      throw new BadRequestException(
+        'Subscription is still being set up, please try again shortly',
+      );
+    }
+
+    // An unfinished checkout paid after the store is gone is refunded by the webhook
+    await this.subscriptionRepo.update(
+      { storeId, status: SubscriptionStatus.PENDING },
+      { status: SubscriptionStatus.FAILED },
+    );
 
     for (const subscription of subscriptions) {
       try {

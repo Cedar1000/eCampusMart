@@ -25,6 +25,16 @@ export const getTrialEnd = (store: Partial<TrialFields>) =>
           TRIAL_DAYS * 24 * 60 * 60 * 1000,
       );
 
+// A plan taken free for now (start-free-trial, or during the old free month) whose
+// billing hasn't started yet
+export const isRunningTrial = (
+  subscription: Pick<Subscription, 'isTrial' | 'status' | 'expiresAt'>,
+  now = new Date(),
+): boolean =>
+  !!subscription.isTrial &&
+  PAID_STATUSES.includes(subscription.status) &&
+  new Date(subscription.expiresAt) > now;
+
 export const isInFreeMonth = (store: Partial<TrialFields>, now = new Date()) =>
   !store.trialCancelled && getTrialEnd(store) > now;
 

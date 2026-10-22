@@ -66,15 +66,13 @@ describe('ServiceStoreService', () => {
     service = module.get<ServiceStoreService>(ServiceStoreService);
   });
 
-  it('starts a new store on its free month', async () => {
+  it('starts a new store off Explore, with no automatic free month', async () => {
     await service.createServiceStore({ name: 'Ada Cuts' } as never);
 
     const [row] = storeRepo.create.mock.calls[0] as [Partial<ServiceStore>];
 
-    expect(row.hasActiveSubscription).toBe(true);
-    expect(Math.round((row.trialEndsAt!.getTime() - Date.now()) / DAY)).toBe(
-      30,
-    );
+    expect(row.hasActiveSubscription).toBe(false);
+    expect(row.trialEndsAt!.getTime()).toBeLessThanOrEqual(Date.now());
   });
 
   it('only lists stores on Explore to buyers', async () => {
@@ -116,7 +114,11 @@ describe('ServiceStoreService', () => {
 
     it('is trial during the free month', async () => {
       await expect(statusOf({ createdAt: new Date() })).resolves.toEqual(
-        expect.objectContaining({ status: 'trial', isOnExplore: true }),
+        expect.objectContaining({
+          status: 'trial',
+          isFreeTrial: true,
+          isOnExplore: true,
+        }),
       );
     });
 
@@ -128,7 +130,28 @@ describe('ServiceStoreService', () => {
       });
 
       await expect(statusOf({})).resolves.toEqual(
-        expect.objectContaining({ status: 'active', renews: true }),
+        expect.objectContaining({
+          status: 'active',
+          isFreeTrial: false,
+          renews: true,
+        }),
+      );
+    });
+
+    it('is a free trial while a start-free-trial plan has not started billing', async () => {
+      subscriptionRepo.findOne.mockReturnValueOnce({
+        planId: 'plan-1',
+        status: SubscriptionStatus.ACTIVE,
+        isTrial: true,
+        expiresAt: new Date(Date.now() + 20 * DAY),
+      });
+
+      await expect(statusOf({})).resolves.toEqual(
+        expect.objectContaining({
+          status: 'trial',
+          isFreeTrial: true,
+          plan: expect.objectContaining({ id: 'plan-1' }),
+        }),
       );
     });
 
