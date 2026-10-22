@@ -210,14 +210,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     const { conversationId, receiverId } = markAsReadDto;
 
-    console.log('before asserting', receiverId);
     // Only the reader can mark their own messages as read
     // this.assertOwnId(client, receiverId);
 
-    console.log('after asserting');
     await this.emitToUser(receiverId, 'mark-all-as-read', { conversationId });
 
-    // const read = await this.chatService.markAsRead(markAsReadDto);
+    const read = await this.chatService.markAsRead(markAsReadDto);
 
     // if (read.length) {
     //   // The senders of the read messages, so their ticks turn blue, and the reader
