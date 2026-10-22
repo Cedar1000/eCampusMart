@@ -74,7 +74,6 @@ describe('SubscriptionService free month', () => {
           run(manager),
         ),
       } as never,
-      { exists: jest.fn(() => false) } as never,
     );
   });
 
@@ -182,52 +181,27 @@ describe('SubscriptionService free month', () => {
       );
     });
 
-    describe('during a free trial', () => {
-      const trial = (fields: object = {}) => ({
-        id: 'trial-1',
-        storeId: 'store-1',
-        isTrial: true,
-        status: SubscriptionStatus.ACTIVE,
-        expiresAt: new Date(Date.now() + 20 * DAY),
-        ...fields,
-      });
-
-      it('opens a checkout billed now, leaving the trial until it is paid', async () => {
-        store.trialEndsAt = new Date(Date.now() + 20 * DAY);
-        subscriptionRepo.findOne.mockReturnValue(trial());
-
-        await checkout();
-
-        const [row] = subscriptionRepo.create.mock.calls[0] as [
-          { isTrial: boolean; expiresAt: Date },
-        ];
-
-        expect(row.isTrial).toBe(false);
-        expect(Math.round((row.expiresAt.getTime() - Date.now()) / DAY)).toBe(
-          30,
-        );
-        // Cancelled by the webhook once this checkout is paid
-        expect(disablePaystackSubscription).not.toHaveBeenCalled();
-      });
-
-      it('still refuses a store on a paid plan', async () => {
-        subscriptionRepo.findOne.mockReturnValue(trial({ isTrial: false }));
-
-        await expect(checkout()).rejects.toThrow(
-          'use the change plan endpoint',
-        );
-      });
-    });
-
-    it('keeps the rest of the free month, billing when it ends', async () => {
+    it('bills straight away during the free plan; the webhook ends the free plan once paid', async () => {
       await checkout();
 
       const [row] = subscriptionRepo.create.mock.calls[0] as [
         { isTrial: boolean; expiresAt: Date },
       ];
 
-      expect(row.isTrial).toBe(true);
-      expect(Math.round((row.expiresAt.getTime() - Date.now()) / DAY)).toBe(25);
+      expect(row.isTrial).toBe(false);
+      expect(Math.round((row.expiresAt.getTime() - Date.now()) / DAY)).toBe(30);
+      // Nothing changes until it's paid, so an abandoned checkout keeps the free plan
+      expect(store.trialCancelled).toBe(false);
+      expect(manager.update).not.toHaveBeenCalled();
+    });
+
+    it('refuses a store already on a paid plan', async () => {
+      subscriptionRepo.findOne.mockReturnValue({
+        status: SubscriptionStatus.ACTIVE,
+        expiresAt: new Date(Date.now() + 20 * DAY),
+      });
+
+      await expect(checkout()).rejects.toThrow('use the change plan endpoint');
     });
 
     it('bills straight away once the free month is over', async () => {

@@ -1,5 +1,2 @@
-// A store's first subscription is free for this long; Paystack starts billing afterwards
+// Length of a store's one free plan (POST /subscriptions/start-free-trial)
 export const TRIAL_DAYS = 30;
-
-// Charged (then refunded) to collect a reusable card when the trial starts, in kobo
-export const TRIAL_CARD_CHECK_AMOUNT = 5000;

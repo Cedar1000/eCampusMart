@@ -15,27 +15,20 @@ import * as factory from 'utils/handlerFactory';
 import { InitializeSubscriptionDto } from '../subscription/dto/initialize-subscription.dto';
 
 import axios, { AxiosError } from 'axios';
-import {
-  Transaction,
-  TransactionDescription,
-} from 'src/transaction/entities/transaction.entity';
+import { TransactionDescription } from 'src/transaction/entities/transaction.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ServiceStore } from 'src/service-store/entities/service-store.entity';
 import { DataSource, In, Repository } from 'typeorm';
 import { User } from 'src/auth/entities/user.entity';
-import {
-  Subscription,
-  SubscriptionAuthorization,
-} from './entities/subscription.entity';
+import { Subscription } from './entities/subscription.entity';
 import { StartFreeTrialDto } from './dto/start-free-trial.dto';
-import { TRIAL_CARD_CHECK_AMOUNT, TRIAL_DAYS } from './subscription.constants';
+import { TRIAL_DAYS } from './subscription.constants';
 import { SubscriptionPlan } from 'src/subscription-plan/entities/subscription-plan.entity';
 import { PlanType } from 'src/subscription-plan/enums/plan-type.enum';
 import { SubscriptionStatus } from './enums/subscription-status.enum';
 import {
   getTrialEnd,
   isInFreeMonth,
-  isRunningTrial,
   PAID_STATUSES,
   syncStoreVisibility,
 } from 'src/service-store/store-visibility';
@@ -44,14 +37,9 @@ import {
   createPaystackSubscription,
   disablePaystackSubscription,
   fetchPaystackSubscription,
-  refundPaystackTransaction,
-  verifyPaystackTransaction,
 } from 'utils/paystack';
 import { asRecord, asString } from 'src/webhook/webhook.utils';
-import {
-  formatAmount,
-  formatDate,
-} from 'src/webhook/subscription-webhook.emails';
+import { formatDate } from 'src/webhook/subscription-webhook.emails';
 import sendEmail from 'utils/sendEmail';
 
 interface PaystackInitializeResponse {
@@ -89,9 +77,6 @@ export class SubscriptionService {
     private readonly configService: ConfigService,
 
     private readonly dataSource: DataSource,
-
-    @InjectRepository(Transaction)
-    private readonly transactionRepo: Repository<Transaction>,
   ) {}
 
   async initializeTransaction(
@@ -106,21 +91,13 @@ export class SubscriptionService {
       order: { createdAt: 'DESC' },
     });
 
-    // A free trial can be swapped for a plan paid now. The trial is cancelled (here and
-    // on Paystack) only once this payment succeeds, so an abandoned checkout keeps it
-    const replacesTrial =
-      !!activeSubscription && isRunningTrial(activeSubscription);
-
-    if (
-      !replacesTrial &&
-      activeSubscription?.status === SubscriptionStatus.ACTIVE
-    ) {
+    if (activeSubscription?.status === SubscriptionStatus.ACTIVE) {
       throw new BadRequestException(
         'Store already has an active subscription, use the change plan endpoint to switch plans',
       );
     }
 
-    if (!replacesTrial && activeSubscription) {
+    if (activeSubscription) {
       throw new BadRequestException(
         `Store's current plan runs until ${activeSubscription.expiresAt.toISOString()}, please subscribe again after it ends`,
       );
@@ -150,11 +127,9 @@ export class SubscriptionService {
       this.configService.get<string>('PAYSTACK_CALLBACK_URL') ||
       process.env.PAYSTACK_CALLBACK_URL;
 
-    // Subscribing during the free month doesn't cut it short: the card is only
-    // checked now and billing starts when the free month ends. Replacing a free
-    // trial is the opposite: the user wants to pay now
-    const trialEndsAt = getTrialEnd(store);
-    const isTrial = !replacesTrial && trialEndsAt > new Date();
+    // Always billed now, even during the free plan: the webhook ends the free plan
+    // once this is paid, so an abandoned checkout leaves it running
+    const isTrial = false;
 
     const body: PaystackInitializeBody = {
       email: payload.email,
@@ -183,9 +158,7 @@ export class SubscriptionService {
 
       const days = plan.type === PlanType.MONTHLY ? 30 : 365;
 
-      const expiresAt = isTrial
-        ? trialEndsAt
-        : new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+      const expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
 
       // One open checkout per store; a late payment on an older one is still honoured
       await this.subscriptionRepo.update(
@@ -433,24 +406,19 @@ export class SubscriptionService {
   }
 
   /**
-   * Starts the store's one free trial. The app has charged TRIAL_CARD_CHECK_AMOUNT with
-   * Paystack; that card is verified and kept, and Paystack bills the chosen plan to it
-   * when the trial ends. The card check is then refunded.
+   * Puts the store on its one free plan: TRIAL_DAYS on Explore with no card. The free
+   * plan lives on the store (trialEndsAt), like the old free month, so visibility,
+   * cancel and restart-free already handle it. FreePlanReminderSweep emails the owner
+   * before it ends, pointing them to initialize-subscription.
    */
   async startFreeTrial(dto: StartFreeTrialDto, user: User) {
-    const { reference, storeId } = dto;
+    const { storeId } = dto;
 
     const store = await this.findOwnedStore(storeId, user.id);
-    const plan = await this.findPlan(dto);
 
-    await this.assertCanStartFreeTrial(store, reference);
+    await this.assertCanStartFreeTrial(store);
 
-    const { customerCode, authorization } = await this.verifyCardCheck(
-      reference,
-      user.email,
-    );
-
-    // Claimed before anything is created, so two requests can't both start a trial
+    // Claimed before anything changes, so two requests can't both start a free plan
     const claimed = await this.serviceStoreRepo
       .createQueryBuilder()
       .update(ServiceStore)
@@ -459,235 +427,72 @@ export class SubscriptionService {
       .execute();
 
     if (!claimed.affected) {
-      throw new ConflictException('Store has already used its free trial');
+      throw new ConflictException('Store has already used its free plan');
     }
-
-    console.log({ claimed });
-
-    const releaseClaim = () =>
-      this.serviceStoreRepo.update(storeId, { hasFreeTrial: true });
 
     const trialEndsAt = new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
 
-    let created: { subscription_code: string; email_token: string };
-
     try {
-      created = await createPaystackSubscription({
-        customer: customerCode,
-        plan: plan.paystackId,
-        authorization: authorization.authorizationCode,
-        start_date: trialEndsAt.toISOString(),
-      });
-    } catch (error) {
-      console.error('Paystack trial subscription failed', reference, error);
-      await releaseClaim();
-      throw new BadGatewayException(
-        'Could not start the free trial, please try again',
-      );
-    }
-
-    let subscription: Subscription;
-
-    try {
-      subscription = await this.dataSource.transaction(async (manager) => {
-        const saved = await manager.save(
-          manager.create(Subscription, {
-            userId: user.id,
-            planId: plan.id,
-            storeId,
-            amount: plan.amount * 100, // Store in smallest currency unit
-            paystackId: plan.paystackId,
-            reference,
-            subscriptionCode: created.subscription_code,
-            emailToken: created.email_token,
-            status: SubscriptionStatus.ACTIVE,
-            isTrial: true,
-            expiresAt: trialEndsAt,
-            authorization,
-          }),
-        );
-
+      await this.dataSource.transaction(async (manager) => {
         await manager.update(ServiceStore, storeId, {
           trialEndsAt,
           trialCancelled: false,
+          trialReminderSent: null,
         });
         await syncStoreVisibility(manager, storeId);
-
-        return saved;
       });
     } catch (error) {
-      // Don't leave Paystack billing a store that has no subscription here
-      try {
-        await disablePaystackSubscription(
-          created.subscription_code,
-          created.email_token,
-        );
-      } catch (rollbackError) {
-        console.error(
-          'Paystack trial rollback failed',
-          created.subscription_code,
-          rollbackError,
-        );
-      }
-      await releaseClaim();
+      await this.serviceStoreRepo.update(storeId, { hasFreeTrial: true });
       throw error;
     }
 
-    // The card check only proved the card; give the money back
-    let refunded = true;
-
-    try {
-      await refundPaystackTransaction(reference);
-    } catch (error) {
-      refunded = false;
-      console.error('Trial card check refund failed', reference, error);
-    }
-
-    // Not awaited: the trial has started whether or not the email goes out
-    void this.sendFreeTrialStartedEmail({
-      user,
-      storeName: store.name,
-      planName: plan.name,
-      amount: subscription.amount,
-      trialEndsAt,
-      last4: authorization.last4,
-      refunded,
-    });
-
-    const { authorization: _authorization, ...safeSubscription } = subscription;
-    void _authorization;
+    // Not awaited: the free plan has started whether or not the email goes out
+    void this.sendFreeTrialStartedEmail(user, store.name, trialEndsAt);
 
     return {
       status: 'success',
-      message: `Free trial started; the ${plan.name} plan begins when it ends`,
-      data: { subscription: safeSubscription, trialEndsAt },
+      message: 'Free plan started',
+      data: { storeId, trialEndsAt },
     };
   }
 
-  private async sendFreeTrialStartedEmail({
-    user,
-    storeName,
-    planName,
-    amount,
-    trialEndsAt,
-    last4,
-    refunded,
-  }: {
-    user: User;
-    storeName: string;
-    planName: string;
-    amount: number;
-    trialEndsAt: Date;
-    last4: string;
-    refunded: boolean;
-  }) {
-    const card = last4 ? `your card ending in ${last4}` : 'your card';
-
+  private async sendFreeTrialStartedEmail(
+    user: User,
+    storeName: string,
+    trialEndsAt: Date,
+  ) {
     try {
       await sendEmail({
         to: user.email,
-        subject: 'Your free trial has started',
+        subject: 'Your free plan has started',
         text: [
           `Dear ${user.firstName || 'there'},`,
-          `Your free trial for ${storeName} has started, and its services are now listed on Explore.`,
-          `The trial runs until ${formatDate(trialEndsAt)}. After that, ${card} will be charged ${formatAmount(amount)} for the ${planName} plan unless you cancel before then.`,
-          refunded
-            ? `The NGN ${TRIAL_CARD_CHECK_AMOUNT / 100} card check has been refunded.`
-            : `The NGN ${TRIAL_CARD_CHECK_AMOUNT / 100} card check will be refunded shortly.`,
+          `Your free plan for ${storeName} has started, and its services are now listed on Explore.`,
+          `It runs until ${formatDate(trialEndsAt)}. Subscribe to a plan in the app before then to keep your services on Explore. We'll remind you as the date gets close.`,
         ].join('\n\n'),
       });
     } catch (error) {
-      console.error('Free trial email failed', user.id, error);
+      console.error('Free plan email failed', user.id, error);
     }
   }
 
-  // One trial per store, never while it's in its free month or on a plan, and only
-  // with a reference nothing else has used
-  private async assertCanStartFreeTrial(
-    store: ServiceStore,
-    reference: string,
-  ) {
-    const [hadTrial, onPlan, referenceUsed] = await Promise.all([
-      this.subscriptionRepo.exists({
-        where: { storeId: store.id, isTrial: true },
-      }),
-      this.subscriptionRepo.exists({
-        where: { storeId: store.id, status: In(PAID_STATUSES) },
-      }),
-      Promise.all([
-        this.subscriptionRepo.exists({ where: { reference } }),
-        this.transactionRepo.exists({ where: { reference } }),
-      ]).then((used) => used.some(Boolean)),
-    ]);
-
-    if (!store.hasFreeTrial || hadTrial) {
-      throw new BadRequestException('Store has already used its free trial');
+  // One free plan per store, never while it's already in one or on a paid plan
+  private async assertCanStartFreeTrial(store: ServiceStore) {
+    if (!store.hasFreeTrial) {
+      throw new BadRequestException('Store has already used its free plan');
     }
 
     if (isInFreeMonth(store)) {
-      throw new BadRequestException('Store is already on its free month');
-    }
-
-    if (onPlan) throw new BadRequestException('Store is already on a plan');
-
-    if (referenceUsed) {
-      throw new BadRequestException('This payment reference has been used');
-    }
-  }
-
-  // The app's card check must be a successful, reusable card charge of exactly
-  // TRIAL_CARD_CHECK_AMOUNT, made by this user
-  private async verifyCardCheck(reference: string, email: string) {
-    let data: Record<string, unknown>;
-
-    try {
-      data = await verifyPaystackTransaction(reference);
-    } catch (error) {
-      console.error('Paystack verification failed', reference, error);
-      throw new BadGatewayException('Unable to verify the card check');
-    }
-
-    const customer = asRecord(data.customer);
-    const card = asRecord(data.authorization);
-
-    if (asString(data.status) !== 'success') {
-      throw new BadRequestException(
-        'The card check payment was not successful',
-      );
+      throw new BadRequestException('Store is already on its free plan');
     }
 
     if (
-      Number(data.amount) !== TRIAL_CARD_CHECK_AMOUNT ||
-      asString(data.currency).toUpperCase() !== 'NGN'
+      await this.subscriptionRepo.exists({
+        where: { storeId: store.id, status: In(PAID_STATUSES) },
+      })
     ) {
-      throw new BadRequestException(
-        `The card check must be NGN ${TRIAL_CARD_CHECK_AMOUNT / 100}`,
-      );
+      throw new BadRequestException('Store is already on a plan');
     }
-
-    if (asString(customer.email).toLowerCase() !== email.toLowerCase()) {
-      throw new BadRequestException('The card check was not made by you');
-    }
-
-    if (card.reusable !== true || !asString(card.authorization_code)) {
-      throw new BadRequestException(
-        'This card cannot be charged again, please use another card',
-      );
-    }
-
-    const authorization: SubscriptionAuthorization = {
-      authorizationCode: asString(card.authorization_code),
-      customerCode: asString(customer.customer_code),
-      last4: asString(card.last4),
-      expMonth: asString(card.exp_month),
-      expYear: asString(card.exp_year),
-      cardType: asString(card.card_type),
-      bank: asString(card.bank),
-      signature: asString(card.signature),
-      reusable: true,
-    };
-
-    return { customerCode: authorization.customerCode, authorization };
   }
 
   // A plan id or the plan type the app sends

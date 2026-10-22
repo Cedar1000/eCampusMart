@@ -6,7 +6,6 @@ import { DataSource } from 'typeorm';
 import sendEmail from 'utils/sendEmail';
 import {
   createPaystackSubscription,
-  disablePaystackSubscription,
   refundPaystackTransaction,
 } from 'utils/paystack';
 import { User } from 'src/auth/entities/user.entity';
@@ -34,7 +33,6 @@ describe('WebhookService', () => {
   let subscription: Partial<Subscription>;
   let rows: Partial<Subscription>[];
   let storeExists: boolean;
-  let trials: Partial<Subscription>[];
   let manager: {
     findOne: jest.Mock;
     create: jest.Mock;
@@ -64,7 +62,6 @@ describe('WebhookService', () => {
     jest.mocked(sendEmail).mockReset();
     rows = [subscription];
     storeExists = true;
-    trials = [];
 
     manager = {
       findOne: jest.fn((entity: unknown) =>
@@ -106,8 +103,6 @@ describe('WebhookService', () => {
           provide: getRepositoryToken(Subscription),
           useValue: {
             findOne: jest.fn(() => subscription),
-            // The store's other subscriptions: running trials a paid plan replaces
-            find: jest.fn(() => trials),
             save: jest.fn(),
           },
         },
@@ -186,65 +181,35 @@ describe('WebhookService', () => {
     expect(subscription.status).toBe(SubscriptionStatus.PENDING);
   });
 
-  describe('plan paid during a free trial', () => {
-    let trial: Partial<Subscription>;
-    const pay = () =>
-      send('charge.success', {
-        reference: 'ref-1',
-        amount: 500000,
-        metadata: { description: 'store-subscription' },
-      });
-
-    beforeEach(() => {
-      trial = {
-        id: 'trial-1',
-        storeId: 'store-1',
-        isTrial: true,
-        status: SubscriptionStatus.ACTIVE,
-        subscriptionCode: 'SUB_TRIAL',
-        emailToken: 'TOKEN_TRIAL',
-      };
-      trials = [trial];
-      jest.mocked(disablePaystackSubscription).mockReset();
+  it('ends the free plan when a plan paid during it is activated', async () => {
+    await send('charge.success', {
+      reference: 'ref-1',
+      amount: 500000,
+      metadata: { description: 'store-subscription' },
     });
 
-    it('cancels the trial on Paystack and ends its free time', async () => {
-      await pay();
+    expect(subscription.status).toBe(SubscriptionStatus.ACTIVE);
+    expect(manager.update).toHaveBeenCalledWith(ServiceStore, 'store-1', {
+      trialEndsAt: expect.any(Date) as Date,
+    });
+  });
 
-      expect(subscription.status).toBe(SubscriptionStatus.ACTIVE);
-      expect(disablePaystackSubscription).toHaveBeenCalledWith(
-        'SUB_TRIAL',
-        'TOKEN_TRIAL',
-      );
-      expect(trial.status).toBe(SubscriptionStatus.CANCELLED);
-      expect(manager.update).toHaveBeenCalledWith(ServiceStore, 'store-1', {
-        trialEndsAt: expect.any(Date),
-      });
+  it('keeps the free month for an older plan whose billing starts when it ends', async () => {
+    Object.assign(subscription, { isTrial: true, paystackId: 'PLN_1' });
+    jest.mocked(createPaystackSubscription).mockResolvedValue({
+      subscription_code: 'SUB_1',
+      email_token: 'TOKEN_1',
     });
 
-    it('fails, so the job retries, when Paystack cannot cancel the trial', async () => {
-      jest
-        .mocked(disablePaystackSubscription)
-        .mockRejectedValue(new Error('down'));
-
-      await expect(pay()).rejects.toThrow('down');
-      expect(trial.status).toBe(SubscriptionStatus.ACTIVE);
+    await send('charge.success', {
+      reference: 'ref-1',
+      metadata: { description: 'store-subscription' },
+      customer: { customer_code: 'CUS_1' },
+      authorization: { authorization_code: 'AUTH_1', reusable: true },
     });
 
-    it('cancels the trial on a redelivery after the plan was already activated', async () => {
-      subscription.status = SubscriptionStatus.ACTIVE;
-
-      await pay();
-
-      expect(disablePaystackSubscription).toHaveBeenCalledTimes(1);
-      expect(trial.status).toBe(SubscriptionStatus.CANCELLED);
-    });
-
-    it('waits for the trial to get its Paystack code before cancelling', async () => {
-      delete trial.subscriptionCode;
-
-      await expect(pay()).rejects.toThrow('no Paystack subscription yet');
-      expect(disablePaystackSubscription).not.toHaveBeenCalled();
+    expect(manager.update).not.toHaveBeenCalledWith(ServiceStore, 'store-1', {
+      trialEndsAt: expect.any(Date) as Date,
     });
   });
 

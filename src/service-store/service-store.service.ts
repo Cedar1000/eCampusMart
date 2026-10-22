@@ -235,13 +235,15 @@ export class ServiceStoreService {
       },
     });
 
+    console.log({ subscriptions });
+
     // Just paid: Paystack hasn't sent the subscription code yet, so it can't be
     // cancelled, and deleting now would leave Paystack billing a deleted store
-    if (subscriptions.some(({ subscriptionCode }) => !subscriptionCode)) {
-      throw new BadRequestException(
-        'Subscription is still being set up, please try again shortly',
-      );
-    }
+    // if (subscriptions.some(({ subscriptionCode }) => !subscriptionCode)) {
+    //   throw new BadRequestException(
+    //     'Subscription is still being set up, please try again shortly',
+    //   );
+    // }
 
     // An unfinished checkout paid after the store is gone is refunded by the webhook
     await this.subscriptionRepo.update(

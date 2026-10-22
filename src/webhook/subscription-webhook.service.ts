@@ -6,24 +6,13 @@ import { Subscription } from 'src/subscription/entities/subscription.entity';
 import { SubscriptionStatus } from 'src/subscription/enums/subscription-status.enum';
 import { SubscriptionPlan } from 'src/subscription-plan/entities/subscription-plan.entity';
 import { PlanType } from 'src/subscription-plan/enums/plan-type.enum';
-import {
-  DataSource,
-  EntityManager,
-  In,
-  IsNull,
-  Not,
-  Repository,
-} from 'typeorm';
+import { DataSource, EntityManager, In, IsNull, Repository } from 'typeorm';
 import sendEmail from 'utils/sendEmail';
 import {
   createPaystackSubscription,
-  disablePaystackSubscription,
   refundPaystackTransaction,
 } from 'utils/paystack';
-import {
-  PAID_STATUSES,
-  syncStoreVisibility,
-} from 'src/service-store/store-visibility';
+import { syncStoreVisibility } from 'src/service-store/store-visibility';
 import { getSubscriptionEmail } from './subscription-webhook.emails';
 import { asRecord, asString, PaystackEventData } from './webhook.utils';
 
@@ -195,6 +184,15 @@ export class SubscriptionWebhookService {
 
       await manager.save(subscription);
       await this.useUpFreeTrial(manager, subscription.storeId);
+
+      // A plan paid during the free plan replaces it, so the free time can't keep the
+      // store listed if the plan is cancelled later
+      if (!subscription.isTrial) {
+        await manager.update(ServiceStore, subscription.storeId, {
+          trialEndsAt: new Date(),
+        });
+      }
+
       await syncStoreVisibility(manager, subscription.storeId);
 
       return subscription;
@@ -215,10 +213,6 @@ export class SubscriptionWebhookService {
       return null;
     }
 
-    // Runs on every delivery, not only the one that activated the plan, so a failed
-    // Paystack call is retried with the job
-    await this.cancelReplacedTrials(reference);
-
     // The trial charge only checked the card, so give it back
     if (subscription?.isTrial) {
       try {
@@ -229,55 +223,6 @@ export class SubscriptionWebhookService {
     }
 
     return subscription;
-  }
-
-  /**
-   * A plan paid during a free trial replaces the trial: cancel the trial's Paystack
-   * subscription so the store isn't billed twice when the trial ends. Throws if
-   * Paystack can't be reached, so the job retries; already-cancelled trials are skipped.
-   */
-  private async cancelReplacedTrials(reference: string) {
-    const paid = await this.subscriptionRepository.findOne({
-      where: { reference },
-    });
-
-    if (!paid || paid.isTrial || !PAID_STATUSES.includes(paid.status)) return;
-
-    const trials = await this.subscriptionRepository.find({
-      where: {
-        storeId: paid.storeId,
-        isTrial: true,
-        status: In(PAID_STATUSES),
-        id: Not(paid.id),
-      },
-    });
-
-    for (const trial of trials) {
-      // A trial paid moments ago gets its code from subscription.create; retry until then
-      if (!trial.subscriptionCode || !trial.emailToken) {
-        throw new Error(
-          `Trial ${trial.id} has no Paystack subscription yet, so it can't be cancelled`,
-        );
-      }
-
-      await disablePaystackSubscription(
-        trial.subscriptionCode,
-        trial.emailToken,
-      );
-
-      trial.status = SubscriptionStatus.CANCELLED;
-      await this.subscriptionRepository.save(trial);
-    }
-
-    if (!trials.length) return;
-
-    // The trial's free time is over, so it can't keep the store listed later
-    await this.dataSource.transaction(async (manager) => {
-      await manager.update(ServiceStore, paid.storeId, {
-        trialEndsAt: new Date(),
-      });
-      await syncStoreVisibility(manager, paid.storeId);
-    });
   }
 
   // Paystack amounts are in kobo, like ours. Subscriptions don't store a currency

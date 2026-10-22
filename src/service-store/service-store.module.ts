@@ -10,6 +10,7 @@ import { UniqueServiceStoreGuard } from './guards/unique-service-store.guard';
 import { ValidServiceStoreOwnerGuard } from './guards/valid-service-store-owner.guard';
 import { SubscriptionPlan } from 'src/subscription-plan/entities/subscription-plan.entity';
 import { StoreVisibilitySweep } from './store-visibility.sweep';
+import { FreePlanReminderSweep } from './free-plan-reminder.sweep';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { StoreVisibilitySweep } from './store-visibility.sweep';
     UniqueServiceStoreGuard,
     ValidServiceStoreOwnerGuard,
     StoreVisibilitySweep,
+    FreePlanReminderSweep,
   ],
   exports: [ServiceStoreService],
 })

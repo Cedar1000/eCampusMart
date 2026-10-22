@@ -5,6 +5,8 @@ import { BaseEntity } from 'src/common/base.entity';
 import { Service } from 'src/service/entities/service.entity';
 import { ServiceCategory } from 'src/service-category/entities/service-category.entity';
 
+export type FreePlanReminder = '3d' | '1d' | 'ended';
+
 type ServiceAvailabilityDay = {
   active: boolean;
   openingTime: string | null;
@@ -67,6 +69,10 @@ export class ServiceStore extends BaseEntity {
   // The seller cancelled the free month; they can restart it until trialEndsAt
   @Column({ default: false })
   trialCancelled: boolean;
+
+  // Last free-plan expiry reminder emailed (FreePlanReminderSweep), so none repeats
+  @Column({ type: 'varchar', nullable: true })
+  trialReminderSent?: FreePlanReminder | null;
 
   @Column({ default: 0 })
   servicesCount: number;
