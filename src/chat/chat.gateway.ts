@@ -71,8 +71,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       const stores = await this.chatService.findUserStoreIds(userid);
 
-      console.log({ stores });
-
       if (!stores) {
         console.log('User not found, disconnecting client');
         client.disconnect(true);

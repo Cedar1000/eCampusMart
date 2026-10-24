@@ -407,7 +407,7 @@ export class ChatService {
 
   // Marks every unread message the receiver got in the conversation as read and
   // returns them
-  markAsRead({ conversationId, receiverId }: MarkAsReadDto) {
+  markAsRead({ conversationId, senderId }: MarkAsReadDto) {
     return this.messageRepo.manager.transaction(async (manager) => {
       const result = await manager
         .createQueryBuilder()
@@ -415,7 +415,7 @@ export class ChatService {
         .set({ status: MessageStatus.READ })
         .where({
           conversationId,
-          receiverId,
+          receiverId: senderId,
           status: In(UNREAD_STATUSES),
         })
         .returning(['id', 'senderId', 'receiverType'])
@@ -429,7 +429,7 @@ export class ChatService {
       if (read.length) {
         await this.messageSubscriber.syncUnreadCounts(manager, {
           conversationId,
-          receiverId,
+          receiverId: senderId,
           receiverType: read[0].receiverType,
         });
       }
