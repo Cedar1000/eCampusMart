@@ -42,7 +42,7 @@ export class ChatController {
 
   // participantId is the current user's id or one of their product/service store ids
   @Get('conversations/:participantId')
-  // @UseGuards(ValidParticipantGuard)
+  @UseGuards(ValidParticipantGuard)
   findAllConversations(
     @Param('participantId', ParseUUIDPipe) participantId: string,
     @Query() query: Partial<IQuery>,
