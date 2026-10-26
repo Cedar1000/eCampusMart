@@ -62,9 +62,9 @@ sent ──► delivered ──► read
 
 ### Message type
 
-Every message is currently saved with `type: "text"`; the client can't set the type yet. Because of that, **`content` is required on every message, including ones with media**, and a message without it is refused. Use a caption, or a placeholder such as `"📷 Photo"` or `"🎤 Voice note"`.
+Send the message's `type` with [`new-message`](#new-message). It's one of `text`, `image`, `video`, `audio`, `file`, `system` or `voicenote`. If you leave it out, the message is saved as `text`. Use the type to decide how to render the message: a bubble for `text`, an image grid for `image`, a player for `voicenote`, and so on.
 
-The types that exist are `text`, `image`, `video`, `audio`, `file`, `system` and `voicenote`.
+**`content` is still required on every message, including ones with media**, and a message without it is refused. Use a caption, or a placeholder such as `"📷 Photo"` or `"🎤 Voice note"`. The placeholder is also what shows as the conversation's last message.
 
 ### Listings in a message
 
@@ -143,6 +143,7 @@ Send a message. The server saves it, sends it to the receiver if they are online
 | `senderId`       | UUID          | Yes      | The current user's id, or the id of one of their stores if they're replying as a store. |
 | `receiverId`     | UUID          | Yes      | A user, product store or service store id.                                              |
 | `content`        | string        | Yes      | Not empty; see [Message type](#message-type).                                           |
+| `type`           | string        | No       | `text` (default), `image`, `video`, `audio`, `file`, `system` or `voicenote`.             |
 | `conversationId` | UUID          | No       | Leave out for a new chat; the server finds or creates the conversation between the two.  |
 | `productId`      | UUID          | No       | The product this message is about.                                                      |
 | `serviceId`      | UUID          | No       | The service this message is about.                                                      |
@@ -180,7 +181,8 @@ Upload files first; the chat API only stores their URLs.
   "conversationId": "0b2ff029-745f-4c0b-a0f4-040d0870e744",
   "senderId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
   "receiverId": "48c03f11-8cf5-4249-b1fe-304e3197f9bd",
-  "content": "Here are the photos and a voice note",
+  "content": "Here are the photos",
+  "type": "image",
   "media": [
     {
       "url": "https://cdn.example.com/chat/photo-1.jpg",
@@ -189,6 +191,27 @@ Upload files first; the chat API only stores their URLs.
       "mimeType": "image/jpeg",
       "type": "image"
     },
+    {
+      "url": "https://cdn.example.com/chat/photo-2.jpg",
+      "thumbnail": "https://cdn.example.com/chat/photo-2-thumb.jpg",
+      "size": 198400,
+      "mimeType": "image/jpeg",
+      "type": "image"
+    }
+  ]
+}
+```
+
+**Voice note**
+
+```json
+{
+  "conversationId": "0b2ff029-745f-4c0b-a0f4-040d0870e744",
+  "senderId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+  "receiverId": "48c03f11-8cf5-4249-b1fe-304e3197f9bd",
+  "content": "🎤 Voice note",
+  "type": "voicenote",
+  "media": [
     {
       "url": "https://cdn.example.com/chat/voice-note.m4a",
       "size": 98304,
@@ -199,6 +222,8 @@ Upload files first; the chat API only stores their URLs.
   ]
 }
 ```
+
+Send one kind of media per message, and set `type` to match it.
 
 **Acknowledgement:** the saved [`Message`](#message)
 
@@ -662,7 +687,7 @@ After it succeeds, empty the open conversation in the UI. Reloading the messages
 | `productId`      | UUID \| null                                      |                                               |
 | `serviceId`      | UUID \| null                                      |                                               |
 | `housingId`      | UUID \| null                                      |                                               |
-| `type`           | `"text" \| "image" \| "video" \| "audio" \| "file" \| "system" \| "voicenote"` | Currently always `"text"`. |
+| `type`           | `"text" \| "image" \| "video" \| "audio" \| "file" \| "system" \| "voicenote"` | As sent; `"text"` if it wasn't. |
 | `content`        | string \| null                                    |                                               |
 | `media`          | `ChatMedia[]` \| null                             |                                               |
 | `status`         | `"sent" \| "delivered" \| "read" \| "failed"`     |                                               |
@@ -762,6 +787,7 @@ interface NewMessagePayload {
   senderId: string;
   receiverId: string;
   content: string;
+  type?: MessageType; // defaults to 'text'
   conversationId?: string;
   productId?: string;
   serviceId?: string;

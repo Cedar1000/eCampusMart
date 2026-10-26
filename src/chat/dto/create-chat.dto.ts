@@ -9,7 +9,7 @@ import {
   IsEnum,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { MessageIndentity } from '../entities/message.entity';
+import { MessageIndentity, MessageType } from '../entities/message.entity';
 
 class ChatMediaDto {
   @IsNotEmpty()
@@ -70,7 +70,12 @@ export class CreateChatDto {
   @IsUUID()
   housingId: string;
 
-  // Every message is saved as text, which the database requires content for
+  // Saved as text when left out
+  @IsOptional()
+  @IsEnum(MessageType)
+  type?: MessageType;
+
+  // The database requires content on text messages
   @IsNotEmpty()
   @IsString()
   content: string;

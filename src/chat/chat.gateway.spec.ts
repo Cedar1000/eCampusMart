@@ -35,6 +35,18 @@ describe('chat payload validation', () => {
     );
   });
 
+  it('accepts the message type', async () => {
+    await expect(
+      validate(CreateChatDto, { ...message, type: 'voicenote' }),
+    ).resolves.toMatchObject({ type: 'voicenote' });
+  });
+
+  it('refuses an unknown message type', async () => {
+    expect(
+      await errorMessage(validate(CreateChatDto, { ...message, type: 'gif' })),
+    ).toEqual([expect.stringContaining('type must be one of')]);
+  });
+
   it('refuses unknown fields', async () => {
     expect(
       await errorMessage(validate(CreateChatDto, { ...message, extra: 1 })),
