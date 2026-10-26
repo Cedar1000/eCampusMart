@@ -128,9 +128,9 @@ On disconnect, the user and their stores are marked offline (`isOnline: false`).
 
 Every payload is validated strictly. **Unknown fields are rejected**, so send only the fields listed for each event. A rejected payload comes back as an [`exception`](#errors) event that says which field is wrong.
 
-**You can only act as yourself.** `senderId` on `new-message`, `typing`, `stop-typing`, `recording` and `stop-recording`, and `receiverId` on `mark-all-as-read`, must be the connected user's id or the id of one of their stores. Anything else is refused.
+**You can only act as yourself.** `senderId` on `new-message`, `typing`, `stop-typing`, `recording` and `stop-recording` must be the connected user's id or the id of one of their stores. Anything else is refused.
 
-Events that return data (`new-message`, `mark-all-as-read`) return it through a Socket.IO **acknowledgement**: pass a callback as the last argument to `emit`, or use `emitWithAck`.
+Only `new-message` returns data. It comes back through a Socket.IO **acknowledgement**: pass a callback as the last argument to `emit`, or use `emitWithAck`. Send every other event with a plain `emit`; they don't acknowledge, so `emitWithAck` would wait forever.
 
 ### `new-message`
 
@@ -273,34 +273,46 @@ socket.emit('stop-recording', { /* same payload */ });
 
 ### `mark-all-as-read`
 
-Mark every unread message the reader has received in a conversation as `read`. Emit it when the user opens a conversation, and when a new message arrives in the conversation they have open.
+Tell the server the user has read a conversation. It marks every unread message they received there as `read`, and tells the other participant so their ticks turn blue.
 
-| Field            | Type | Required | Notes                                                   |
-| ---------------- | ---- | -------- | ------------------------------------------------------- |
-| `conversationId` | UUID | Yes      |                                                         |
-| `receiverId`     | UUID | Yes      | **The reader:** the current user, or their store's id.   |
-| `senderId`       | UUID | Yes      | The other participant.                                  |
+Emit it when the user opens a conversation, and when a new message arrives in the conversation they have open.
+
+> **Watch the field names.** In this event, `senderId` is **you, the reader**, and `receiverId` is **the other participant**: the one being told their messages were read. Think of it as "I (`senderId`) am telling them (`receiverId`) that I've read the chat". It's the opposite way round from the `senderId` / `receiverId` on the messages being marked.
+
+**Payload**
+
+| Field            | Type | Required | Notes                                                                                 |
+| ---------------- | ---- | -------- | ------------------------------------------------------------------------------------- |
+| `conversationId` | UUID | Yes      | The open conversation.                                                                |
+| `senderId`       | UUID | Yes      | **You, the reader:** the current user's id, or their store's id if reading as a store. |
+| `receiverId`     | UUID | Yes      | **The other participant**, from the conversation's `recipient.id`.                    |
 
 ```ts
-const readIds = await socket.emitWithAck('mark-all-as-read', {
-  conversationId: '0b2ff029-745f-4c0b-a0f4-040d0870e744',
-  receiverId: '48c03f11-8cf5-4249-b1fe-304e3197f9bd',
-  senderId: 'fa98a8f0-fc09-49c3-9cab-91e19b9dabc3',
+// The current user (or their store) has just opened the conversation
+socket.emit('mark-all-as-read', {
+  conversationId: conversation.id,
+  senderId: currentParticipantId,   // you
+  receiverId: conversation.recipient.id, // them
 });
 ```
 
-**Acknowledgement:** ids of the messages that changed to `read` (empty if there was nothing unread)
+Use a plain `emit`. There's **no acknowledgement**, so `emitWithAck` would never resolve.
 
-```json
-[
-  "3e4cff2a-84a7-4fb9-b566-3ea6aac08082",
-  "22294aa6-16e7-4bfe-8e21-d66f351bb944"
-]
-```
+**What the server does**
 
-The server also resets the reader's unread count for the conversation (`unReadCount[receiverId]`) and recalculates their total unread count.
+1. Sends [`mark-all-as-read`](#mark-all-as-read-1) to `receiverId` if they're online, with `{ conversationId }`.
+2. Marks every `sent` or `delivered` message in the conversation whose `receiverId` is your `senderId` as `read`.
+3. Sets your unread count for the conversation (`unReadCount[senderId]`) to `0`, and recalculates your total unread count.
 
-If any messages changed, the server emits [`mark-all-as-read`](#mark-all-as-read-1) with the `conversationId` to the **senders of those messages** (the other participant), so their ticks turn blue, and to the reader. It works out the senders from the messages themselves.
+Your own screen doesn't get an event back, so update it yourself straight after emitting:
+- Clear the conversation's unread badge.
+- Lower the total unread badge by the same amount.
+
+Step 1 runs every time you emit, even when there was nothing unread. The other participant can get the event more than once, and setting their messages to `read` again is harmless.
+
+| To                                | Event                                       | When                 |
+| --------------------------------- | ------------------------------------------- | -------------------- |
+| The other participant (`receiverId`) | [`mark-all-as-read`](#mark-all-as-read-1) | Every time, if they're online |
 
 ---
 
@@ -334,11 +346,25 @@ Set those messages' `status` to `delivered`, unless you have already shown them 
 
 ### `mark-all-as-read`
 
-Messages in a conversation were marked as read. You get it when the other participant reads **your** messages: set every message you sent in that conversation to `read`. The reader gets it too. The payload is the conversation id as a plain string:
+The other participant has read the conversation. Set every message **you** sent in that conversation to `read`, so their ticks turn blue.
+
+**Payload**: an object with the conversation id:
 
 ```json
-"0b2ff029-745f-4c0b-a0f4-040d0870e744"
+{ "conversationId": "0b2ff029-745f-4c0b-a0f4-040d0870e744" }
 ```
+
+```ts
+socket.on('mark-all-as-read', ({ conversationId }) => {
+  // In that conversation, mark every message whose senderId is you
+  // (or your store) as read
+  markMySentMessagesRead(conversationId);
+});
+```
+
+You can get it more than once for the same conversation, so handle it idempotently.
+
+> **Offline senders:** if you weren't connected when they read the chat, you won't get this event later. The messages' `status` from [List messages in a conversation](#list-messages-in-a-conversation) is always up to date, so reload it when the conversation is opened.
 
 ### `typing`, `stop-typing`, `recording`, `stop-recording`
 
@@ -752,14 +778,18 @@ interface IndicatorPayload {
 
 interface MarkAllAsReadPayload {
   conversationId: string;
-  receiverId: string; // the reader
-  senderId: string;   // the other participant
+  senderId: string;   // you, the reader (user or store id)
+  receiverId: string; // the other participant, who is told
 }
 
 // Server → client payloads
 interface MessageDeliveredEvent {
   conversationId: string;
   messageIds: string[];
+}
+
+interface MarkAllAsReadEvent {
+  conversationId: string;
 }
 
 interface ChatException {
@@ -810,7 +840,8 @@ const message = await socket.timeout(10_000).emitWithAck('new-message', payload)
 
 | Status | When                                                                                 |
 | ------ | ------------------------------------------------------------------------------------ |
-| `400`  | A path id isn't a valid UUID.                                                        || `401`  | Missing or invalid `Authorization` header.                                           |
+| `400`  | A path id isn't a valid UUID.                                                        |
+| `401`  | Missing or invalid `Authorization` header.                                           |
 | `403`  | The participant or conversation doesn't belong to the logged-in user or their stores. |
 
 ---
@@ -826,7 +857,7 @@ const message = await socket.timeout(10_000).emitWithAck('new-message', payload)
 ### Opening a conversation
 
 1. `GET /chat/conversations/:conversationId/messages?limit=30`, then reverse the list to show oldest at the top.
-2. Emit `mark-all-as-read` with `receiverId` set to the current participant.
+2. Emit `mark-all-as-read` with `senderId` set to the current participant (you) and `receiverId` set to `recipient.id`. Clear the conversation's unread badge yourself.
 3. When the user scrolls to the top, load `page=2`, `page=3`, and so on, until `nextPage` is `null`.
 
 ### Sending a message
@@ -839,7 +870,12 @@ const message = await socket.timeout(10_000).emitWithAck('new-message', payload)
 
 ### Receiving a message
 
-1. On `new-message`: if that conversation is open, append the message and emit `mark-all-as-read`. Otherwise increase the conversation's unread badge.
+1. On `new-message`: if that conversation is open, append the message and emit `mark-all-as-read` (`senderId`: you, `receiverId`: the message's `senderId`). Otherwise increase the conversation's unread badge.
+
+### Showing read receipts
+
+1. On `mark-all-as-read` with `{ conversationId }`, set every message you sent in that conversation to `read`.
+2. When you open a conversation, trust the `status` from the REST messages list over any events you missed while offline.
 
 ### Starting a chat from a listing
 
