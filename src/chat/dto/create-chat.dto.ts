@@ -5,11 +5,16 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  IsPositive,
+  Max,
+  ValidateIf,
   ValidateNested,
   IsEnum,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { MessageIndentity, MessageType } from '../entities/message.entity';
+
+const isOffer = (dto: CreateChatDto) => dto.type === MessageType.OFFER;
 
 class ChatMediaDto {
   @IsNotEmpty()
@@ -58,7 +63,9 @@ export class CreateChatDto {
   @IsUUID()
   receiverId: string;
 
-  @IsOptional()
+  // Required on offers: the product the offer is for
+  @ValidateIf((dto: CreateChatDto) => isOffer(dto) || dto.productId != null)
+  @IsNotEmpty()
   @IsUUID()
   productId: string;
 
@@ -75,10 +82,19 @@ export class CreateChatDto {
   @IsEnum(MessageType)
   type?: MessageType;
 
-  // The database requires content on text messages
+  // The database requires content on text messages; optional on offers
+  @ValidateIf((dto: CreateChatDto) => !isOffer(dto) || dto.content != null)
   @IsNotEmpty()
   @IsString()
-  content: string;
+  content?: string;
+
+  // Required on offers: the price offered, in naira. Saved on the offer in kobo, whose
+  // int column tops out just above this
+  @ValidateIf(isOffer)
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @IsPositive()
+  @Max(21_000_000)
+  amount?: number;
 
   @IsOptional()
   @IsArray()

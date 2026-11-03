@@ -11,6 +11,7 @@ export enum MessageType {
   FILE = 'file',
   SYSTEM = 'system',
   VOICENOTE = 'voicenote',
+  OFFER = 'offer',
 }
 
 export enum MessageStatus {
@@ -72,6 +73,9 @@ export class Message extends BaseEntity {
 
   @Column({ nullable: true })
   serviceId?: string;
+
+  @Column({ nullable: true })
+  offerId?: string;
 
   @Column({ nullable: true })
   housingId?: string;

@@ -15,12 +15,16 @@ import {
   Message,
   MessageIndentity,
   MessageStatus,
+  MessageType,
 } from './entities/message.entity';
 import {
   MessageSubscriber,
   UNREAD_STATUSES,
 } from './entities/message.subscriber';
 import { User } from 'src/auth/entities/user.entity';
+import { Offer, OfferSellerType } from 'src/offer/entities/offer.entity';
+import { Product } from 'src/product/entities/product.entity';
+import { ProductStatus } from 'src/product/enums/product-status.enum';
 import { ProductStore } from 'src/product-store/entities/product-store.entity';
 import { ServiceStore } from 'src/service-store/entities/service-store.entity';
 
@@ -66,9 +70,10 @@ export class ChatService {
   ) {}
 
   // Saves a message, with the sender and receiver types looked up from their ids.
-  // The sender must be the user or one of their stores
+  // The sender must be the user or one of their stores. An offer message also creates
+  // the offer, which comes back on the message
   async create(createChatDto: CreateChatDto, userId: string) {
-    const { senderId, receiverId } = createChatDto;
+    const { senderId, receiverId, amount, ...messageFields } = createChatDto;
 
     await this.assertOwnParticipant(userId, senderId);
 
@@ -85,6 +90,7 @@ export class ChatService {
         },
       }))
     ) {
+      console.log('conversationId', createChatDto.conversationId);
       throw new ForbiddenException(
         'The conversation is not between the sender and receiver',
       );
@@ -100,18 +106,83 @@ export class ChatService {
       throw new NotFoundException(`Receiver ${receiverId} not found`);
     }
 
+    const isOffer = createChatDto.type === MessageType.OFFER;
+
+    console.log('before assertCanOffer', {
+      isOffer,
+      amount,
+      productId: createChatDto.productId,
+    });
+    // Before the conversation, so a refused offer doesn't leave an empty one behind
+    if (isOffer) {
+      await this.assertCanOffer(createChatDto.productId, senderId);
+    }
+
+    console.log('after assertCanOffer', {
+      isOffer,
+      amount,
+      productId: createChatDto.productId,
+    });
+
     const conversationId =
       createChatDto.conversationId ??
       (await this.findOrCreateConversation(senderId, receiverId)).id;
 
-    return this.messageRepo.save(
-      this.messageRepo.create({
-        ...createChatDto,
-        conversationId,
-        senderType: sender.type,
-        receiverType: receiver.type,
-      }),
-    );
+    console.log({ conversationId });
+    const message = {
+      ...messageFields,
+      senderId,
+      receiverId,
+      conversationId,
+      senderType: sender.type,
+      receiverType: receiver.type,
+    };
+
+    if (!isOffer) {
+      return this.messageRepo.save(this.messageRepo.create(message));
+    }
+
+    return this.messageRepo.manager.transaction(async (manager) => {
+      const offer = await manager.save(
+        manager.create(Offer, {
+          sellerId: senderId,
+          buyerId: receiverId,
+          sellerType: sender.type as string as OfferSellerType,
+          productId: createChatDto.productId,
+          amount: Math.round(Number(amount) * 100), // Store in kobo
+        }),
+      );
+
+      const saved = await manager.save(
+        manager.create(Message, { ...message, offerId: offer.id }),
+      );
+
+      // Naira, like the rest of the API's amounts
+      return { ...saved, offer: { ...offer, amount: offer.amount / 100 } };
+    });
+  }
+
+  // Only the product's seller (its store, for a store product) can make an offer on it,
+  // and only while it's for sale
+  private async assertCanOffer(productId: string, senderId: string) {
+    const product = await this.messageRepo.manager.findOne(Product, {
+      where: { id: productId },
+      select: ['id', 'userId', 'storeId', 'isStoreProduct', 'status'],
+    });
+
+    if (!product) throw new NotFoundException('Product not found');
+
+    const seller = product.isStoreProduct ? product.storeId : product.userId;
+
+    if (seller !== senderId) {
+      throw new BadRequestException(
+        'Only the seller of this product can make an offer on it',
+      );
+    }
+
+    if (product.status !== ProductStatus.ACTIVE) {
+      throw new BadRequestException('This product is no longer available');
+    }
   }
 
   // Marks the receivers' sent messages (optionally only messageIds) as delivered and

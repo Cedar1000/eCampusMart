@@ -136,6 +136,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.connectedUserId(client),
     );
 
+    console.log({ message });
+
     const isOnline = await this.emitToUser(
       message.receiverId,
       'new-message',

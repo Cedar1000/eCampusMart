@@ -31,6 +31,21 @@ export const deleteCloudinaryImages = async (publicIds: string[]) => {
   }
 };
 
+// Uploads a data URI (e.g. a generated image) and returns its secure URL
+export const uploadToCloudinary = async (
+  dataUri: string,
+  folder: string,
+  publicId: string,
+) => {
+  const result = await getCloudinary().uploader.upload(dataUri, {
+    folder: `${CLOUDINARY_FOLDER}/${folder}`,
+    public_id: publicId,
+    overwrite: true,
+  });
+
+  return result.secure_url;
+};
+
 export const signCloudinaryUpload = () => {
   const timestamp = Math.round(Date.now() / 1000);
   const paramsToSign = { timestamp, folder: CLOUDINARY_FOLDER };

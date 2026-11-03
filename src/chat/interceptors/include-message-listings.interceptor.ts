@@ -11,6 +11,7 @@ import { In, Repository } from 'typeorm';
 import { Product } from 'src/product/entities/product.entity';
 import { Service } from 'src/service/entities/service.entity';
 import { Housing } from 'src/housing/entities/housing.entity';
+import { Offer } from 'src/offer/entities/offer.entity';
 import { Message } from '../entities/message.entity';
 
 interface MessageProduct {
@@ -41,6 +42,7 @@ type MessageWithListings = Message & {
   product?: MessageProduct | null;
   service?: MessageService | null;
   housing?: MessageHousing | null;
+  offer?: Offer | null;
 };
 
 type MessagesResponse = {
@@ -64,7 +66,7 @@ const uniqueIds = (ids: (string | undefined)[]) => [
 ];
 
 // Adds the product, service or housing (id, name/title, description, price and
-// cover photo) to messages that reference one
+// cover photo) to messages that reference one, and the offer to offer messages
 @Injectable()
 export class IncludeMessageListingsInterceptor implements NestInterceptor {
   constructor(
@@ -74,6 +76,8 @@ export class IncludeMessageListingsInterceptor implements NestInterceptor {
     private readonly serviceRepo: Repository<Service>,
     @InjectRepository(Housing)
     private readonly housingRepo: Repository<Housing>,
+    @InjectRepository(Offer)
+    private readonly offerRepo: Repository<Offer>,
   ) {}
 
   intercept(
@@ -87,31 +91,53 @@ export class IncludeMessageListingsInterceptor implements NestInterceptor {
         const productIds = uniqueIds(messages.map((m) => m.productId));
         const serviceIds = uniqueIds(messages.map((m) => m.serviceId));
         const housingIds = uniqueIds(messages.map((m) => m.housingId));
+        const offerIds = uniqueIds(messages.map((m) => m.offerId));
 
-        if (!productIds.length && !serviceIds.length && !housingIds.length) {
+        if (
+          !productIds.length &&
+          !serviceIds.length &&
+          !housingIds.length &&
+          !offerIds.length
+        ) {
           return response;
         }
 
-        const [products, services, housings] = await Promise.all([
+        const [products, services, housings, offers] = await Promise.all([
           this.findProducts(productIds),
           this.findServices(serviceIds),
           this.findHousings(housingIds),
+          this.findOffers(offerIds),
         ]);
 
         return {
           ...response,
           data: messages.map((message): MessageWithListings => {
-            const { productId, serviceId, housingId } = message;
+            const { productId, serviceId, housingId, offerId } = message;
 
             return {
               ...message,
               ...(productId && { product: products.get(productId) ?? null }),
               ...(serviceId && { service: services.get(serviceId) ?? null }),
               ...(housingId && { housing: housings.get(housingId) ?? null }),
+              ...(offerId && { offer: offers.get(offerId) ?? null }),
             };
           }),
         };
       }),
+    );
+  }
+
+  // Amounts are stored in kobo and shown in naira, as on the new-message event
+  private async findOffers(ids: string[]) {
+    if (!ids.length) return new Map<string, Offer>();
+
+    const offers = await this.offerRepo.find({ where: { id: In(ids) } });
+
+    return new Map<string, Offer>(
+      offers.map((offer) => [
+        offer.id,
+        { ...offer, amount: offer.amount / 100 } as Offer,
+      ]),
     );
   }
 

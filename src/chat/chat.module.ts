@@ -12,6 +12,7 @@ import { ServiceStore } from 'src/service-store/entities/service-store.entity';
 import { Product } from 'src/product/entities/product.entity';
 import { Service } from 'src/service/entities/service.entity';
 import { Housing } from 'src/housing/entities/housing.entity';
+import { Offer } from 'src/offer/entities/offer.entity';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { Housing } from 'src/housing/entities/housing.entity';
       Product,
       Service,
       Housing,
+      Offer,
     ]),
   ],
   controllers: [ChatController],

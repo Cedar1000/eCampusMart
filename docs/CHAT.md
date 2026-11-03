@@ -62,9 +62,9 @@ sent ──► delivered ──► read
 
 ### Message type
 
-Send the message's `type` with [`new-message`](#new-message). It's one of `text`, `image`, `video`, `audio`, `file`, `system` or `voicenote`. If you leave it out, the message is saved as `text`. Use the type to decide how to render the message: a bubble for `text`, an image grid for `image`, a player for `voicenote`, and so on.
+Send the message's `type` with [`new-message`](#new-message). It's one of `text`, `image`, `video`, `audio`, `file`, `system`, `voicenote` or `offer`. If you leave it out, the message is saved as `text`. Use the type to decide how to render the message: a bubble for `text`, an image grid for `image`, a player for `voicenote`, and so on.
 
-**`content` is still required on every message, including ones with media**, and a message without it is refused. Use a caption, or a placeholder such as `"📷 Photo"` or `"🎤 Voice note"`. The placeholder is also what shows as the conversation's last message.
+**`content` is required on every message except offers, including ones with media**, and a message without it is refused. Use a caption, or a placeholder such as `"📷 Photo"` or `"🎤 Voice note"`. The placeholder is also what shows as the conversation's last message.
 
 ### Listings in a message
 
@@ -143,7 +143,8 @@ Send a message. The server saves it, sends it to the receiver if they are online
 | `senderId`       | UUID          | Yes      | The current user's id, or the id of one of their stores if they're replying as a store. |
 | `receiverId`     | UUID          | Yes      | A user, product store or service store id.                                              |
 | `content`        | string        | Yes      | Not empty; see [Message type](#message-type).                                           |
-| `type`           | string        | No       | `text` (default), `image`, `video`, `audio`, `file`, `system` or `voicenote`.             |
+| `type`           | string        | No       | `text` (default), `image`, `video`, `audio`, `file`, `system`, `voicenote` or `offer`.    |
+| `amount`         | number        | Offers   | The price offered, in naira. See [Making an offer](#making-an-offer).                   |
 | `conversationId` | UUID          | No       | Leave out for a new chat; the server finds or creates the conversation between the two.  |
 | `productId`      | UUID          | No       | The product this message is about.                                                      |
 | `serviceId`      | UUID          | No       | The service this message is about.                                                      |
@@ -224,6 +225,61 @@ Upload files first; the chat API only stores their URLs.
 ```
 
 Send one kind of media per message, and set `type` to match it.
+
+#### Making an offer
+
+A seller makes an offer on their product to a buyer by sending a `new-message` with `type: "offer"`. The server creates the offer and the message together, and both sides get the message with the offer attached.
+
+| Field            | Required | Notes                                                                                     |
+| ---------------- | -------- | ----------------------------------------------------------------------------------------- |
+| `type`           | Yes      | `"offer"`.                                                                                |
+| `senderId`       | Yes      | The seller: the store's id for a store product, otherwise the owner's user id.            |
+| `receiverId`     | Yes      | The buyer the offer is for.                                                               |
+| `productId`      | Yes      | The product the offer is for.                                                             |
+| `amount`         | Yes      | Naira, greater than 0, at most 2 decimal places, up to `21000000`.                        |
+| `content`        | No       | An optional note, such as "Would you take this?".                                         |
+| `conversationId` | No       | Leave out for a new chat.                                                                 |
+
+Don't send `buyerId`, `sellerId` or `sellerType`; the server works them out, and unknown fields are refused.
+
+```ts
+const message = await socket.timeout(10_000).emitWithAck('new-message', {
+  type: 'offer',
+  senderId: 'fa98a8f0-fc09-49c3-9cab-91e19b9dabc3',
+  receiverId: '48c03f11-8cf5-4249-b1fe-304e3197f9bd',
+  productId: 'c3a9e1f2-6b7d-4c8e-9f01-23456789abcd',
+  amount: 120000,
+});
+```
+
+The acknowledgement and the receiver's `new-message` event are the usual [`Message`](#message), plus `offerId` and `offer`:
+
+```json
+{
+  "id": "3e4cff2a-84a7-4fb9-b566-3ea6aac08082",
+  "type": "offer",
+  "content": null,
+  "productId": "c3a9e1f2-6b7d-4c8e-9f01-23456789abcd",
+  "offerId": "5d0e7a11-2c3b-4f6a-8e90-1b2c3d4e5f60",
+  "status": "delivered",
+  "offer": {
+    "id": "5d0e7a11-2c3b-4f6a-8e90-1b2c3d4e5f60",
+    "sellerId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+    "buyerId": "48c03f11-8cf5-4249-b1fe-304e3197f9bd",
+    "sellerType": "user",
+    "productId": "c3a9e1f2-6b7d-4c8e-9f01-23456789abcd",
+    "amount": 120000,
+    "status": "pending",
+    "expiresAt": "2026-11-03T09:14:03.512Z"
+  }
+}
+```
+
+`offer.amount` is in naira. An offer expires 24 hours after it's made. `content` is `null` if you didn't send a note, so render offer messages from `offer`, not `content`.
+
+**Loading history:** messages from [List messages in a conversation](#list-messages-in-a-conversation) carry the same `offer` object, with its current `status`.
+
+An offer is refused with an [`exception`](#socket-errors) if the product doesn't exist, isn't `active`, or `senderId` isn't its seller.
 
 **Acknowledgement:** the saved [`Message`](#message)
 
@@ -636,6 +692,8 @@ A message with a `productId`, `serviceId` or `housingId` gets a matching `produc
 | `service` | `id`, `title`, `description`, `price`, `photo`     |
 | `housing` | `id`, `title`, `description`, `price`, `photo`     |
 
+A message with an `offerId` also gets the full `offer`, with `amount` in naira. It's `null` if the offer no longer exists.
+
 - Products use **`name`**; services and housing use **`title`**.
 - **`price`** is a **string** with two decimals (for example `"150000.00"`). Convert it with `Number(price)` before formatting.
 - **`photo`** is the listing's cover image, or its first image, or `null`.
@@ -687,7 +745,8 @@ After it succeeds, empty the open conversation in the UI. Reloading the messages
 | `productId`      | UUID \| null                                      |                                               |
 | `serviceId`      | UUID \| null                                      |                                               |
 | `housingId`      | UUID \| null                                      |                                               |
-| `type`           | `"text" \| "image" \| "video" \| "audio" \| "file" \| "system" \| "voicenote"` | As sent; `"text"` if it wasn't. |
+| `offerId`        | UUID \| null                                      | Set on `offer` messages.                      |
+| `type`           | `"text" \| "image" \| "video" \| "audio" \| "file" \| "system" \| "voicenote" \| "offer"` | As sent; `"text"` if it wasn't. |
 | `content`        | string \| null                                    |                                               |
 | `media`          | `ChatMedia[]` \| null                             |                                               |
 | `status`         | `"sent" \| "delivered" \| "read" \| "failed"`     |                                               |
@@ -715,7 +774,7 @@ After it succeeds, empty the open conversation in the UI. Reloading the messages
 type ParticipantType = 'user' | 'product-store' | 'service-store';
 type MessageStatus = 'sent' | 'delivered' | 'read' | 'failed';
 type MessageType =
-  | 'text' | 'image' | 'video' | 'audio' | 'file' | 'system' | 'voicenote';
+  | 'text' | 'image' | 'video' | 'audio' | 'file' | 'system' | 'voicenote' | 'offer';
 
 interface ChatMedia {
   url: string;
@@ -757,6 +816,20 @@ interface Message {
   product?: (ListingSummary & { name: string }) | null;
   service?: (ListingSummary & { title: string }) | null;
   housing?: (ListingSummary & { title: string }) | null;
+  // On GET …/messages for messages with an offerId, and on new offer messages
+  offer?: {
+    id: string;
+    sellerId: string;
+    sellerType: ParticipantType;
+    buyerId: string;
+    productId: string;
+    amount: number; // naira
+    status: 'pending' | 'accepted' | 'rejected' | 'expired' | 'expired-by-acceptance';
+    metadata: string | null;
+    expiresAt: string;
+    createdAt: string;
+    updatedAt: string;
+  } | null;
 }
 
 interface Conversation {
@@ -786,8 +859,9 @@ interface Conversation {
 interface NewMessagePayload {
   senderId: string;
   receiverId: string;
-  content: string;
+  content?: string;   // required unless type is 'offer'
   type?: MessageType; // defaults to 'text'
+  amount?: number;    // naira; required when type is 'offer'
   conversationId?: string;
   productId?: string;
   serviceId?: string;
@@ -845,6 +919,10 @@ A failed socket event emits `exception` on the same socket:
 | Acting as someone who isn't you or your store (other events)              | `You can only act as yourself or one of your stores`      |
 | `conversationId` isn't a conversation between the sender and receiver     | `The conversation is not between the sender and receiver` |
 | `senderId` and `receiverId` are the same                                  | `You can't send a message to yourself`                    |
+| Offer without a valid `amount`                                            | `amount must be a positive number`                        |
+| Offer on a product that doesn't exist                                     | `Product not found`                                       |
+| Offer from someone other than the product's seller                        | `Only the seller of this product can make an offer on it` |
+| Offer on a product that isn't `active`                                    | `This product is no longer available`                     |
 | `receiverId` doesn't match a user or store                                | `Receiver <id> not found`                                 |
 | Anything unexpected on the server                                         | `Internal server error`                                   |
 

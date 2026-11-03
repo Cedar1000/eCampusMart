@@ -41,6 +41,42 @@ describe('chat payload validation', () => {
     ).resolves.toMatchObject({ type: 'voicenote' });
   });
 
+  describe('offers', () => {
+    const offer = {
+      senderId: USER,
+      receiverId: OTHER,
+      type: 'offer',
+      productId: CONVERSATION,
+      amount: 5000,
+    };
+
+    it('accepts an offer without content', async () => {
+      await expect(validate(CreateChatDto, offer)).resolves.toMatchObject({
+        amount: 5000,
+      });
+    });
+
+    it.each([
+      ['amount', 'amount must be a positive number'],
+      ['productId', 'productId must be a UUID'],
+    ])('refuses an offer without %s', async (field, error) => {
+      const { [field as 'amount']: _removed, ...rest } = offer;
+      void _removed;
+
+      expect(await errorMessage(validate(CreateChatDto, rest))).toContain(
+        error,
+      );
+    });
+
+    it('still requires content on other messages', async () => {
+      expect(
+        await errorMessage(
+          validate(CreateChatDto, { senderId: USER, receiverId: OTHER }),
+        ),
+      ).toContain('content should not be empty');
+    });
+  });
+
   it('refuses an unknown message type', async () => {
     expect(
       await errorMessage(validate(CreateChatDto, { ...message, type: 'gif' })),
