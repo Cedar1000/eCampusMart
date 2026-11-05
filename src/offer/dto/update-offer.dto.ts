@@ -1,4 +1,9 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateOfferDto } from './create-offer.dto';
+import { IsIn } from 'class-validator';
 
-export class UpdateOfferDto extends PartialType(CreateOfferDto) {}
+import { OfferStatus } from '../entities/offer.entity';
+
+// The buyer's answer to an offer; set by the accept and reject routes
+export class UpdateOfferDto {
+  @IsIn([OfferStatus.ACCEPTED, OfferStatus.REJECTED])
+  status: OfferStatus.ACCEPTED | OfferStatus.REJECTED;
+}

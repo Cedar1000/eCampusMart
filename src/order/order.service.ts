@@ -10,6 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as QRCode from 'qrcode';
 import { Repository } from 'typeorm';
 
+import { Offer } from 'src/offer/entities/offer.entity';
 import { Product } from 'src/product/entities/product.entity';
 import { ProductStatus } from 'src/product/enums/product-status.enum';
 
@@ -31,8 +32,13 @@ export class OrderService {
   ) {}
 
   // The seller, store and amount come from the product, and the buyer is the
-  // logged-in user. Ordering takes the product off sale (active -> ordered)
-  async create(createOrderDto: CreateOrderDto, buyerId: string) {
+  // logged-in user. Ordering takes the product off sale (active -> ordered).
+  // An accepted offer sets the amount instead of the product's price
+  async create(
+    createOrderDto: CreateOrderDto,
+    buyerId: string,
+    offer?: Pick<Offer, 'id' | 'amount'>,
+  ) {
     const { productId, metadata } = createOrderDto;
 
     const created = await this.orderRepo.manager.transaction(
@@ -71,8 +77,10 @@ export class OrderService {
           sellerId: product.userId,
           isStoreOrder: product.isStoreProduct,
           storeId: product.isStoreProduct ? product.storeId : undefined,
-          // Product prices are naira (numeric, read as a string); orders store kobo
-          amount: Math.round(Number(product.price) * 100),
+          offerId: offer?.id,
+          // Offers are already kobo; product prices are naira (numeric, read
+          // as a string)
+          amount: offer?.amount ?? Math.round(Number(product.price) * 100),
           metadata,
         });
       },

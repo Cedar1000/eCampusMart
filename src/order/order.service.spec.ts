@@ -142,6 +142,16 @@ describe('OrderService', () => {
     expect(product!.status).toBe(ProductStatus.ORDERED);
   });
 
+  it('uses the amount of an accepted offer', async () => {
+    const result = await service.create({ productId: 'product-1' }, 'buyer-1', {
+      id: 'offer-1',
+      amount: 500000,
+    });
+
+    expect(result.data).toMatchObject({ offerId: 'offer-1', amount: 500000 });
+    expect(product!.status).toBe(ProductStatus.ORDERED);
+  });
+
   it('records the store for a store product', async () => {
     product!.isStoreProduct = true;
 

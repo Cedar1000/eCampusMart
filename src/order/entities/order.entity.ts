@@ -2,6 +2,7 @@ import { BeforeInsert, Column, Entity } from 'typeorm';
 import { BaseEntity } from 'src/common/base.entity';
 
 import { OrderStatus } from '../enums/order-status.enum';
+import { randomInt } from 'crypto';
 
 @Entity('order')
 export class Order extends BaseEntity {
@@ -16,6 +17,9 @@ export class Order extends BaseEntity {
 
   @Column({ nullable: true })
   offerId: string;
+
+  @Column({ nullable: true })
+  orderId: string;
 
   @Column({ default: false })
   isStoreOrder: boolean;
@@ -44,6 +48,20 @@ export class Order extends BaseEntity {
     const expirationTime = new Date();
     expirationTime.setHours(expirationTime.getHours() + 48); // offer expires in 48 hours
     this.expiresAt = expirationTime;
+  }
+
+  @BeforeInsert()
+  generateSlug() {
+    this.orderId = `ORD-${this.generateListingSegment(4)}-${this.generateListingSegment(2)}`;
+  }
+
+  private generateListingSegment(length: number): string {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+
+    return Array.from(
+      { length },
+      () => characters[randomInt(characters.length)],
+    ).join('');
   }
 }
 export { OrderStatus };

@@ -8,6 +8,7 @@ import {
   Controller,
   ParseUUIDPipe,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 
 import type IQuery from 'interfaces/query.Interface';
@@ -17,6 +18,8 @@ import { User } from 'src/auth/entities/user.entity';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { ActiveProductGuard } from './guards/active-product.guard';
+import { IncludePartiesInterceptor } from 'src/common/interceptors/include-parties.interceptor';
+import { FormatOrderAmountInterceptor } from './interceptors/format-order-amount.interceptor';
 
 @Controller('orders')
 export class OrderController {
@@ -29,11 +32,13 @@ export class OrderController {
   }
 
   @Get('seller')
+  @UseInterceptors(FormatOrderAmountInterceptor, IncludePartiesInterceptor)
   findAsSeller(@Query() query: IQuery, @CurrentUser() user: User) {
     return this.orderService.findAll({ ...query, sellerId: user.id });
   }
 
   @Get('buyer')
+  @UseInterceptors(FormatOrderAmountInterceptor, IncludePartiesInterceptor)
   findAsBuyer(@Query() query: IQuery, @CurrentUser() user: User) {
     return this.orderService.findAll({ ...query, buyerId: user.id });
   }

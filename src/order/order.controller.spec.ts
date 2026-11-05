@@ -4,6 +4,8 @@ import { OrderController } from './order.controller';
 import { OrderService } from './order.service';
 import { Order } from './entities/order.entity';
 import { Product } from 'src/product/entities/product.entity';
+import { User } from 'src/auth/entities/user.entity';
+import { ProductStore } from 'src/product-store/entities/product-store.entity';
 
 describe('OrderController', () => {
   let controller: OrderController;
@@ -15,6 +17,8 @@ describe('OrderController', () => {
         OrderService,
         { provide: getRepositoryToken(Order), useValue: {} },
         { provide: getRepositoryToken(Product), useValue: {} },
+        { provide: getRepositoryToken(User), useValue: {} },
+        { provide: getRepositoryToken(ProductStore), useValue: {} },
       ],
     }).compile();
 

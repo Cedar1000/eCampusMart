@@ -3,6 +3,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { OfferController } from './offer.controller';
 import { OfferService } from './offer.service';
 import { Offer } from './entities/offer.entity';
+import { OrderService } from 'src/order/order.service';
 
 describe('OfferController', () => {
   let controller: OfferController;
@@ -13,6 +14,7 @@ describe('OfferController', () => {
       providers: [
         OfferService,
         { provide: getRepositoryToken(Offer), useValue: {} },
+        { provide: OrderService, useValue: {} },
       ],
     }).compile();
 
