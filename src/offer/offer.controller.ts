@@ -43,4 +43,13 @@ export class OfferController {
       user.id,
     );
   }
+
+  @Patch(':id/cancel')
+  cancel(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: User) {
+    return this.offerService.update(
+      id,
+      { status: OfferStatus.CANCELLED },
+      user.id,
+    );
+  }
 }

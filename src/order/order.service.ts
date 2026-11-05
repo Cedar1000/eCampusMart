@@ -21,6 +21,8 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { Order } from './entities/order.entity';
 import { OrderStatus } from './enums/order-status.enum';
+import { OrderGateway } from './order.gateway';
+import { markSold, restock } from './order-stock';
 
 @Injectable()
 export class OrderService {
@@ -29,23 +31,33 @@ export class OrderService {
   constructor(
     @InjectRepository(Order)
     private readonly orderRepo: Repository<Order>,
+
+    private readonly orderGateway: OrderGateway,
   ) {}
 
-  // The seller, store and amount come from the product, and the buyer is the
-  // logged-in user. Ordering takes the product off sale (active -> ordered).
-  // An accepted offer sets the amount instead of the product's price
+  // The seller, store and price come from the product, and the buyer is the
+  // logged-in user. Ordering takes the units from the product's stock, and the
+  // last units mark it out of stock. An accepted offer sets the amount instead
   async create(
     createOrderDto: CreateOrderDto,
     buyerId: string,
     offer?: Pick<Offer, 'id' | 'amount'>,
   ) {
-    const { productId, metadata } = createOrderDto;
+    const { productId, metadata, quantity = 1 } = createOrderDto;
 
     const created = await this.orderRepo.manager.transaction(
       async (manager) => {
         const product = await manager.findOne(Product, {
           where: { id: productId },
-          select: ['id', 'userId', 'storeId', 'isStoreProduct', 'price'],
+          select: [
+            'id',
+            'userId',
+            'storeId',
+            'isStoreProduct',
+            'price',
+            'quantity',
+            'status',
+          ],
         });
 
         if (!product) throw new NotFoundException('Product not found');
@@ -54,19 +66,33 @@ export class OrderService {
           throw new BadRequestException("You can't order your own product");
         }
 
-        // Conditional, so two buyers ordering at once can't both get it
+        // Conditional, so buyers ordering at once can't take more than is left
         const taken = await manager
           .createQueryBuilder()
           .update(Product)
-          .set({ status: ProductStatus.ORDERED })
-          .where('id = :productId AND status = :active', {
-            productId,
-            active: ProductStatus.ACTIVE,
+          .set({
+            quantity: () => 'quantity - :quantity',
+            status: () =>
+              `CASE WHEN quantity = :quantity THEN :outOfStock ELSE status END`,
           })
+          .where(
+            'id = :productId AND status = :active AND quantity >= :quantity',
+            {
+              productId,
+              quantity,
+              active: ProductStatus.ACTIVE,
+              outOfStock: ProductStatus.OUT_OF_STOCK,
+            },
+          )
           .execute();
 
         if (!taken.affected) {
-          throw new ConflictException('This product is no longer available');
+          throw new ConflictException(
+            product.status === ProductStatus.ACTIVE &&
+              product.quantity < quantity
+              ? `Only ${product.quantity} of this product left`
+              : 'This product is no longer available',
+          );
         }
 
         const repo = manager.getRepository(Order);
@@ -78,9 +104,11 @@ export class OrderService {
           isStoreOrder: product.isStoreProduct,
           storeId: product.isStoreProduct ? product.storeId : undefined,
           offerId: offer?.id,
-          // Offers are already kobo; product prices are naira (numeric, read
-          // as a string)
-          amount: offer?.amount ?? Math.round(Number(product.price) * 100),
+          quantity,
+          // Offers are already kobo; product prices are naira per unit
+          // (numeric, read as a string)
+          amount:
+            offer?.amount ?? Math.round(Number(product.price) * 100) * quantity,
           metadata,
         });
       },
@@ -96,6 +124,8 @@ export class OrderService {
     } catch (error) {
       this.logger.error(`QR code for order ${order.id} failed`, error);
     }
+
+    await this.orderGateway.notify(order, 'placed');
 
     return created;
   }
@@ -124,7 +154,8 @@ export class OrderService {
     return await factory.updateOne(this.orderRepo, id, updateOrderDto);
   }
 
-  // Cancelling puts the product back on sale; completing marks it sold
+  // Cancelling returns the units to the product's stock; completing the order
+  // for the last units marks the product sold
   async cancel(id: string, userId: string) {
     return await this.close(id, userId, OrderStatus.CANCELLED);
   }
@@ -139,7 +170,7 @@ export class OrderService {
     userId: string,
     status: OrderStatus.CANCELLED | OrderStatus.COMPLETED,
   ) {
-    return await this.orderRepo.manager.transaction(async (manager) => {
+    const closed = await this.orderRepo.manager.transaction(async (manager) => {
       const order = await manager.findOne(Order, { where: { id } });
 
       if (!order) throw new NotFoundException('No resource with that ID');
@@ -163,20 +194,11 @@ export class OrderService {
         throw new BadRequestException(`This order is already ${order.status}`);
       }
 
-      await manager
-        .createQueryBuilder()
-        .update(Product)
-        .set({
-          status:
-            status === OrderStatus.CANCELLED
-              ? ProductStatus.ACTIVE
-              : ProductStatus.SOLD,
-        })
-        .where('id = :productId AND status = :ordered', {
-          productId: order.productId,
-          ordered: ProductStatus.ORDERED,
-        })
-        .execute();
+      if (status === OrderStatus.CANCELLED) {
+        await restock(manager, order.productId, order.quantity);
+      } else {
+        await markSold(manager, order.productId, order.quantity);
+      }
 
       return {
         status: 'success',
@@ -184,6 +206,13 @@ export class OrderService {
         data: { ...order, status },
       };
     });
+
+    await this.orderGateway.notify(
+      closed.data,
+      status === OrderStatus.CANCELLED ? 'cancelled' : 'completed',
+    );
+
+    return closed;
   }
 
   remove(id: number) {

@@ -55,6 +55,10 @@ export class Product extends BaseEntity {
   @Column({ default: false })
   isStoreProduct: boolean;
 
+  // Whether buyers can negotiate the price
+  @Column({ default: true })
+  isNegotiable: boolean;
+
   @Column({ nullable: true })
   storeCategoryId: string;
 

@@ -30,7 +30,12 @@ export class Order extends BaseEntity {
   @Column({ nullable: true })
   qrCode: string;
 
-  // In kobo, 1 kobo = 0.01 naira: the product's price when it was ordered
+  // How many units were ordered; taken from the product's stock until the order
+  // is cancelled or expires
+  @Column({ default: 1 })
+  quantity: number;
+
+  // In kobo, 1 kobo = 0.01 naira: the price of all the units when ordered
   @Column()
   amount: number;
 

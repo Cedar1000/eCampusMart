@@ -4,6 +4,7 @@ import { OfferController } from './offer.controller';
 import { OfferService } from './offer.service';
 import { Offer } from './entities/offer.entity';
 import { OrderService } from 'src/order/order.service';
+import { OfferGateway } from './offer.gateway';
 
 describe('OfferController', () => {
   let controller: OfferController;
@@ -15,6 +16,7 @@ describe('OfferController', () => {
         OfferService,
         { provide: getRepositoryToken(Offer), useValue: {} },
         { provide: OrderService, useValue: {} },
+        { provide: OfferGateway, useValue: {} },
       ],
     }).compile();
 

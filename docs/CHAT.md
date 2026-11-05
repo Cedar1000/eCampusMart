@@ -17,6 +17,8 @@ Base URL in development: `http://localhost:3000` (Socket.IO on `ws://localhost:3
   - [`recording` / `stop-recording`](#recording--stop-recording)
   - [`mark-all-as-read`](#mark-all-as-read)
 - [Socket events: server → client](#socket-events-server--client)
+  - [`offer-updated`](#offer-updated)
+  - [`order-updated`](#order-updated)
 - [REST endpoints](#rest-endpoints)
   - [List conversations](#list-conversations)
   - [List messages in a conversation](#list-messages-in-a-conversation)
@@ -281,6 +283,20 @@ The acknowledgement and the receiver's `new-message` event are the usual [`Messa
 
 An offer is refused with an [`exception`](#socket-errors) if the product doesn't exist, isn't `active`, or `senderId` isn't its seller.
 
+**Answering an offer** is over REST. Each route takes no body, works only while the offer is `pending`, and returns the offer with `amount` in naira:
+
+| Route | Who | New `status` |
+| --- | --- | --- |
+| `PATCH /offer/{id}/accept` | the buyer | `accepted` |
+| `PATCH /offer/{id}/reject` | the buyer (declining) | `rejected` |
+| `PATCH /offer/{id}/cancel` | the seller: the selling user, or the owner of the selling store | `cancelled` |
+
+- **Errors:** `403` for anyone else, and `400` once the offer is no longer pending ("This offer is already accepted") or is past its 24 hours (it's then marked `expired`).
+- **Accepting places an order:** one unit of the product at the offer's amount, the same as `POST /orders` with `quantity: 1`. The order's 48 hours to meet and complete it start at acceptance. The response's `data.order` is the new order, with its `qrCode`. If the product ran out of stock in the meantime, the request gets a `409` and the offer stays `pending`.
+- **Sold out:** if that order takes the product's last unit, every other pending offer on it becomes `expired-by-acceptance`.
+
+Every change is sent to both sides as [`offer-updated`](#offer-updated), so offer cards update without reopening the chat.
+
 **Acknowledgement:** the saved [`Message`](#message)
 
 ```json
@@ -458,6 +474,75 @@ The other participant started or stopped typing or recording. The payload is wha
   "receiverId": "48c03f11-8cf5-4249-b1fe-304e3197f9bd"
 }
 ```
+
+### `offer-updated`
+
+An offer you're the buyer or seller of changed status: `accepted`, `rejected`, `cancelled`, `expired` or `expired-by-acceptance`. A store's offers reach the store's owner. The payload is the offer, with `amount` in naira:
+
+```json
+{
+  "offer": {
+    "id": "5f0c8a52-3f7e-4b8e-9c55-0f6f2a1d7e10",
+    "sellerId": "91a8ea62-98ce-4168-9a4a-61fc93aaf2dc",
+    "sellerType": "product-store",
+    "buyerId": "48c03f11-8cf5-4249-b1fe-304e3197f9bd",
+    "productId": "8fe7a3f2-4faa-4cd3-ad4c-25b7a15014fd",
+    "amount": 5000,
+    "status": "accepted",
+    "metadata": null,
+    "expiresAt": "2026-11-06T10:15:00.000Z",
+    "createdAt": "2026-11-05T10:15:00.000Z",
+    "updatedAt": "2026-11-05T11:02:00.000Z"
+  }
+}
+```
+
+```ts
+socket.on('offer-updated', ({ offer }) => {
+  // Find the message whose offerId is offer.id and update its card
+  updateOfferCard(offer);
+});
+```
+
+You also get it for your own actions. It's only sent while you're connected; [List messages in a conversation](#list-messages-in-a-conversation) always has the current status.
+
+### `order-updated`
+
+An order you're the seller or buyer of was placed, cancelled, completed or expired. Orders for a store's products reach the store's owner. `action` is one of `placed`, `cancelled`, `completed` or `expired`, and `order` is the order with `amount` in naira:
+
+```json
+{
+  "action": "placed",
+  "order": {
+    "id": "102d83e3-cc2a-4757-b056-f5b5e7b3a689",
+    "orderId": "ORD-L1MK-WQ",
+    "productId": "8fe7a3f2-4faa-4cd3-ad4c-25b7a15014fd",
+    "buyerId": "48c03f11-8cf5-4249-b1fe-304e3197f9bd",
+    "sellerId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+    "isStoreOrder": true,
+    "storeId": "91a8ea62-98ce-4168-9a4a-61fc93aaf2dc",
+    "offerId": null,
+    "quantity": 1,
+    "amount": 75000.5,
+    "status": "pending",
+    "qrCode": "https://res.cloudinary.com/.../orders/102d83e3-....png",
+    "metadata": null,
+    "expiresAt": "2026-11-07T10:15:00.000Z",
+    "createdAt": "2026-11-05T10:15:00.000Z",
+    "updatedAt": "2026-11-05T10:15:00.000Z"
+  }
+}
+```
+
+```ts
+socket.on('order-updated', ({ action, order }) => {
+  // The payload has no buyer, seller or product details: reload
+  // GET /orders/seller (or /orders/buyer) to show the order as a list item
+  refreshOrders();
+});
+```
+
+You also get it for your own actions, e.g. the buyer gets `placed` after placing an order. It's only sent while you're connected: reload the orders list when the Orders screen opens.
 
 ### `exception`
 

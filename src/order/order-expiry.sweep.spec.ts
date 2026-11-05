@@ -7,29 +7,42 @@ import { OrderStatus } from './enums/order-status.enum';
 import { OrderExpirySweep } from './order-expiry.sweep';
 
 describe('OrderExpirySweep', () => {
-  let updates: { target: unknown; status: string }[];
+  let updates: { target: unknown; fields: Record<string, unknown> }[];
+  let params: Record<string, unknown>[];
+  let expired: { productId: string; quantity: number }[];
   let fail: boolean;
+  let gateway: { notify: jest.Mock };
   let sweep: OrderExpirySweep;
 
   beforeEach(() => {
     updates = [];
+    params = [];
+    expired = [
+      { productId: 'product-1', quantity: 2 },
+      { productId: 'product-2', quantity: 1 },
+    ];
     fail = false;
 
     const manager = {
       createQueryBuilder: () => {
-        const update = { target: undefined as unknown, status: '' };
+        const update = { target: undefined as unknown, fields: {} };
         const builder = {
           update: (target: unknown) => ((update.target = target), builder),
-          set: ({ status }: { status: string }) => (
-            (update.status = status),
+          set: (fields: Record<string, unknown>) => (
+            (update.fields = fields),
             builder
           ),
-          where: () => builder,
-          andWhere: () => builder,
+          where: (_: string, values: Record<string, unknown>) => (
+            params.push(values),
+            builder
+          ),
+          returning: () => builder,
           execute: () => {
             if (fail) throw new Error('db down');
             updates.push(update);
-            return { affected: 1 };
+            return update.target === Order
+              ? { raw: expired, affected: expired.length }
+              : { affected: 1 };
           },
         };
         return builder;
@@ -41,17 +54,37 @@ describe('OrderExpirySweep', () => {
       },
     };
 
-    sweep = new OrderExpirySweep(repo as never);
+    gateway = { notify: jest.fn() };
+    sweep = new OrderExpirySweep(repo as never, gateway as never);
     jest.spyOn(Logger.prototype, 'log').mockImplementation(() => undefined);
   });
 
-  it('expires pending orders, then puts their products back on sale', async () => {
+  it('expires pending orders, then returns their units to each product', async () => {
     await sweep.sweep();
 
-    expect(updates).toEqual([
-      { target: Order, status: OrderStatus.EXPIRED },
-      { target: Product, status: ProductStatus.ACTIVE },
+    expect(updates.map(({ target }) => target)).toEqual([
+      Order,
+      Product,
+      Product,
     ]);
+    expect(updates[0].fields).toEqual({ status: OrderStatus.EXPIRED });
+    expect(updates[1].fields).toMatchObject({ status: ProductStatus.ACTIVE });
+    expect(params.slice(1)).toEqual([
+      expect.objectContaining({ productId: 'product-1', quantity: 2 }),
+      expect.objectContaining({ productId: 'product-2', quantity: 1 }),
+    ]);
+    expect(gateway.notify.mock.calls).toEqual([
+      [expired[0], 'expired'],
+      [expired[1], 'expired'],
+    ]);
+  });
+
+  it('touches no product when nothing expired', async () => {
+    expired = [];
+
+    await sweep.sweep();
+
+    expect(updates.map(({ target }) => target)).toEqual([Order]);
   });
 
   it('logs a failure instead of throwing', async () => {
@@ -62,5 +95,6 @@ describe('OrderExpirySweep', () => {
 
     await expect(sweep.sweep()).resolves.toBeUndefined();
     expect(error).toHaveBeenCalled();
+    expect(gateway.notify).not.toHaveBeenCalled();
   });
 });

@@ -51,6 +51,11 @@ export class CreateProductDto {
   @IsBoolean()
   isStoreProduct?: boolean;
 
+  // Defaults to true
+  @IsOptional()
+  @IsBoolean()
+  isNegotiable?: boolean;
+
   @IsOptional()
   @IsString()
   storeCategoryId?: string;

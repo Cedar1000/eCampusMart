@@ -5,6 +5,8 @@ export enum OfferStatus {
   PENDING = 'pending',
   ACCEPTED = 'accepted',
   REJECTED = 'rejected',
+  // withdrawn by the seller
+  CANCELLED = 'cancelled',
   EXPIRED = 'expired',
   // when the offer is accepted by another user
   EXPIRED_BY_ACCEPTANCE = 'expired-by-acceptance',

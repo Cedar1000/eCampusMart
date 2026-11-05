@@ -20,6 +20,84 @@ jest.mock('utils/cloudinary', () => ({ uploadToCloudinary: jest.fn() }));
 
 const upload = uploadToCloudinary as jest.Mock;
 
+type Values = Record<string, unknown>;
+
+// Evaluates the few SQL fragments the order code uses, against an in-memory row
+const evaluate = (
+  expression: string,
+  current: Values,
+  params: Values,
+): unknown => {
+  const value = (term: string) =>
+    term.startsWith(':') ? params[term.slice(1)] : current[term];
+
+  const caseWhen = expression.match(
+    /^CASE WHEN (\w+) = (:?\w+) THEN (:?\w+) ELSE (.+) END$/,
+  );
+  if (caseWhen) {
+    const [, column, test, then, otherwise] = caseWhen;
+    return String(value(column)) === String(value(test))
+      ? evaluate(then, current, params)
+      : evaluate(otherwise, current, params);
+  }
+
+  const sum = expression.match(/^(\w+) ([+-]) (:\w+)$/);
+  if (sum) {
+    const [, column, sign, term] = sum;
+    const delta = Number(value(term));
+    return Number(current[column]) + (sign === '+' ? delta : -delta);
+  }
+
+  return value(expression);
+};
+
+const matches = (where: string, current: Values, params: Values) =>
+  where.split(' AND ').every((clause) => {
+    const [column, operator, term] = clause.split(' ');
+    if (column === 'id') return true;
+    const left = Number(current[column]);
+    const right = Number(/^\d+$/.test(term) ? term : params[term.slice(1)]);
+    if (operator === '>=') return left >= right;
+    if (operator === '>') return left > right;
+    return (
+      current[column] ===
+      (/^\d+$/.test(term) ? Number(term) : params[term.slice(1)])
+    );
+  });
+
+const fakeUpdate = (
+  rows: () => { row: Values | null; product: Values | null },
+) => {
+  let target: unknown;
+  let fields: Values = {};
+  let where = '';
+  let params: Values = {};
+  const builder = {
+    update: (entity: unknown) => ((target = entity), builder),
+    set: (values: Values) => ((fields = values), builder),
+    where: (clause: string, values: Values) => (
+      (where = clause),
+      (params = values),
+      builder
+    ),
+    execute: () => {
+      const current = target === Order ? rows().row : rows().product;
+      if (!current || !matches(where, current, params)) return { affected: 0 };
+
+      // Every SET expression reads the row as it was before the update
+      const before = { ...current };
+      for (const [key, set] of Object.entries(fields)) {
+        current[key] =
+          typeof set === 'function'
+            ? evaluate((set as () => string)(), before, params)
+            : set;
+      }
+      return { affected: 1 };
+    },
+  };
+  return builder;
+};
+
 describe('OrderService', () => {
   let row: Partial<Order> | null;
   let product: Partial<Product> | null;
@@ -33,9 +111,11 @@ describe('OrderService', () => {
     findOneBy: jest.Mock;
     manager: unknown;
   };
+  let gateway: { notify: jest.Mock };
   let service: OrderService;
 
-  const order = () => service.create({ productId: 'product-1' }, 'buyer-1');
+  const order = (quantity?: number) =>
+    service.create({ productId: 'product-1', quantity }, 'buyer-1');
 
   beforeEach(() => {
     row = {
@@ -43,6 +123,7 @@ describe('OrderService', () => {
       buyerId: 'buyer-1',
       sellerId: 'seller-1',
       productId: 'product-1',
+      quantity: 1,
       status: OrderStatus.PENDING,
     };
     product = {
@@ -51,36 +132,16 @@ describe('OrderService', () => {
       storeId: 'store-1',
       isStoreProduct: false,
       price: '75000.50' as unknown as number,
+      quantity: 3,
       status: ProductStatus.ACTIVE,
     };
 
-    // Each conditional update only applies while the row has the expected status
+    // Runs the service's conditional updates against `row` and `product`
     const manager = {
       findOne: jest.fn((entity: unknown) =>
-        entity === Order ? row && { ...row } : product,
+        entity === Order ? row && { ...row } : product && { ...product },
       ),
-      createQueryBuilder: () => {
-        let target: unknown;
-        let fields: { status: string };
-        let params: Record<string, string>;
-        const builder = {
-          update: (entity: unknown) => ((target = entity), builder),
-          set: (values: typeof fields) => ((fields = values), builder),
-          where: (_: string, values: typeof params) => (
-            (params = values),
-            builder
-          ),
-          execute: () => {
-            const current = target === Order ? row : product;
-            const expected = params.active ?? params.pending ?? params.ordered;
-            if (!current || String(current.status) !== expected)
-              return { affected: 0 };
-            Object.assign(current, fields);
-            return { affected: 1 };
-          },
-        };
-        return builder;
-      },
+      createQueryBuilder: () => fakeUpdate(() => ({ row, product })),
       getRepository: () => repo,
       transaction: jest.fn((run: (m: unknown) => unknown): unknown =>
         run(manager),
@@ -97,7 +158,8 @@ describe('OrderService', () => {
       findOneBy: jest.fn(() => row),
       manager,
     };
-    service = new OrderService(repo as never);
+    gateway = { notify: jest.fn() };
+    service = new OrderService(repo as never, gateway as never);
     upload.mockReset().mockResolvedValue('https://res.cloudinary.com/qr.png');
   });
 
@@ -125,10 +187,29 @@ describe('OrderService', () => {
 
     expect(result.data).toMatchObject({ id: 'order-new', amount: 7500050 });
     expect(repo.update).not.toHaveBeenCalled();
-    expect(product!.status).toBe(ProductStatus.ORDERED);
+    expect(product!.quantity).toBe(2);
   });
 
-  it('takes the seller and amount from the product and marks it ordered', async () => {
+  it('tells the seller and buyer the order was placed, with its QR code', async () => {
+    await order();
+
+    expect(gateway.notify).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'order-new',
+        sellerId: 'seller-1',
+        buyerId: 'buyer-1',
+        qrCode: 'https://res.cloudinary.com/qr.png',
+      }),
+      'placed',
+    );
+  });
+
+  it('sends nothing when the order is refused', async () => {
+    await expect(order(4)).rejects.toThrow(ConflictException);
+    expect(gateway.notify).not.toHaveBeenCalled();
+  });
+
+  it('takes the seller and price from the product', async () => {
     const result = await order();
 
     expect(result.data).toMatchObject({
@@ -136,20 +217,77 @@ describe('OrderService', () => {
       buyerId: 'buyer-1',
       sellerId: 'seller-1',
       isStoreOrder: false,
+      quantity: 1,
       amount: 7500050,
     });
     expect(result.data).not.toHaveProperty('storeId', 'store-1');
-    expect(product!.status).toBe(ProductStatus.ORDERED);
   });
 
-  it('uses the amount of an accepted offer', async () => {
+  describe('stock', () => {
+    it('takes the units ordered and keeps the product on sale', async () => {
+      const result = await order(2);
+
+      expect(result.data).toMatchObject({ quantity: 2, amount: 15000100 });
+      expect(product).toMatchObject({
+        quantity: 1,
+        status: ProductStatus.ACTIVE,
+      });
+    });
+
+    it('marks the product out of stock when the last units are ordered', async () => {
+      await order(3);
+
+      expect(product).toMatchObject({
+        quantity: 0,
+        status: ProductStatus.OUT_OF_STOCK,
+      });
+    });
+
+    it('refuses more units than are left', async () => {
+      await expect(order(4)).rejects.toThrow('Only 3 of this product left');
+      expect(product!.quantity).toBe(3);
+      expect(repo.save).not.toHaveBeenCalled();
+    });
+
+    it('refuses an out of stock product', async () => {
+      Object.assign(product!, {
+        quantity: 0,
+        status: ProductStatus.OUT_OF_STOCK,
+      });
+
+      await expect(order()).rejects.toThrow(
+        'This product is no longer available',
+      );
+    });
+
+    it("doesn't let buyers ordering at once take more than is left", async () => {
+      product!.quantity = 2;
+
+      const results = await Promise.allSettled([order(), order(), order()]);
+
+      expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(2);
+      expect(
+        results.find((r) => r.status === 'rejected')?.reason,
+      ).toBeInstanceOf(ConflictException);
+      expect(product).toMatchObject({
+        quantity: 0,
+        status: ProductStatus.OUT_OF_STOCK,
+      });
+    });
+  });
+
+  it('uses the amount of an accepted offer for one unit', async () => {
     const result = await service.create({ productId: 'product-1' }, 'buyer-1', {
       id: 'offer-1',
       amount: 500000,
     });
 
-    expect(result.data).toMatchObject({ offerId: 'offer-1', amount: 500000 });
-    expect(product!.status).toBe(ProductStatus.ORDERED);
+    expect(result.data).toMatchObject({
+      offerId: 'offer-1',
+      quantity: 1,
+      amount: 500000,
+    });
+    expect(product!.quantity).toBe(2);
   });
 
   it('records the store for a store product', async () => {
@@ -164,21 +302,11 @@ describe('OrderService', () => {
     });
   });
 
-  it('lets only one of two buyers order the product', async () => {
-    const results = await Promise.allSettled([order(), order()]);
-
-    expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
-    expect(results.find((r) => r.status === 'rejected')?.reason).toBeInstanceOf(
-      ConflictException,
-    );
-    expect(repo.save).toHaveBeenCalledTimes(1);
-  });
-
   it("refuses an order on the buyer's own product", async () => {
     product!.userId = 'buyer-1';
 
     await expect(order()).rejects.toThrow(BadRequestException);
-    expect(product!.status).toBe(ProductStatus.ACTIVE);
+    expect(product!.quantity).toBe(3);
   });
 
   it('refuses a product that no longer exists', async () => {
@@ -219,33 +347,116 @@ describe('OrderService', () => {
   });
 
   describe('cancel and complete', () => {
+    // The pending order holds 2 of the product's units, and 1 is left
     beforeEach(() => {
-      product!.status = ProductStatus.ORDERED;
+      row!.quantity = 2;
+      product!.quantity = 1;
     });
 
-    it('cancelling puts the product back on sale', async () => {
-      const result = await service.cancel('order-1', 'buyer-1');
+    it('cancelling returns the units to the product', async () => {
+      const result = await service.cancel('order-1', 'seller-1');
 
+      expect(gateway.notify).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'order-1',
+          status: OrderStatus.CANCELLED,
+        }),
+        'cancelled',
+      );
       expect(result.data).toMatchObject({ status: OrderStatus.CANCELLED });
       expect(row!.status).toBe(OrderStatus.CANCELLED);
-      expect(product!.status).toBe(ProductStatus.ACTIVE);
+      expect(product).toMatchObject({
+        quantity: 3,
+        status: ProductStatus.ACTIVE,
+      });
     });
 
-    it('completing marks the product sold', async () => {
+    it('cancelling puts an out of stock product back on sale', async () => {
+      Object.assign(product!, {
+        quantity: 0,
+        status: ProductStatus.OUT_OF_STOCK,
+      });
+
+      await service.cancel('order-1', 'buyer-1');
+
+      expect(product).toMatchObject({
+        quantity: 2,
+        status: ProductStatus.ACTIVE,
+      });
+    });
+
+    it('completing leaves a product with units left on sale', async () => {
       const result = await service.complete('order-1', 'seller-1');
 
+      expect(gateway.notify).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'order-1',
+          status: OrderStatus.COMPLETED,
+        }),
+        'completed',
+      );
       expect(result.data).toMatchObject({ status: OrderStatus.COMPLETED });
+      expect(product).toMatchObject({
+        quantity: 1,
+        status: ProductStatus.ACTIVE,
+      });
+    });
+
+    it('completing the order for the last units marks the product sold', async () => {
+      Object.assign(product!, {
+        quantity: 0,
+        status: ProductStatus.OUT_OF_STOCK,
+      });
+
+      await service.complete('order-1', 'seller-1');
+
       expect(product!.status).toBe(ProductStatus.SOLD);
+    });
+
+    describe('an order from before stock was tracked', () => {
+      // It held the whole product as ordered without taking any units
+      beforeEach(() => {
+        Object.assign(product!, { quantity: 3, status: ProductStatus.ORDERED });
+      });
+
+      it('cancelling puts the product back on sale without adding units', async () => {
+        await service.cancel('order-1', 'buyer-1');
+
+        expect(product).toMatchObject({
+          quantity: 3,
+          status: ProductStatus.ACTIVE,
+        });
+      });
+
+      it('completing takes its units and keeps the rest on sale', async () => {
+        await service.complete('order-1', 'seller-1');
+
+        expect(product).toMatchObject({
+          quantity: 1,
+          status: ProductStatus.ACTIVE,
+        });
+      });
+
+      it('completing it for all the units marks the product sold', async () => {
+        product!.quantity = 2;
+
+        await service.complete('order-1', 'seller-1');
+
+        expect(product).toMatchObject({
+          quantity: 0,
+          status: ProductStatus.SOLD,
+        });
+      });
     });
 
     it('refuses an order that is no longer pending', async () => {
       row!.status = OrderStatus.COMPLETED;
-      product!.status = ProductStatus.SOLD;
 
       await expect(service.cancel('order-1', 'buyer-1')).rejects.toThrow(
         'This order is already completed',
       );
-      expect(product!.status).toBe(ProductStatus.SOLD);
+      expect(product!.quantity).toBe(1);
+      expect(gateway.notify).not.toHaveBeenCalled();
     });
 
     it('lets only one of a cancel and a complete go through', async () => {
@@ -255,14 +466,14 @@ describe('OrderService', () => {
       ]);
 
       expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
-      expect(product!.status).toBe(ProductStatus.ACTIVE);
+      expect(product!.quantity).toBe(3);
     });
 
     it('refuses anyone but the buyer or seller', async () => {
-      await expect(service.complete('order-1', 'other')).rejects.toThrow(
+      await expect(service.cancel('order-1', 'other')).rejects.toThrow(
         ForbiddenException,
       );
-      expect(product!.status).toBe(ProductStatus.ORDERED);
+      expect(product!.quantity).toBe(1);
     });
 
     it('returns 404 for an unknown order', async () => {

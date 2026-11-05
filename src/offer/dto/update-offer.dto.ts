@@ -2,8 +2,11 @@ import { IsIn } from 'class-validator';
 
 import { OfferStatus } from '../entities/offer.entity';
 
-// The buyer's answer to an offer; set by the accept and reject routes
+export type OfferAnswer =
+  OfferStatus.ACCEPTED | OfferStatus.REJECTED | OfferStatus.CANCELLED;
+
+// Set by the accept and reject routes (the buyer) and the cancel route (the seller)
 export class UpdateOfferDto {
-  @IsIn([OfferStatus.ACCEPTED, OfferStatus.REJECTED])
-  status: OfferStatus.ACCEPTED | OfferStatus.REJECTED;
+  @IsIn([OfferStatus.ACCEPTED, OfferStatus.REJECTED, OfferStatus.CANCELLED])
+  status: OfferAnswer;
 }
