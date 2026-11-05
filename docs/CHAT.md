@@ -292,8 +292,7 @@ An offer is refused with an [`exception`](#socket-errors) if the product doesn't
 | `PATCH /offer/{id}/cancel` | the seller: the selling user, or the owner of the selling store | `cancelled` |
 
 - **Errors:** `403` for anyone else, and `400` once the offer is no longer pending ("This offer is already accepted") or is past its 24 hours (it's then marked `expired`).
-- **Accepting places an order:** one unit of the product at the offer's amount, the same as `POST /orders` with `quantity: 1`. The order's 48 hours to meet and complete it start at acceptance. The response's `data.order` is the new order, with its `qrCode`. If the product ran out of stock in the meantime, the request gets a `409` and the offer stays `pending`.
-- **Sold out:** if that order takes the product's last unit, every other pending offer on it becomes `expired-by-acceptance`.
+- **Accepting places an order:** one unit of the product at the offer's amount, the same as `POST /orders` with `quantity: 1`. The order's 48 hours to meet and complete it start at acceptance. The response's `data.order` is the new order, with its `qrCode`. The product's stock only goes down when the order is completed. If the product is no longer available, the request gets a `409` and the offer stays `pending`.
 
 Every change is sent to both sides as [`offer-updated`](#offer-updated), so offer cards update without reopening the chat.
 
@@ -477,7 +476,7 @@ The other participant started or stopped typing or recording. The payload is wha
 
 ### `offer-updated`
 
-An offer you're the buyer or seller of changed status: `accepted`, `rejected`, `cancelled`, `expired` or `expired-by-acceptance`. A store's offers reach the store's owner. The payload is the offer, with `amount` in naira:
+An offer you're the buyer or seller of changed status: `accepted`, `rejected`, `cancelled` or `expired`. A store's offers reach the store's owner. The payload is the offer, with `amount` in naira:
 
 ```json
 {
@@ -909,7 +908,7 @@ interface Message {
     buyerId: string;
     productId: string;
     amount: number; // naira
-    status: 'pending' | 'accepted' | 'rejected' | 'expired' | 'expired-by-acceptance';
+    status: 'pending' | 'accepted' | 'rejected' | 'cancelled' | 'expired' | 'expired-by-acceptance';
     metadata: string | null;
     expiresAt: string;
     createdAt: string;

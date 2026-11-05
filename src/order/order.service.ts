@@ -22,7 +22,7 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 import { Order } from './entities/order.entity';
 import { OrderStatus } from './enums/order-status.enum';
 import { OrderGateway } from './order.gateway';
-import { markSold, restock } from './order-stock';
+import { takeStock } from './order-stock';
 
 @Injectable()
 export class OrderService {
@@ -36,8 +36,8 @@ export class OrderService {
   ) {}
 
   // The seller, store and price come from the product, and the buyer is the
-  // logged-in user. Ordering takes the units from the product's stock, and the
-  // last units mark it out of stock. An accepted offer sets the amount instead
+  // logged-in user. Placing an order leaves the product's stock alone: the
+  // units are only taken when it's completed. An accepted offer sets the amount
   async create(
     createOrderDto: CreateOrderDto,
     buyerId: string,
@@ -45,77 +45,52 @@ export class OrderService {
   ) {
     const { productId, metadata, quantity = 1 } = createOrderDto;
 
-    const created = await this.orderRepo.manager.transaction(
-      async (manager) => {
-        const product = await manager.findOne(Product, {
-          where: { id: productId },
-          select: [
-            'id',
-            'userId',
-            'storeId',
-            'isStoreProduct',
-            'price',
-            'quantity',
-            'status',
-          ],
-        });
+    const product = await this.orderRepo.manager.findOne(Product, {
+      where: { id: productId },
+      select: [
+        'id',
+        'userId',
+        'storeId',
+        'isStoreProduct',
+        'price',
+        'quantity',
+        'status',
+      ],
+    });
 
-        if (!product) throw new NotFoundException('Product not found');
+    if (!product) throw new NotFoundException('Product not found');
 
-        if (product.userId === buyerId) {
-          throw new BadRequestException("You can't order your own product");
-        }
+    if (product.userId === buyerId) {
+      throw new BadRequestException("You can't order your own product");
+    }
 
-        // Conditional, so buyers ordering at once can't take more than is left
-        const taken = await manager
-          .createQueryBuilder()
-          .update(Product)
-          .set({
-            quantity: () => 'quantity - :quantity',
-            status: () =>
-              `CASE WHEN quantity = :quantity THEN :outOfStock ELSE status END`,
-          })
-          .where(
-            'id = :productId AND status = :active AND quantity >= :quantity',
-            {
-              productId,
-              quantity,
-              active: ProductStatus.ACTIVE,
-              outOfStock: ProductStatus.OUT_OF_STOCK,
-            },
-          )
-          .execute();
+    if (product.status !== ProductStatus.ACTIVE) {
+      throw new ConflictException('This product is no longer available');
+    }
 
-        if (!taken.affected) {
-          throw new ConflictException(
-            product.status === ProductStatus.ACTIVE &&
-              product.quantity < quantity
-              ? `Only ${product.quantity} of this product left`
-              : 'This product is no longer available',
-          );
-        }
+    if (product.quantity < quantity) {
+      throw new ConflictException(
+        `Only ${product.quantity} of this product left`,
+      );
+    }
 
-        const repo = manager.getRepository(Order);
+    const created = await factory.createOne(this.orderRepo, {
+      productId,
+      buyerId,
+      sellerId: product.userId,
+      isStoreOrder: product.isStoreProduct,
+      storeId: product.isStoreProduct ? product.storeId : undefined,
+      offerId: offer?.id,
+      quantity,
+      // Offers are already kobo; product prices are naira per unit (numeric,
+      // read as a string)
+      amount:
+        offer?.amount ?? Math.round(Number(product.price) * 100) * quantity,
+      metadata,
+    });
 
-        return await factory.createOne(repo, {
-          productId,
-          buyerId,
-          sellerId: product.userId,
-          isStoreOrder: product.isStoreProduct,
-          storeId: product.isStoreProduct ? product.storeId : undefined,
-          offerId: offer?.id,
-          quantity,
-          // Offers are already kobo; product prices are naira per unit
-          // (numeric, read as a string)
-          amount:
-            offer?.amount ?? Math.round(Number(product.price) * 100) * quantity,
-          metadata,
-        });
-      },
-    );
-
-    // After the commit, so a slow upload doesn't hold the product row. The QR
-    // holds just the order id, which the app sends to PATCH /orders/:id/complete
+    // The QR holds just the order id, which the app sends to
+    // PATCH /orders/:id/complete
     const order = created.data as Order;
     try {
       const image = await QRCode.toDataURL(order.id, { width: 512, margin: 2 });
@@ -154,8 +129,8 @@ export class OrderService {
     return await factory.updateOne(this.orderRepo, id, updateOrderDto);
   }
 
-  // Cancelling returns the units to the product's stock; completing the order
-  // for the last units marks the product sold
+  // Cancelling leaves the product alone; completing takes the order's units
+  // from its stock
   async cancel(id: string, userId: string) {
     return await this.close(id, userId, OrderStatus.CANCELLED);
   }
@@ -194,10 +169,8 @@ export class OrderService {
         throw new BadRequestException(`This order is already ${order.status}`);
       }
 
-      if (status === OrderStatus.CANCELLED) {
-        await restock(manager, order.productId, order.quantity);
-      } else {
-        await markSold(manager, order.productId, order.quantity);
+      if (status === OrderStatus.COMPLETED) {
+        await takeStock(manager, order.productId, order.quantity);
       }
 
       return {

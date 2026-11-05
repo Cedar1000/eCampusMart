@@ -6,7 +6,6 @@ import {
 } from '@nestjs/common';
 
 import { OrderService } from 'src/order/order.service';
-import { ProductStatus } from 'src/product/enums/product-status.enum';
 import { ProductStore } from 'src/product-store/entities/product-store.entity';
 import { ServiceStore } from 'src/service-store/entities/service-store.entity';
 import { Offer, OfferSellerType, OfferStatus } from './entities/offer.entity';
@@ -14,15 +13,12 @@ import { OfferService } from './offer.service';
 
 describe('OfferService.update', () => {
   let offer: Partial<Offer> | null;
-  let productStatus: ProductStatus;
   let ownedStores: { entity: unknown; id: string; owner: string }[];
-  let others: Partial<Offer>[];
   let repo: {
     findOneBy: jest.Mock;
     save: jest.Mock;
     update: jest.Mock;
-    find: jest.Mock;
-    manager: { findOne: jest.Mock; exists: jest.Mock };
+    manager: { exists: jest.Mock };
   };
   let orderService: { create: jest.Mock };
   let gateway: { notify: jest.Mock };
@@ -45,19 +41,13 @@ describe('OfferService.update', () => {
       status: OfferStatus.PENDING,
       expiresAt: new Date(Date.now() + 60_000),
     };
-    productStatus = ProductStatus.ACTIVE;
     ownedStores = [];
-    others = [
-      { id: 'offer-2', buyerId: 'buyer-2', status: OfferStatus.PENDING },
-    ];
 
     repo = {
       findOneBy: jest.fn(() => offer && { ...offer }),
       save: jest.fn((fields: object) => fields),
       update: jest.fn(),
-      find: jest.fn(() => others),
       manager: {
-        findOne: jest.fn(() => ({ id: 'product-1', status: productStatus })),
         exists: jest.fn(
           (
             entity: unknown,
@@ -108,30 +98,6 @@ describe('OfferService.update', () => {
         expect.objectContaining({
           id: 'offer-1',
           status: OfferStatus.ACCEPTED,
-        }),
-      );
-    });
-
-    it('keeps the other offers open while the product has stock left', async () => {
-      await accept();
-
-      expect(repo.update).not.toHaveBeenCalled();
-      expect(gateway.notify).toHaveBeenCalledTimes(1);
-    });
-
-    it('expires the other pending offers once the product sells out, and tells them', async () => {
-      productStatus = ProductStatus.OUT_OF_STOCK;
-
-      await accept();
-
-      expect(repo.update).toHaveBeenCalledWith(
-        expect.objectContaining({ status: OfferStatus.PENDING }),
-        { status: OfferStatus.EXPIRED_BY_ACCEPTANCE },
-      );
-      expect(gateway.notify).toHaveBeenCalledWith(
-        expect.objectContaining({
-          id: 'offer-2',
-          status: OfferStatus.EXPIRED_BY_ACCEPTANCE,
         }),
       );
     });

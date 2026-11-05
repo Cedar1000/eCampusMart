@@ -187,7 +187,6 @@ describe('OrderService', () => {
 
     expect(result.data).toMatchObject({ id: 'order-new', amount: 7500050 });
     expect(repo.update).not.toHaveBeenCalled();
-    expect(product!.quantity).toBe(2);
   });
 
   it('tells the seller and buyer the order was placed, with its QR code', async () => {
@@ -223,57 +222,33 @@ describe('OrderService', () => {
     expect(result.data).not.toHaveProperty('storeId', 'store-1');
   });
 
-  describe('stock', () => {
-    it('takes the units ordered and keeps the product on sale', async () => {
-      const result = await order(2);
+  describe('placing an order', () => {
+    it('leaves the stock alone', async () => {
+      const result = await order(3);
 
-      expect(result.data).toMatchObject({ quantity: 2, amount: 15000100 });
+      expect(result.data).toMatchObject({ quantity: 3, amount: 22500150 });
       expect(product).toMatchObject({
-        quantity: 1,
+        quantity: 3,
         status: ProductStatus.ACTIVE,
       });
     });
 
-    it('marks the product out of stock when the last units are ordered', async () => {
-      await order(3);
-
-      expect(product).toMatchObject({
-        quantity: 0,
-        status: ProductStatus.OUT_OF_STOCK,
-      });
-    });
-
-    it('refuses more units than are left', async () => {
+    it('refuses more units than are in stock', async () => {
       await expect(order(4)).rejects.toThrow('Only 3 of this product left');
-      expect(product!.quantity).toBe(3);
       expect(repo.save).not.toHaveBeenCalled();
     });
 
-    it('refuses an out of stock product', async () => {
-      Object.assign(product!, {
-        quantity: 0,
-        status: ProductStatus.OUT_OF_STOCK,
-      });
+    it.each([ProductStatus.OUT_OF_STOCK, ProductStatus.SOLD])(
+      'refuses a product that is %s',
+      async (status) => {
+        product!.status = status;
 
-      await expect(order()).rejects.toThrow(
-        'This product is no longer available',
-      );
-    });
-
-    it("doesn't let buyers ordering at once take more than is left", async () => {
-      product!.quantity = 2;
-
-      const results = await Promise.allSettled([order(), order(), order()]);
-
-      expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(2);
-      expect(
-        results.find((r) => r.status === 'rejected')?.reason,
-      ).toBeInstanceOf(ConflictException);
-      expect(product).toMatchObject({
-        quantity: 0,
-        status: ProductStatus.OUT_OF_STOCK,
-      });
-    });
+        await expect(order()).rejects.toThrow(
+          'This product is no longer available',
+        );
+        expect(repo.save).not.toHaveBeenCalled();
+      },
+    );
   });
 
   it('uses the amount of an accepted offer for one unit', async () => {
@@ -287,7 +262,6 @@ describe('OrderService', () => {
       quantity: 1,
       amount: 500000,
     });
-    expect(product!.quantity).toBe(2);
   });
 
   it('records the store for a store product', async () => {
@@ -306,7 +280,6 @@ describe('OrderService', () => {
     product!.userId = 'buyer-1';
 
     await expect(order()).rejects.toThrow(BadRequestException);
-    expect(product!.quantity).toBe(3);
   });
 
   it('refuses a product that no longer exists', async () => {
@@ -347,15 +320,20 @@ describe('OrderService', () => {
   });
 
   describe('cancel and complete', () => {
-    // The pending order holds 2 of the product's units, and 1 is left
+    // The pending order is for 2 of the product's 3 units
     beforeEach(() => {
       row!.quantity = 2;
-      product!.quantity = 1;
     });
 
-    it('cancelling returns the units to the product', async () => {
+    it('cancelling leaves the stock alone', async () => {
       const result = await service.cancel('order-1', 'seller-1');
 
+      expect(result.data).toMatchObject({ status: OrderStatus.CANCELLED });
+      expect(row!.status).toBe(OrderStatus.CANCELLED);
+      expect(product).toMatchObject({
+        quantity: 3,
+        status: ProductStatus.ACTIVE,
+      });
       expect(gateway.notify).toHaveBeenCalledWith(
         expect.objectContaining({
           id: 'order-1',
@@ -363,31 +341,16 @@ describe('OrderService', () => {
         }),
         'cancelled',
       );
-      expect(result.data).toMatchObject({ status: OrderStatus.CANCELLED });
-      expect(row!.status).toBe(OrderStatus.CANCELLED);
-      expect(product).toMatchObject({
-        quantity: 3,
-        status: ProductStatus.ACTIVE,
-      });
     });
 
-    it('cancelling puts an out of stock product back on sale', async () => {
-      Object.assign(product!, {
-        quantity: 0,
-        status: ProductStatus.OUT_OF_STOCK,
-      });
-
-      await service.cancel('order-1', 'buyer-1');
-
-      expect(product).toMatchObject({
-        quantity: 2,
-        status: ProductStatus.ACTIVE,
-      });
-    });
-
-    it('completing leaves a product with units left on sale', async () => {
+    it('completing takes the units and keeps the rest on sale', async () => {
       const result = await service.complete('order-1', 'seller-1');
 
+      expect(result.data).toMatchObject({ status: OrderStatus.COMPLETED });
+      expect(product).toMatchObject({
+        quantity: 1,
+        status: ProductStatus.ACTIVE,
+      });
       expect(gateway.notify).toHaveBeenCalledWith(
         expect.objectContaining({
           id: 'order-1',
@@ -395,58 +358,50 @@ describe('OrderService', () => {
         }),
         'completed',
       );
-      expect(result.data).toMatchObject({ status: OrderStatus.COMPLETED });
+    });
+
+    it('completing the order for the last units marks the product out of stock', async () => {
+      row!.quantity = 3;
+
+      await service.complete('order-1', 'seller-1');
+
       expect(product).toMatchObject({
-        quantity: 1,
-        status: ProductStatus.ACTIVE,
+        quantity: 0,
+        status: ProductStatus.OUT_OF_STOCK,
       });
     });
 
-    it('completing the order for the last units marks the product sold', async () => {
+    it('refuses to complete when there are fewer units left than ordered', async () => {
+      product!.quantity = 1;
+
+      await expect(service.complete('order-1', 'seller-1')).rejects.toThrow(
+        'Only 1 of this product left',
+      );
+      expect(product!.quantity).toBe(1);
+      expect(gateway.notify).not.toHaveBeenCalled();
+    });
+
+    it('refuses to complete once the product is out of stock', async () => {
       Object.assign(product!, {
         quantity: 0,
         status: ProductStatus.OUT_OF_STOCK,
       });
 
-      await service.complete('order-1', 'seller-1');
-
-      expect(product!.status).toBe(ProductStatus.SOLD);
+      await expect(service.complete('order-1', 'seller-1')).rejects.toThrow(
+        'This product is no longer available',
+      );
     });
 
-    describe('an order from before stock was tracked', () => {
-      // It held the whole product as ordered without taking any units
-      beforeEach(() => {
-        Object.assign(product!, { quantity: 3, status: ProductStatus.ORDERED });
-      });
+    it("doesn't let pending orders take more units than there are", async () => {
+      await service.complete('order-1', 'seller-1');
 
-      it('cancelling puts the product back on sale without adding units', async () => {
-        await service.cancel('order-1', 'buyer-1');
+      // Another pending order for 2 units, while only 1 is left
+      row = { ...row!, id: 'order-2', status: OrderStatus.PENDING };
 
-        expect(product).toMatchObject({
-          quantity: 3,
-          status: ProductStatus.ACTIVE,
-        });
-      });
-
-      it('completing takes its units and keeps the rest on sale', async () => {
-        await service.complete('order-1', 'seller-1');
-
-        expect(product).toMatchObject({
-          quantity: 1,
-          status: ProductStatus.ACTIVE,
-        });
-      });
-
-      it('completing it for all the units marks the product sold', async () => {
-        product!.quantity = 2;
-
-        await service.complete('order-1', 'seller-1');
-
-        expect(product).toMatchObject({
-          quantity: 0,
-          status: ProductStatus.SOLD,
-        });
-      });
+      await expect(service.complete('order-2', 'seller-1')).rejects.toThrow(
+        'Only 1 of this product left',
+      );
+      expect(product!.quantity).toBe(1);
     });
 
     it('refuses an order that is no longer pending', async () => {
@@ -455,7 +410,6 @@ describe('OrderService', () => {
       await expect(service.cancel('order-1', 'buyer-1')).rejects.toThrow(
         'This order is already completed',
       );
-      expect(product!.quantity).toBe(1);
       expect(gateway.notify).not.toHaveBeenCalled();
     });
 
@@ -470,10 +424,10 @@ describe('OrderService', () => {
     });
 
     it('refuses anyone but the buyer or seller', async () => {
-      await expect(service.cancel('order-1', 'other')).rejects.toThrow(
+      await expect(service.complete('order-1', 'other')).rejects.toThrow(
         ForbiddenException,
       );
-      expect(product!.quantity).toBe(1);
+      expect(product!.quantity).toBe(3);
     });
 
     it('returns 404 for an unknown order', async () => {

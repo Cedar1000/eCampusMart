@@ -1,29 +1,25 @@
 import { Logger } from '@nestjs/common';
 
-import { Product } from 'src/product/entities/product.entity';
-import { ProductStatus } from 'src/product/enums/product-status.enum';
 import { Order } from './entities/order.entity';
 import { OrderStatus } from './enums/order-status.enum';
 import { OrderExpirySweep } from './order-expiry.sweep';
 
 describe('OrderExpirySweep', () => {
   let updates: { target: unknown; fields: Record<string, unknown> }[];
-  let params: Record<string, unknown>[];
-  let expired: { productId: string; quantity: number }[];
+  let expired: Partial<Order>[];
   let fail: boolean;
   let gateway: { notify: jest.Mock };
   let sweep: OrderExpirySweep;
 
   beforeEach(() => {
     updates = [];
-    params = [];
     expired = [
-      { productId: 'product-1', quantity: 2 },
-      { productId: 'product-2', quantity: 1 },
+      { id: 'order-1', productId: 'product-1', quantity: 2 },
+      { id: 'order-2', productId: 'product-2', quantity: 1 },
     ];
     fail = false;
 
-    const manager = {
+    const repo = {
       createQueryBuilder: () => {
         const update = { target: undefined as unknown, fields: {} };
         const builder = {
@@ -32,25 +28,15 @@ describe('OrderExpirySweep', () => {
             (update.fields = fields),
             builder
           ),
-          where: (_: string, values: Record<string, unknown>) => (
-            params.push(values),
-            builder
-          ),
+          where: () => builder,
           returning: () => builder,
           execute: () => {
             if (fail) throw new Error('db down');
             updates.push(update);
-            return update.target === Order
-              ? { raw: expired, affected: expired.length }
-              : { affected: 1 };
+            return { raw: expired, affected: expired.length };
           },
         };
         return builder;
-      },
-    };
-    const repo = {
-      manager: {
-        transaction: (run: (m: unknown) => unknown) => run(manager),
       },
     };
 
@@ -59,32 +45,21 @@ describe('OrderExpirySweep', () => {
     jest.spyOn(Logger.prototype, 'log').mockImplementation(() => undefined);
   });
 
-  it('expires pending orders, then returns their units to each product', async () => {
+  it('expires pending orders without touching their products', async () => {
     await sweep.sweep();
 
-    expect(updates.map(({ target }) => target)).toEqual([
-      Order,
-      Product,
-      Product,
+    expect(updates).toEqual([
+      { target: Order, fields: { status: OrderStatus.EXPIRED } },
     ]);
-    expect(updates[0].fields).toEqual({ status: OrderStatus.EXPIRED });
-    expect(updates[1].fields).toMatchObject({ status: ProductStatus.ACTIVE });
-    expect(params.slice(1)).toEqual([
-      expect.objectContaining({ productId: 'product-1', quantity: 2 }),
-      expect.objectContaining({ productId: 'product-2', quantity: 1 }),
-    ]);
+  });
+
+  it('tells both sides of each expired order', async () => {
+    await sweep.sweep();
+
     expect(gateway.notify.mock.calls).toEqual([
       [expired[0], 'expired'],
       [expired[1], 'expired'],
     ]);
-  });
-
-  it('touches no product when nothing expired', async () => {
-    expired = [];
-
-    await sweep.sweep();
-
-    expect(updates.map(({ target }) => target)).toEqual([Order]);
   });
 
   it('logs a failure instead of throwing', async () => {
