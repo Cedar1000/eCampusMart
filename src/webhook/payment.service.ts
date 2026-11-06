@@ -1,24 +1,28 @@
 import {
-  BadGatewayException,
-  ForbiddenException,
   Injectable,
   NotFoundException,
+  ForbiddenException,
+  BadGatewayException,
+  BadRequestException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+
 import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 import { verifyPaystackTransaction } from 'utils/paystack';
 
 import { Subscription } from 'src/subscription/entities/subscription.entity';
 import { SubscriptionStatus } from 'src/subscription/enums/subscription-status.enum';
+
 import {
   Transaction,
-  TransactionDescription,
   TransactionStatus,
+  TransactionDescription,
 } from 'src/transaction/entities/transaction.entity';
-import { Wallet } from 'src/wallet/entities/wallet.entity';
-import { SubscriptionWebhookService } from './subscription-webhook.service';
-import { WalletWebhookService } from './wallet-webhook.service';
+
 import { asString } from './webhook.utils';
+import { Wallet } from 'src/wallet/entities/wallet.entity';
+import { WalletWebhookService } from './wallet-webhook.service';
+import { SubscriptionWebhookService } from './subscription-webhook.service';
 
 type PaymentPurpose = 'fund' | 'subscription';
 type PaymentStatus = 'success' | 'pending' | 'failed';
@@ -110,18 +114,26 @@ export class PaymentService {
     }
   }
 
-  // 404 if no payment has the reference, 403 if it isn't the user's
+  // 404 if no payment has the reference, 403 if it isn't the user's, 400 for a
+  // wallet transaction that isn't a top-up (e.g. a listing fee): those never go
+  // through Paystack
   private async findOwnedPayment(
     reference: string,
     userId: string,
   ): Promise<Payment> {
     const transaction = await this.transactionRepository.findOne({
-      where: { reference, description: TransactionDescription.FUND },
+      where: { reference },
       relations: ['wallet'],
     });
 
     if (transaction) {
       if (transaction.wallet?.userId !== userId) throw this.notYours();
+
+      if (transaction.description !== TransactionDescription.FUND) {
+        throw new BadRequestException(
+          `Only wallet top-ups can be verified; this is a ${transaction.description} transaction`,
+        );
+      }
 
       return {
         purpose: 'fund',

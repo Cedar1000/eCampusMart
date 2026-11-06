@@ -5,6 +5,7 @@ import { Subscription } from 'src/subscription/entities/subscription.entity';
 import { SubscriptionStatus } from 'src/subscription/enums/subscription-status.enum';
 import {
   Transaction,
+  TransactionDescription,
   TransactionStatus,
 } from 'src/transaction/entities/transaction.entity';
 import { PaymentService } from './payment.service';
@@ -32,6 +33,7 @@ describe('PaymentService.verify', () => {
     subscription = null;
     transaction = {
       reference: 'ref-1',
+      description: TransactionDescription.FUND,
       amount: 1000000,
       currency: 'NGN',
       status: TransactionStatus.PENDING,
@@ -117,6 +119,24 @@ describe('PaymentService.verify', () => {
       ForbiddenException,
     );
   });
+
+  it.each([
+    TransactionDescription.PRODUCT_UPLOAD,
+    TransactionDescription.HOUSING_UPLOAD,
+  ])(
+    'refuses a %s transaction, which never went through Paystack',
+    async (description) => {
+      Object.assign(transaction!, {
+        description,
+        status: TransactionStatus.SUCCESS,
+      });
+
+      await expect(service.verify('ref-1', USER)).rejects.toThrow(
+        `Only wallet top-ups can be verified; this is a ${description} transaction`,
+      );
+      expect(verifyPaystackTransaction).not.toHaveBeenCalled();
+    },
+  );
 
   it('returns 404 for an unknown reference', async () => {
     transaction = null;

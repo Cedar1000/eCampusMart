@@ -34,5 +34,6 @@ import { PaymentProcessor } from './processors/payment.processor';
     PaymentService,
     PaymentProcessor,
   ],
+  exports: [PaymentService],
 })
 export class WebhookModule {}

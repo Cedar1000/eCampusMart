@@ -4,9 +4,10 @@ import { WalletController } from './wallet.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Wallet } from './entities/wallet.entity';
 import { Transaction } from 'src/transaction/entities/transaction.entity';
+import { WebhookModule } from 'src/webhook/webhook.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Wallet, Transaction])],
+  imports: [TypeOrmModule.forFeature([Wallet, Transaction]), WebhookModule],
   controllers: [WalletController],
   providers: [WalletService],
   exports: [WalletService],
