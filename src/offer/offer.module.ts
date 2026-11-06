@@ -5,9 +5,10 @@ import { OfferGateway } from './offer.gateway';
 import { OfferController } from './offer.controller';
 import { Offer } from './entities/offer.entity';
 import { OrderModule } from 'src/order/order.module';
+import { NotificationModule } from 'src/notification/notification.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Offer]), OrderModule],
+  imports: [TypeOrmModule.forFeature([Offer]), OrderModule, NotificationModule],
   controllers: [OfferController],
   providers: [OfferService, OfferGateway],
 })

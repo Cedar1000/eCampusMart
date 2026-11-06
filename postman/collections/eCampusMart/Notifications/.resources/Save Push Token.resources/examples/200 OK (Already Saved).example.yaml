@@ -1,0 +1,15 @@
+$kind: http-example
+request:
+  url: "{{URL}}/notifications/push-tokens"
+  method: POST
+  body:
+    type: json
+    content: |-
+      {
+          "token": "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]",
+          "platform": "android"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+order: 2000

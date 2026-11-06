@@ -12,6 +12,8 @@ import { SubscriptionPlan } from 'src/subscription-plan/entities/subscription-pl
 import { StoreVisibilitySweep } from './store-visibility.sweep';
 import { FreePlanReminderSweep } from './free-plan-reminder.sweep';
 
+import { NotificationModule } from 'src/notification/notification.module';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -20,6 +22,7 @@ import { FreePlanReminderSweep } from './free-plan-reminder.sweep';
       Subscription,
       SubscriptionPlan,
     ]),
+    NotificationModule,
   ],
   controllers: [ServiceStoreController],
   providers: [

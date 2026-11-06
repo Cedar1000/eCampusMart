@@ -1,0 +1,18 @@
+$kind: http-example
+request:
+  url: "{{URL}}/transactions/verify/GL8966667L"
+  method: GET
+response:
+  statusCode: 403
+  statusText: Forbidden
+  headers:
+    content-type: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "message": "This payment is not yours",
+        "error": "Forbidden",
+        "statusCode": 403
+      }
+order: 2000

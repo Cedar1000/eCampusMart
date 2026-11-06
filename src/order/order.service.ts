@@ -100,9 +100,9 @@ export class OrderService {
       this.logger.error(`QR code for order ${order.id} failed`, error);
     }
 
-    await this.orderGateway.notify(order, 'placed');
+    await this.orderGateway.notify(order, 'placed', buyerId);
 
-    return created;
+    return { ...created, data: { ...order, amount: order.amount / 100 } };
   }
 
   async findAll(query: IQuery & { sellerId?: string; buyerId?: string }) {
@@ -183,6 +183,7 @@ export class OrderService {
     await this.orderGateway.notify(
       closed.data,
       status === OrderStatus.CANCELLED ? 'cancelled' : 'completed',
+      userId,
     );
 
     return closed;

@@ -1,0 +1,23 @@
+$kind: http-example
+request:
+  url: "{{URL}}/transactions/verify/gO2249581S"
+  method: GET
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    content-type: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "data": {
+          "reference": "gO2249581S",
+          "purpose": "fund",
+          "status": "success",
+          "amount": 150,
+          "balance": 1250
+        }
+      }
+order: 1000

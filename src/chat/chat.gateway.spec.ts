@@ -112,6 +112,8 @@ describe('ChatGateway', () => {
   const chatService = {
     markAsRead: jest.fn(),
     create: jest.fn(),
+    markDelivered: jest.fn(() => []),
+    pushOffline: jest.fn(),
   };
   const redis = { get: jest.fn((key: string) => `socket-of-${key}`) };
 
@@ -171,6 +173,39 @@ describe('ChatGateway', () => {
         client,
       ),
     ).rejects.toThrow(WsException);
+  });
+
+  describe('push to an offline receiver', () => {
+    const message = {
+      id: 'message-1',
+      senderId: USER,
+      receiverId: OTHER,
+      conversationId: CONVERSATION,
+      content: 'Hi',
+    };
+    const send = () =>
+      gateway.handleMessage(
+        { senderId: USER, receiverId: OTHER, content: 'Hi' } as CreateChatDto,
+        client,
+      );
+
+    beforeEach(() => chatService.create.mockResolvedValue({ ...message }));
+
+    it('pushes the message when the receiver is offline', async () => {
+      redis.get.mockResolvedValueOnce(null as never);
+
+      await send();
+
+      expect(chatService.pushOffline).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'message-1' }),
+      );
+    });
+
+    it("doesn't push to a receiver who's online", async () => {
+      await send();
+
+      expect(chatService.pushOffline).not.toHaveBeenCalled();
+    });
   });
 
   it('passes the connected user to the service when sending', async () => {

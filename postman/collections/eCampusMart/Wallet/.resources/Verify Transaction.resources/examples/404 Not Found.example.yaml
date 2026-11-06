@@ -1,0 +1,18 @@
+$kind: http-example
+request:
+  url: "{{URL}}/transactions/verify/XX0000000X"
+  method: GET
+response:
+  statusCode: 404
+  statusText: Not Found
+  headers:
+    content-type: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "message": "No payment with that reference",
+        "error": "Not Found",
+        "statusCode": 404
+      }
+order: 3000

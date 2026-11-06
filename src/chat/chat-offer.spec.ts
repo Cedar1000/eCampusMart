@@ -75,6 +75,7 @@ describe('ChatService offers', () => {
       { find: jest.fn(() => []) } as never,
       { find: jest.fn(() => [{ id: STORE }]) } as never,
       {} as never,
+      {} as never,
     );
   });
 

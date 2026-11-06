@@ -34,7 +34,10 @@ const createDatabase = () => {
       execute: () => {
         if (entity === 'Wallet') {
           wallet.balance += Number(query.params.amount);
-          return { affected: 1, raw: [{ balance: String(wallet.balance) }] };
+          return {
+            affected: 1,
+            raw: [{ balance: String(wallet.balance), userId: 'user-1' }],
+          };
         }
 
         const unpaid = query.params.unpaid as string[] | undefined;
@@ -68,7 +71,14 @@ const createDatabase = () => {
     createQueryBuilder: manager.createQueryBuilder,
   } as unknown as DataSource;
 
-  return { row, wallet, service: new WalletWebhookService(dataSource) };
+  const push = { send: jest.fn() };
+
+  return {
+    row,
+    wallet,
+    push,
+    service: new WalletWebhookService(dataSource, push as never),
+  };
 };
 
 const paid = { reference: 'ref-1', amount: 1000000, currency: 'NGN' };
@@ -88,8 +98,20 @@ describe('WalletWebhookService', () => {
     expect(row).toMatchObject({ beforeBalance: 0, afterBalance: 1000000 });
   });
 
-  it('credits once when the webhook and verify settle it at the same time', async () => {
-    const { wallet, service } = createDatabase();
+  it('pushes the top-up to the wallet owner, in naira', async () => {
+    const { push, service } = createDatabase();
+
+    await service.handle('charge.success', paid);
+
+    expect(push.send).toHaveBeenCalledWith(['user-1'], {
+      title: 'Wallet funded',
+      body: expect.stringContaining('10,000') as string,
+      data: { type: 'wallet-funded', reference: 'ref-1', amount: 10000 },
+    });
+  });
+
+  it('credits and pushes once when the webhook and verify settle it at the same time', async () => {
+    const { wallet, push, service } = createDatabase();
 
     await Promise.all([
       service.handle('charge.success', paid),
@@ -98,6 +120,7 @@ describe('WalletWebhookService', () => {
     await service.handle('charge.success', paid);
 
     expect(wallet.balance).toBe(1000000);
+    expect(push.send).toHaveBeenCalledTimes(1);
   });
 
   it.each([

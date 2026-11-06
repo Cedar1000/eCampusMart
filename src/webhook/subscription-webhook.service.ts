@@ -13,6 +13,7 @@ import {
   refundPaystackTransaction,
 } from 'utils/paystack';
 import { syncStoreVisibility } from 'src/service-store/store-visibility';
+import { PushService } from 'src/notification/push.service';
 import { getSubscriptionEmail } from './subscription-webhook.emails';
 import { asRecord, asString, PaystackEventData } from './webhook.utils';
 
@@ -29,12 +30,14 @@ export class SubscriptionWebhookService {
     private readonly serviceStoreRepository: Repository<ServiceStore>,
 
     private readonly dataSource: DataSource,
+
+    private readonly pushService: PushService,
   ) {}
 
   async handle(event: string, data: PaystackEventData) {
     const subscription = await this.process(event, data);
 
-    // Not awaited: Paystack only needs the acknowledgement, not the email
+    // Not awaited: Paystack only needs the acknowledgement, not the email or push
     if (subscription) void this.notify(event, subscription);
   }
 
@@ -118,13 +121,23 @@ export class SubscriptionWebhookService {
 
       if (!user || !email) return;
 
+      await this.pushService.send([user.id], {
+        title: email.subject,
+        body: email.message,
+        data: {
+          type: 'subscription-updated',
+          storeId: subscription.storeId,
+          status: subscription.status,
+        },
+      });
+
       await sendEmail({
         to: user.email,
         subject: email.subject,
         text: `Dear ${user.firstName}, ${email.message}`,
       });
     } catch (error) {
-      console.error('Subscription email failed', event, error);
+      console.error('Subscription notice failed', event, error);
     }
   }
 

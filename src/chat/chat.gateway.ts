@@ -153,6 +153,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       if (delivered.length) message.status = MessageStatus.DELIVERED;
 
       await this.notifyDelivered(delivered);
+    } else {
+      // Not awaited, so the sender's ack isn't held up
+      void this.chatService.pushOffline(message);
     }
 
     return message;

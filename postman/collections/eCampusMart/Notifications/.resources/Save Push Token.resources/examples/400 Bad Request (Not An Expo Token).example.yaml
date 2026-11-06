@@ -1,0 +1,28 @@
+$kind: http-example
+request:
+  url: "{{URL}}/notifications/push-tokens"
+  method: POST
+  body:
+    type: json
+    content: |-
+      {
+          "token": "fcm-device-token",
+          "platform": "web"
+      }
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    content-type: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "message": [
+          "token must be an Expo push token",
+          "platform must be one of the following values: ios, android"
+        ],
+        "error": "Bad Request",
+        "statusCode": 400
+      }
+order: 3000

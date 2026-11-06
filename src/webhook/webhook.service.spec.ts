@@ -15,6 +15,7 @@ import { Subscription } from 'src/subscription/entities/subscription.entity';
 import { SubscriptionStatus } from 'src/subscription/enums/subscription-status.enum';
 import { Transaction } from 'src/transaction/entities/transaction.entity';
 import { SubscriptionWebhookService } from './subscription-webhook.service';
+import { PushService } from 'src/notification/push.service';
 import { WalletWebhookService } from './wallet-webhook.service';
 import { WebhookService } from './webhook.service';
 import { getQueueToken } from '@nestjs/bullmq';
@@ -29,6 +30,7 @@ const SECRET = 'sk_test';
 const flush = () => new Promise((resolve) => setImmediate(resolve));
 
 describe('WebhookService', () => {
+  const push = { send: jest.fn() };
   let service: WebhookService;
   let subscription: Partial<Subscription>;
   let rows: Partial<Subscription>[];
@@ -60,6 +62,7 @@ describe('WebhookService', () => {
       expiresAt: new Date('2026-01-01T00:00:00.000Z'),
     };
     jest.mocked(sendEmail).mockReset();
+    push.send.mockReset();
     rows = [subscription];
     storeExists = true;
 
@@ -95,6 +98,7 @@ describe('WebhookService', () => {
         WebhookService,
         WalletWebhookService,
         SubscriptionWebhookService,
+        { provide: PushService, useValue: push },
         {
           provide: getRepositoryToken(Transaction),
           useValue: {},
@@ -109,7 +113,11 @@ describe('WebhookService', () => {
         {
           provide: getRepositoryToken(User),
           useValue: {
-            findOne: jest.fn(() => ({ email: 'a@b.com', firstName: 'Ada' })),
+            findOne: jest.fn(() => ({
+              id: 'user-1',
+              email: 'a@b.com',
+              firstName: 'Ada',
+            })),
           },
         },
         {
@@ -507,6 +515,18 @@ describe('WebhookService', () => {
       text: expect.stringContaining(
         'Dear Ada, Your subscription for Ada Cuts',
       ) as string,
+    });
+  });
+
+  it('pushes the same notice to the store owner', async () => {
+    await send('subscription.not_renew', { subscription_code: 'SUB_1' });
+    await flush();
+
+    expect(push.send).toHaveBeenCalledTimes(1);
+    expect(push.send).toHaveBeenCalledWith(['user-1'], {
+      title: 'Subscription will not renew',
+      body: expect.stringContaining('Ada Cuts') as string,
+      data: expect.objectContaining({ type: 'subscription-updated' }) as object,
     });
   });
 

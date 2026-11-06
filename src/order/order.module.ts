@@ -8,9 +8,13 @@ import { OrderGateway } from './order.gateway';
 import { User } from 'src/auth/entities/user.entity';
 import { Product } from 'src/product/entities/product.entity';
 import { ProductStore } from 'src/product-store/entities/product-store.entity';
+import { NotificationModule } from 'src/notification/notification.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Order, Product, User, ProductStore])],
+  imports: [
+    TypeOrmModule.forFeature([Order, Product, User, ProductStore]),
+    NotificationModule,
+  ],
   controllers: [OrderController],
   providers: [OrderService, OrderExpirySweep, OrderGateway],
   exports: [OrderService],

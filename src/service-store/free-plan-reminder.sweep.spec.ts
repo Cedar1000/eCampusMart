@@ -12,6 +12,7 @@ const HOUR = 60 * 60 * 1000;
 describe('FreePlanReminderSweep', () => {
   let store: Partial<ServiceStore>;
   let onPlan: boolean;
+  let push: { send: jest.Mock };
   let sweep: FreePlanReminderSweep;
   // When the sweep runs, so the fake query applies the same date window
   let runningAt: Date;
@@ -68,7 +69,8 @@ describe('FreePlanReminderSweep', () => {
       ),
     };
 
-    sweep = new FreePlanReminderSweep({ manager } as never);
+    push = { send: jest.fn() };
+    sweep = new FreePlanReminderSweep({ manager } as never, push as never);
   });
 
   it('works out which reminder is due', () => {
@@ -99,6 +101,18 @@ describe('FreePlanReminderSweep', () => {
     expect(first.text).toContain('Dear Ada');
     expect(first.text).toContain('Ada Cuts');
     expect(first.text).toContain('Subscribe to a plan');
+  });
+
+  it('pushes each reminder to the owner once', async () => {
+    await runAt(DAY - HOUR);
+    await runAt(DAY - 2 * HOUR);
+
+    expect(push.send).toHaveBeenCalledTimes(1);
+    expect(push.send).toHaveBeenCalledWith(['owner-1'], {
+      title: 'Your free plan ends tomorrow',
+      body: expect.stringContaining('Ada Cuts') as string,
+      data: { type: 'free-plan-ending', storeId: 'store-1', stage: '1d' },
+    });
   });
 
   it('skips a reminder that was missed and sends the current one', async () => {
@@ -134,6 +148,7 @@ describe('FreePlanReminderSweep', () => {
 
     await runAt(DAY - HOUR);
     expect(store.trialReminderSent).toBeNull();
+    expect(push.send).not.toHaveBeenCalled();
 
     await runAt(DAY - 2 * HOUR);
     expect(store.trialReminderSent).toBe('1d');

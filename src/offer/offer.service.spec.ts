@@ -10,6 +10,7 @@ import { ProductStore } from 'src/product-store/entities/product-store.entity';
 import { ServiceStore } from 'src/service-store/entities/service-store.entity';
 import { Offer, OfferSellerType, OfferStatus } from './entities/offer.entity';
 import { OfferService } from './offer.service';
+import { Product } from 'src/product/entities/product.entity';
 
 describe('OfferService.update', () => {
   let offer: Partial<Offer> | null;
@@ -18,10 +19,11 @@ describe('OfferService.update', () => {
     findOneBy: jest.Mock;
     save: jest.Mock;
     update: jest.Mock;
-    manager: { exists: jest.Mock };
+    manager: { findOne: jest.Mock };
   };
   let orderService: { create: jest.Mock };
   let gateway: { notify: jest.Mock };
+  let push: { send: jest.Mock };
   let service: OfferService;
 
   const answer = (status: OfferStatus, user: string) =>
@@ -48,19 +50,21 @@ describe('OfferService.update', () => {
       save: jest.fn((fields: object) => fields),
       update: jest.fn(),
       manager: {
-        exists: jest.fn(
-          (
-            entity: unknown,
-            {
-              where,
-            }: { where: { id: string; userId?: string; ownerId?: string } },
-          ) =>
-            ownedStores.some(
-              (store) =>
-                store.entity === entity &&
-                store.id === where.id &&
-                store.owner === (where.userId ?? where.ownerId),
-            ),
+        // A store row with its owner, or the product's name
+        findOne: jest.fn(
+          (entity: unknown, { where }: { where: { id: string } }) => {
+            if (entity === Product) return { id: where.id, name: 'iPhone 12' };
+            const store = ownedStores.find(
+              (owned) => owned.entity === entity && owned.id === where.id,
+            );
+            return (
+              store && {
+                id: store.id,
+                userId: store.owner,
+                ownerId: store.owner,
+              }
+            );
+          },
         ),
       },
     };
@@ -68,10 +72,12 @@ describe('OfferService.update', () => {
       create: jest.fn(() => ({ data: { id: 'order-1', amount: 500000 } })),
     };
     gateway = { notify: jest.fn() };
+    push = { send: jest.fn() };
     service = new OfferService(
       repo as never,
       orderService as unknown as OrderService,
       gateway as never,
+      push as never,
     );
   });
 
@@ -192,5 +198,70 @@ describe('OfferService.update', () => {
     offer = null;
 
     await expect(reject()).rejects.toThrow(NotFoundException);
+  });
+
+  describe('push', () => {
+    it('pushes an accepted offer to the seller, not the buyer who accepted', async () => {
+      await accept();
+
+      expect(push.send).toHaveBeenCalledWith(['seller-1'], {
+        title: 'Offer accepted',
+        body: 'Your ₦5,000 offer for iPhone 12 was accepted',
+        data: {
+          type: 'offer-updated',
+          offerId: 'offer-1',
+          status: OfferStatus.ACCEPTED,
+        },
+      });
+    });
+
+    it('pushes a declined offer to the seller', async () => {
+      await reject();
+
+      expect(push.send).toHaveBeenCalledWith(
+        ['seller-1'],
+        expect.objectContaining({ title: 'Offer declined' }),
+      );
+    });
+
+    it("pushes a store's cancelled offer to the buyer, not the owner who cancelled", async () => {
+      Object.assign(offer!, {
+        sellerType: OfferSellerType.PRODUCT_STORE,
+        sellerId: 'store-1',
+      });
+      ownedStores = [{ entity: ProductStore, id: 'store-1', owner: 'owner-1' }];
+
+      await cancel('owner-1');
+
+      expect(push.send).toHaveBeenCalledWith(
+        ['buyer-1'],
+        expect.objectContaining({ title: 'Offer withdrawn' }),
+      );
+    });
+
+    it("pushes an expired offer to the store's owner", async () => {
+      Object.assign(offer!, {
+        sellerType: OfferSellerType.SERVICE_STORE,
+        sellerId: 'store-1',
+        expiresAt: new Date(Date.now() - 1000),
+      });
+      ownedStores = [{ entity: ServiceStore, id: 'store-1', owner: 'owner-1' }];
+
+      await expect(accept()).rejects.toThrow('This offer has expired');
+
+      expect(push.send).toHaveBeenCalledWith(
+        ['owner-1'],
+        expect.objectContaining({ title: 'Offer expired' }),
+      );
+    });
+
+    it("doesn't fail the request when the push fails", async () => {
+      push.send.mockRejectedValue(new Error('expo down'));
+      jest.spyOn(console, 'error').mockImplementation(() => undefined);
+
+      await expect(reject()).resolves.toMatchObject({
+        data: { status: OfferStatus.REJECTED },
+      });
+    });
   });
 });

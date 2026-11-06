@@ -1,0 +1,14 @@
+$kind: http-example
+request:
+  url: "{{URL}}/notifications/push-tokens"
+  method: DELETE
+  body:
+    type: json
+    content: |-
+      {
+          "token": "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]"
+      }
+response:
+  statusCode: 204
+  statusText: No Content
+order: 1000

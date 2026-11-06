@@ -27,6 +27,7 @@ import { Product } from 'src/product/entities/product.entity';
 import { ProductStatus } from 'src/product/enums/product-status.enum';
 import { ProductStore } from 'src/product-store/entities/product-store.entity';
 import { ServiceStore } from 'src/service-store/entities/service-store.entity';
+import { PushService } from 'src/notification/push.service';
 
 export interface ConversationRecipient {
   id: string;
@@ -67,7 +68,64 @@ export class ChatService {
     private readonly serviceStoreRepo: Repository<ServiceStore>,
 
     private readonly messageSubscriber: MessageSubscriber,
+
+    private readonly pushService: PushService,
   ) {}
+
+  // Pushes a message to a receiver who's offline, so it shows in their phone's
+  // notification tray. A message to a store goes to the store's owner. Never
+  // throws, like PushService.send
+  async pushOffline(message: Message & { offer?: Pick<Offer, 'amount'> }) {
+    try {
+      const [ownerId, recipients] = await Promise.all([
+        this.findOwnerId(message.receiverId, message.receiverType),
+        this.findRecipients([message.senderId]),
+      ]);
+
+      if (!ownerId) return;
+
+      // Offer amounts on a returned message are already naira
+      const body =
+        message.content?.trim() ||
+        (message.offer
+          ? `Made an offer: ₦${message.offer.amount.toLocaleString('en-NG')}`
+          : 'New message');
+
+      await this.pushService.send([ownerId], {
+        title: recipients.get(message.senderId)?.name || 'New message',
+        body: body.length > 150 ? `${body.slice(0, 149)}…` : body,
+        data: {
+          type: 'chat-message',
+          conversationId: message.conversationId,
+          receiverId: message.receiverId,
+          messageId: message.id,
+        },
+      });
+    } catch (error) {
+      console.error('Chat push failed', message.id, error);
+    }
+  }
+
+  // The user behind a participant: the user themself, or a store's owner
+  private async findOwnerId(id: string, type: MessageIndentity) {
+    if (type === MessageIndentity.PRODUCT_STORE) {
+      const store = await this.productStoreRepo.findOne({
+        where: { id },
+        select: ['id', 'userId'],
+      });
+      return store?.userId ?? null;
+    }
+
+    if (type === MessageIndentity.SERVICE_STORE) {
+      const store = await this.serviceStoreRepo.findOne({
+        where: { id },
+        select: ['id', 'ownerId'],
+      });
+      return store?.ownerId ?? null;
+    }
+
+    return id;
+  }
 
   // Saves a message, with the sender and receiver types looked up from their ids.
   // The sender must be the user or one of their stores. An offer message also creates

@@ -14,6 +14,7 @@ import { ServiceStore } from 'src/service-store/entities/service-store.entity';
 import { BullModule } from '@nestjs/bullmq';
 import { PAYMENT_QUE } from './webhook.constants';
 import { PaymentProcessor } from './processors/payment.processor';
+import { NotificationModule } from 'src/notification/notification.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { PaymentProcessor } from './processors/payment.processor';
       ServiceStore,
     ]),
     BullModule.registerQueue({ name: PAYMENT_QUE }),
+    NotificationModule,
   ],
   controllers: [WebhookController, PaymentController],
   providers: [

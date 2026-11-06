@@ -13,6 +13,7 @@ import { Product } from 'src/product/entities/product.entity';
 import { Service } from 'src/service/entities/service.entity';
 import { Housing } from 'src/housing/entities/housing.entity';
 import { Offer } from 'src/offer/entities/offer.entity';
+import { NotificationModule } from 'src/notification/notification.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { Offer } from 'src/offer/entities/offer.entity';
       Housing,
       Offer,
     ]),
+    NotificationModule,
   ],
   controllers: [ChatController],
   providers: [ChatService, ChatGateway, MessageSubscriber],

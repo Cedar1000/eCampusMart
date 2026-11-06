@@ -47,6 +47,7 @@ import { FeesModule } from './fees/fees.module';
 import { ChatModule } from './chat/chat.module';
 import { OfferModule } from './offer/offer.module';
 import { OrderModule } from './order/order.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -88,6 +89,7 @@ import { OrderModule } from './order/order.module';
     ChatModule,
     OfferModule,
     OrderModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

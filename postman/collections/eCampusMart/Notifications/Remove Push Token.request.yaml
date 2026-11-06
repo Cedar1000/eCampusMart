@@ -1,0 +1,17 @@
+$kind: http-request
+description: |-
+  Removes the signed-in user's push token on sign-out, so the next person on the phone doesn't get their pushes. Always 204, including for a token that's already gone.
+url: "{{URL}}/notifications/push-tokens"
+method: DELETE
+body:
+  type: json
+  content: |-
+    {
+        "token": "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]"
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+examples: ./.resources/Remove Push Token.resources/examples
+order: 2000

@@ -1,0 +1,18 @@
+$kind: http-example
+request:
+  url: "{{URL}}/transactions/verify/uh4906739f"
+  method: GET
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    content-type: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "message": "Only wallet top-ups can be verified; this is a product-upload transaction",
+        "error": "Bad Request",
+        "statusCode": 400
+      }
+order: 4000

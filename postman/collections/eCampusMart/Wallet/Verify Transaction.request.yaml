@@ -1,0 +1,17 @@
+$kind: http-request
+description: |-
+  Settles a wallet top-up or store subscription straight away if Paystack says it's paid, in case the webhook is late. Uses the same settlement as the webhook, so a payment is only applied once. `amount` and `balance` are in naira.
+
+  - 403: the reference belongs to someone else's payment.
+  - 404: no top-up or subscription has the reference.
+  - 400: the reference is a wallet debit such as a listing fee, which never went through Paystack.
+
+  Replace the reference in the URL with the one returned when the top-up or subscription checkout was initialized.
+url: "{{URL}}/transactions/verify/gO2249581S"
+method: GET
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+examples: ./.resources/Verify Transaction.resources/examples
+order: 3000

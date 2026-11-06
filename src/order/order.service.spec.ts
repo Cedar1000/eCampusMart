@@ -200,6 +200,7 @@ describe('OrderService', () => {
         qrCode: 'https://res.cloudinary.com/qr.png',
       }),
       'placed',
+      'buyer-1',
     );
   });
 
@@ -340,6 +341,7 @@ describe('OrderService', () => {
           status: OrderStatus.CANCELLED,
         }),
         'cancelled',
+        'seller-1',
       );
     });
 
@@ -357,6 +359,7 @@ describe('OrderService', () => {
           status: OrderStatus.COMPLETED,
         }),
         'completed',
+        'seller-1',
       );
     });
 

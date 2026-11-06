@@ -3,6 +3,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { Between, DataSource, In, IsNull } from 'typeorm';
 
 import sendEmail from 'utils/sendEmail';
+import { PushService } from 'src/notification/push.service';
 import { User } from 'src/auth/entities/user.entity';
 import { Subscription } from 'src/subscription/entities/subscription.entity';
 import { TRIAL_DAYS } from 'src/subscription/subscription.constants';
@@ -36,7 +37,11 @@ export const dueReminder = (endsAt: Date, now: Date): FreePlanReminder => {
 export class FreePlanReminderSweep {
   private readonly logger = new Logger(FreePlanReminderSweep.name);
 
-  constructor(private readonly dataSource: DataSource) {}
+  constructor(
+    private readonly dataSource: DataSource,
+
+    private readonly pushService: PushService,
+  ) {}
 
   @Cron(CronExpression.EVERY_HOUR)
   async sweep(now = new Date()) {
@@ -170,6 +175,13 @@ export class FreePlanReminderSweep {
 
     await this.dataSource.manager.update(ServiceStore, store.id, {
       trialReminderSent: reminder,
+    });
+
+    // Once the email went out, so a retry doesn't push twice
+    await this.pushService.send([owner.id], {
+      title: email.subject,
+      body: email.message,
+      data: { type: 'free-plan-ending', storeId: store.id, stage: reminder },
     });
 
     return true;
