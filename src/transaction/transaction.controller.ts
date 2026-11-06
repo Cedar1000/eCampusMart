@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   NotFoundException,
+  Param,
   UseInterceptors,
 } from '@nestjs/common';
 import { TransactionService } from './transaction.service';
@@ -11,6 +12,7 @@ import { User } from 'src/auth/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Wallet } from 'src/wallet/entities/wallet.entity';
 import { Repository } from 'typeorm';
+import { PaymentService } from 'src/webhook/payment.service';
 import { FormatAmountInterceptor } from './interceptors/format-amount.interceptor';
 
 @Controller('transactions')
@@ -20,6 +22,8 @@ export class TransactionController {
 
     @InjectRepository(Wallet)
     private readonly walletRepo: Repository<Wallet>,
+
+    private readonly paymentService: PaymentService,
   ) {}
 
   @UseInterceptors(FormatAmountInterceptor)
@@ -34,5 +38,13 @@ export class TransactionController {
     query = { ...query, walletId: wallet.id };
 
     return this.transactionService.findAll(query);
+  }
+
+  // Settles a wallet top-up or store subscription straight away if Paystack says
+  // it's paid, in case the webhook is late. Same settlement as the webhook, so a
+  // payment is only applied once
+  @Get('verify/:reference')
+  verify(@Param('reference') reference: string, @CurrentUser() user: User) {
+    return this.paymentService.verify(reference, user.id);
   }
 }
