@@ -1,0 +1,86 @@
+$kind: http-example
+request:
+  url: "{{URL}}/notifications?page=1&limit=10"
+  method: GET
+  queryParams:
+    page: "1"
+    limit: "10"
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    content-type: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "Get All successful!",
+        "total": 4,
+        "nextPage": 2,
+        "prevPage": null,
+        "count": 14,
+        "pages": 2,
+        "currentPage": 1,
+        "data": [
+          {
+            "id": "c3f1a9e2-7b4d-4c8e-9a51-2e6d0b8f4a17",
+            "createdAt": "2026-11-06T10:42:18.512Z",
+            "updatedAt": "2026-11-06T10:42:18.512Z",
+            "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "type": "offer-accepted",
+            "title": "Offer accepted",
+            "body": "₦6,000 · oraimo 20w fast charger · order ORD-L1MK-WQ created",
+            "data": {
+              "offerId": "5f0c8a52-3f7e-4b8e-9c55-0f6f2a1d7e10",
+              "orderId": "102d83e3-cc2a-4757-b056-f5b5e7b3a689",
+              "productId": "8fe7a3f2-4faa-4cd3-ad4c-25b7a15014fd"
+            },
+            "isRead": false
+          },
+          {
+            "id": "8a2d6c4b-1e9f-4f3a-b7d2-5c0e8a9b6f31",
+            "createdAt": "2026-11-06T09:15:02.207Z",
+            "updatedAt": "2026-11-06T09:15:02.207Z",
+            "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "type": "order-completed",
+            "title": "Order completed",
+            "body": "Adaeze marked order ORD-FI5N-KG as complete.",
+            "data": {
+              "orderId": "584f152e-f6a3-4e3c-9d49-cede38978194",
+              "productId": "f4b0a2ed-4747-493e-b18f-d59e009cf035"
+            },
+            "isRead": false
+          },
+          {
+            "id": "4b7e2f9a-6c1d-4e8b-a3f5-9d2c7e1b0a46",
+            "createdAt": "2026-11-05T15:18:14.610Z",
+            "updatedAt": "2026-11-05T15:18:14.610Z",
+            "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "type": "wallet-debited",
+            "title": "Wallet debited",
+            "body": "₦300 listing fee debited.",
+            "data": {
+              "reference": "uh4906739f",
+              "amount": 300,
+              "productId": "2bb16340-47c7-4cac-b9f7-93d671667818"
+            },
+            "isRead": true
+          },
+          {
+            "id": "e6a9d3c1-2f8b-4a7e-9c45-1b3d8f6e2a90",
+            "createdAt": "2026-11-05T14:02:51.334Z",
+            "updatedAt": "2026-11-05T14:02:51.334Z",
+            "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+            "type": "wallet-funded",
+            "title": "Wallet funded",
+            "body": "Paystack confirmed your ₦5,000 top-up. It's ready to spend.",
+            "data": {
+              "reference": "gO2249581S",
+              "amount": 5000
+            },
+            "isRead": true
+          }
+        ]
+      }
+order: 1000

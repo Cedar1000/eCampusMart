@@ -21,6 +21,11 @@ import {
   TransactionType,
 } from 'src/transaction/entities/transaction.entity';
 import generateReference from 'utils/generateReference';
+import {
+  NotificationService,
+  formatNaira,
+} from 'src/notification/notification.service';
+import { NotificationType } from 'src/notification/entities/notification.entity';
 import { HOUSING_LISTING_FEE } from 'src/fees/fees.constants';
 
 @Injectable()
@@ -37,12 +42,16 @@ export class HousingService {
     private readonly dataSource: DataSource,
 
     private readonly listingCleanupService: ListingCleanupService,
+
+    private readonly notificationService: NotificationService,
   ) {}
 
   async create(createHousingDto: CreateHousingDto) {
     const { images, ...housingData } = createHousingDto;
 
-    return await this.dataSource.transaction(async (manager) => {
+    const reference = generateReference();
+
+    const created = await this.dataSource.transaction(async (manager) => {
       const wallet = await manager.findOne(Wallet, {
         where: { userId: housingData.userId },
         lock: { mode: 'pessimistic_write' },
@@ -81,7 +90,7 @@ export class HousingService {
           amount: HOUSING_LISTING_FEE,
           type: TransactionType.DEBIT,
           status: TransactionStatus.SUCCESS,
-          reference: generateReference(),
+          reference,
           description: TransactionDescription.HOUSING_UPLOAD,
           currency: wallet.currency,
           beforeBalance,
@@ -98,6 +107,21 @@ export class HousingService {
         data: housing,
       };
     });
+
+    // After the commit, so a refused upload doesn't leave a notification
+    await this.notificationService.create({
+      userId: created.data.userId,
+      type: NotificationType.WALLET_DEBITED,
+      title: 'Wallet debited',
+      body: `${formatNaira(HOUSING_LISTING_FEE)} listing fee debited.`,
+      data: {
+        reference,
+        amount: HOUSING_LISTING_FEE / 100,
+        housingId: created.data.id,
+      },
+    });
+
+    return created;
   }
 
   async findAll(query: Partial<IQuery>) {

@@ -4,16 +4,19 @@ import { Offer, OfferSellerType } from 'src/offer/entities/offer.entity';
 import { Product } from 'src/product/entities/product.entity';
 import { ProductStatus } from 'src/product/enums/product-status.enum';
 import { ChatService } from './chat.service';
+import { NotificationType } from 'src/notification/entities/notification.entity';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { Message, MessageType } from './entities/message.entity';
 
 const BUYER = 'buyer-1';
 const SELLER = 'seller-1';
 const STORE = 'store-1';
+const DAY = 24 * 60 * 60 * 1000;
 
 describe('ChatService offers', () => {
   let product: Partial<Product> | null;
   let saved: { entity: unknown; row: Record<string, unknown> }[];
+  let notifications: { create: jest.Mock };
   let service: ChatService;
 
   // The seller, connected as themselves, makes an offer to the buyer
@@ -38,9 +41,11 @@ describe('ChatService offers', () => {
     product = {
       id: 'product-1',
       userId: SELLER,
+      name: 'oraimo 20w fast charger',
       isStoreProduct: false,
       status: ProductStatus.ACTIVE,
     };
+    notifications = { create: jest.fn() };
 
     const manager = {
       findOne: jest.fn(() => product),
@@ -57,7 +62,10 @@ describe('ChatService offers', () => {
           row: Record<string, unknown>;
         }) => {
           saved.push({ entity, row });
-          return { id: entity === Offer ? 'offer-1' : 'message-1', ...row };
+          // The offer's @BeforeInsert sets it to expire in 24 hours
+          return entity === Offer
+            ? { id: 'offer-1', ...row, expiresAt: new Date(Date.now() + DAY) }
+            : { id: 'message-1', ...row };
         },
       ),
       transaction: jest.fn((run: (m: unknown) => unknown): unknown =>
@@ -76,6 +84,7 @@ describe('ChatService offers', () => {
       { find: jest.fn(() => [{ id: STORE }]) } as never,
       {} as never,
       {} as never,
+      notifications as never,
     );
   });
 
@@ -137,5 +146,30 @@ describe('ChatService offers', () => {
       send({ senderId: BUYER, receiverId: SELLER }, BUYER),
     ).rejects.toThrow(BadRequestException);
     expect(saved).toHaveLength(0);
+  });
+
+  it('adds "New offer received" to the buyer\'s notifications', async () => {
+    await send({ amount: 6000 });
+
+    expect(notifications.create).toHaveBeenCalledWith({
+      userId: BUYER,
+      type: NotificationType.OFFER_RECEIVED,
+      title: 'New offer received',
+      body: '₦6,000 · oraimo 20w fast charger · expires in 24 hrs',
+      data: {
+        offerId: 'offer-1',
+        productId: 'product-1',
+        conversationId: 'conversation-1',
+        messageId: 'message-1',
+        expiresAt: expect.any(String) as string,
+      },
+    });
+  });
+
+  it("doesn't add a notification for a refused offer", async () => {
+    product!.status = ProductStatus.SOLD;
+
+    await expect(send()).rejects.toThrow();
+    expect(notifications.create).not.toHaveBeenCalled();
   });
 });

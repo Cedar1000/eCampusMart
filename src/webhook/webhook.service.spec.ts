@@ -16,6 +16,7 @@ import { SubscriptionStatus } from 'src/subscription/enums/subscription-status.e
 import { Transaction } from 'src/transaction/entities/transaction.entity';
 import { SubscriptionWebhookService } from './subscription-webhook.service';
 import { PushService } from 'src/notification/push.service';
+import { NotificationService } from 'src/notification/notification.service';
 import { WalletWebhookService } from './wallet-webhook.service';
 import { WebhookService } from './webhook.service';
 import { getQueueToken } from '@nestjs/bullmq';
@@ -99,6 +100,7 @@ describe('WebhookService', () => {
         WalletWebhookService,
         SubscriptionWebhookService,
         { provide: PushService, useValue: push },
+        { provide: NotificationService, useValue: { create: jest.fn() } },
         {
           provide: getRepositoryToken(Transaction),
           useValue: {},

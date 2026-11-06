@@ -10,6 +10,7 @@ import { ProductStore } from 'src/product-store/entities/product-store.entity';
 import { ServiceStore } from 'src/service-store/entities/service-store.entity';
 import { Offer, OfferSellerType, OfferStatus } from './entities/offer.entity';
 import { OfferService } from './offer.service';
+import { NotificationType } from 'src/notification/entities/notification.entity';
 import { Product } from 'src/product/entities/product.entity';
 
 describe('OfferService.update', () => {
@@ -24,6 +25,7 @@ describe('OfferService.update', () => {
   let orderService: { create: jest.Mock };
   let gateway: { notify: jest.Mock };
   let push: { send: jest.Mock };
+  let notifications: { create: jest.Mock };
   let service: OfferService;
 
   const answer = (status: OfferStatus, user: string) =>
@@ -69,15 +71,19 @@ describe('OfferService.update', () => {
       },
     };
     orderService = {
-      create: jest.fn(() => ({ data: { id: 'order-1', amount: 500000 } })),
+      create: jest.fn(() => ({
+        data: { id: 'order-1', orderId: 'ORD-2113', amount: 5000 },
+      })),
     };
     gateway = { notify: jest.fn() };
     push = { send: jest.fn() };
+    notifications = { create: jest.fn() };
     service = new OfferService(
       repo as never,
       orderService as unknown as OrderService,
       gateway as never,
       push as never,
+      notifications as never,
     );
   });
 
@@ -262,6 +268,51 @@ describe('OfferService.update', () => {
       await expect(reject()).resolves.toMatchObject({
         data: { status: OfferStatus.REJECTED },
       });
+    });
+  });
+
+  describe('notifications', () => {
+    it('adds "Offer accepted" to the seller\'s notifications', async () => {
+      await accept();
+
+      expect(notifications.create).toHaveBeenCalledWith({
+        userId: 'seller-1',
+        type: NotificationType.OFFER_ACCEPTED,
+        title: 'Offer accepted',
+        body: '₦5,000 · iPhone 12 · order ORD-2113 created',
+        data: {
+          offerId: 'offer-1',
+          orderId: 'order-1',
+          productId: 'product-1',
+        },
+      });
+    });
+
+    it('goes to the owner of the store that made the offer', async () => {
+      Object.assign(offer!, {
+        sellerType: OfferSellerType.PRODUCT_STORE,
+        sellerId: 'store-1',
+      });
+      ownedStores = [{ entity: ProductStore, id: 'store-1', owner: 'owner-1' }];
+
+      await accept();
+
+      expect(notifications.create).toHaveBeenCalledWith(
+        expect.objectContaining({ userId: 'owner-1' }),
+      );
+    });
+
+    it("isn't added when the order can't be placed", async () => {
+      orderService.create.mockRejectedValue(new ConflictException('taken'));
+
+      await expect(accept()).rejects.toThrow(ConflictException);
+      expect(notifications.create).not.toHaveBeenCalled();
+    });
+
+    it("isn't added for a declined offer", async () => {
+      await reject();
+
+      expect(notifications.create).not.toHaveBeenCalled();
     });
   });
 });

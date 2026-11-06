@@ -26,6 +26,11 @@ import {
   TransactionType,
 } from 'src/transaction/entities/transaction.entity';
 import generateReference from 'utils/generateReference';
+import {
+  NotificationService,
+  formatNaira,
+} from 'src/notification/notification.service';
+import { NotificationType } from 'src/notification/entities/notification.entity';
 import { PRODUCT_FEE_PER_UNIT } from 'src/fees/fees.constants';
 
 @Injectable()
@@ -42,13 +47,17 @@ export class ProductService {
     private readonly dataSource: DataSource,
 
     private readonly listingCleanupService: ListingCleanupService,
+
+    private readonly notificationService: NotificationService,
   ) {}
 
   async create(createProductDto: CreateProductDto) {
     const { images, ...productData } = createProductDto;
     const uploadAmount = this.getUploadAmount(productData.quantity);
 
-    return await this.dataSource.transaction(async (manager) => {
+    const reference = generateReference();
+
+    const created = await this.dataSource.transaction(async (manager) => {
       const wallet = await manager.findOne(Wallet, {
         where: { userId: productData.userId },
         lock: { mode: 'pessimistic_write' },
@@ -87,7 +96,7 @@ export class ProductService {
           amount: uploadAmount,
           type: TransactionType.DEBIT,
           status: TransactionStatus.SUCCESS,
-          reference: generateReference(),
+          reference,
           description: TransactionDescription.PRODUCT_UPLOAD,
           currency: wallet.currency,
           beforeBalance,
@@ -104,6 +113,21 @@ export class ProductService {
         data: product,
       };
     });
+
+    // After the commit, so a refused upload doesn't leave a notification
+    await this.notificationService.create({
+      userId: created.data.userId,
+      type: NotificationType.WALLET_DEBITED,
+      title: 'Wallet debited',
+      body: `${formatNaira(uploadAmount)} listing fee debited.`,
+      data: {
+        reference,
+        amount: uploadAmount / 100,
+        productId: created.data.id,
+      },
+    });
+
+    return created;
   }
 
   async findAll(query: IQuery) {

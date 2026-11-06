@@ -1,0 +1,27 @@
+$kind: http-request
+description: |-
+  The signed-in user's notifications, newest first, paged like the other lists. Only ever returns the user's own notifications.
+
+  - `page` and `limit` page the list (`limit` defaults to 10). `nextPage` is null on the last page.
+  - Filter on any field: `isRead=false` for unread only, or `type=offer-received,wallet-funded` for several types.
+  - `type` is one of `offer-received`, `offer-accepted`, `order-completed`, `order-cancelled`, `review-pending`, `review-received`, `wallet-funded`, `wallet-debited` or `wallet-refunded`.
+  - `title` and `body` are the two lines to show; `createdAt` is the time. `data` holds the ids to open the right screen (e.g. `orderId`, `offerId`, `productId`, `conversationId`), and amounts in it are in naira.
+url: "{{URL}}/notifications"
+method: GET
+queryParams:
+  - key: page
+    value: "1"
+  - key: limit
+    value: "10"
+  - key: isRead
+    value: "false"
+    disabled: true
+  - key: type
+    value: offer-received,offer-accepted
+    disabled: true
+auth:
+  type: bearer
+  credentials:
+    token: "{{jwt}}"
+examples: ./.resources/Get My Notifications.resources/examples
+order: 500

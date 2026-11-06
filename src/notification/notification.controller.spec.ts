@@ -3,6 +3,7 @@ import { HttpStatus, ValidationPipe } from '@nestjs/common';
 import { User } from 'src/auth/entities/user.entity';
 import { RemovePushTokenDto, SavePushTokenDto } from './dto/push-token.dto';
 import { NotificationController } from './notification.controller';
+import { NotificationService } from './notification.service';
 import { PushService } from './push.service';
 
 // Same options as the global pipe in main.ts
@@ -59,8 +60,10 @@ describe('push token bodies', () => {
 
 describe('NotificationController', () => {
   const pushService = { saveToken: jest.fn(), removeToken: jest.fn() };
+  const notificationService = { findAll: jest.fn() };
   const controller = new NotificationController(
     pushService as unknown as PushService,
+    notificationService as unknown as NotificationService,
   );
   const user = { id: 'user-1' } as User;
   const res = { status: jest.fn() };
@@ -84,5 +87,16 @@ describe('NotificationController', () => {
     await controller.removeToken({ token: TOKEN }, user);
 
     expect(pushService.removeToken).toHaveBeenCalledWith('user-1', TOKEN);
+  });
+
+  it("lists the current user's notifications", async () => {
+    const page = { status: 'success', data: [] };
+    notificationService.findAll.mockResolvedValue(page);
+
+    await expect(controller.findAll({ page: '2' }, user)).resolves.toBe(page);
+    expect(notificationService.findAll).toHaveBeenCalledWith(
+      { page: '2' },
+      'user-1',
+    );
   });
 });

@@ -19,6 +19,8 @@ import { Wallet } from 'src/wallet/entities/wallet.entity';
 import { Transaction } from 'src/transaction/entities/transaction.entity';
 import { HasHousingUploadBalanceGuard } from './guards/has-housing-upload-balance.guard';
 
+import { NotificationModule } from 'src/notification/notification.module';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -31,6 +33,7 @@ import { HasHousingUploadBalanceGuard } from './guards/has-housing-upload-balanc
       Wallet,
       Transaction,
     ]),
+    NotificationModule,
 
     BullModule.registerQueue({ name: HOUSING_QUE }),
   ],

@@ -8,6 +8,8 @@ import { Repository } from 'typeorm';
 import { User } from 'src/auth/entities/user.entity';
 import { emitToOnline } from 'src/common/live-events/emit-to-online';
 import { PushService } from 'src/notification/push.service';
+import { NotificationService } from 'src/notification/notification.service';
+import { NotificationType } from 'src/notification/entities/notification.entity';
 import { Product } from 'src/product/entities/product.entity';
 import { REDIS_CLIENT } from 'src/redis/constants/redis.constant';
 import { Order } from './entities/order.entity';
@@ -16,7 +18,13 @@ export type OrderAction = 'placed' | 'cancelled' | 'completed' | 'expired';
 
 type NotifiedOrder = Pick<
   Order,
-  'id' | 'sellerId' | 'buyerId' | 'amount' | 'productId' | 'quantity'
+  | 'id'
+  | 'orderId'
+  | 'sellerId'
+  | 'buyerId'
+  | 'amount'
+  | 'productId'
+  | 'quantity'
 >;
 
 const PUSH_TITLES: Record<OrderAction, string> = {
@@ -46,6 +54,8 @@ export class OrderGateway {
     private readonly userRepo: Repository<User>,
 
     private readonly pushService: PushService,
+
+    private readonly notificationService: NotificationService,
   ) {}
 
   // Sends `order-updated` to the seller and the buyer that are online, and a
@@ -66,10 +76,54 @@ export class OrderGateway {
         payload,
       );
 
+      await this.addNotification(order, action, actorId);
       await this.push(order, action, actorId);
     } catch (error) {
       this.logger.error(`order-updated for order ${order.id} failed`, error);
     }
+  }
+
+  // Adds "Order completed" or "Order cancelled" to the list of whoever didn't
+  // make the change, e.g. "Adaeze cancelled ORD-2113 before handover."
+  private async addNotification(
+    order: NotifiedOrder,
+    action: OrderAction,
+    actorId?: string,
+  ) {
+    if (action !== 'completed' && action !== 'cancelled') return;
+
+    const actor = actorId
+      ? await this.userRepo.findOne({
+          where: { id: actorId },
+          select: ['id', 'firstName'],
+        })
+      : null;
+    const name = actor?.firstName || 'The other party';
+    // Orders from before order codes were added may have none
+    const code = order.orderId || 'the order';
+    const orderLabel = order.orderId ? `order ${order.orderId}` : 'the order';
+
+    const body =
+      action === 'cancelled'
+        ? `${name} cancelled ${code} before handover.`
+        : actorId === order.sellerId
+          ? `${name} scanned your code, ${orderLabel} is complete.`
+          : `${name} marked ${orderLabel} as complete.`;
+
+    await this.notificationService.create(
+      ...[order.sellerId, order.buyerId]
+        .filter((id) => id !== actorId)
+        .map((userId) => ({
+          userId,
+          type:
+            action === 'cancelled'
+              ? NotificationType.ORDER_CANCELLED
+              : NotificationType.ORDER_COMPLETED,
+          title: action === 'cancelled' ? 'Order cancelled' : 'Order completed',
+          body,
+          data: { orderId: order.id, productId: order.productId },
+        })),
+    );
   }
 
   private async push(

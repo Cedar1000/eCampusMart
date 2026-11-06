@@ -2,6 +2,7 @@ import { Logger } from '@nestjs/common';
 
 import { Order } from './entities/order.entity';
 import { OrderGateway } from './order.gateway';
+import { NotificationType } from 'src/notification/entities/notification.entity';
 
 describe('OrderGateway', () => {
   const emit = jest.fn();
@@ -12,11 +13,13 @@ describe('OrderGateway', () => {
     findOne: jest.fn(() => ({ firstName: 'Ada', lastName: 'Obi' })),
   };
   const push = { send: jest.fn() };
+  const notifications = { create: jest.fn() };
   const gateway = new OrderGateway(
     redis as never,
     products as never,
     users as never,
     push as never,
+    notifications as never,
   );
   Object.assign(gateway, { server: { to } });
 
@@ -24,6 +27,7 @@ describe('OrderGateway', () => {
     id: 'order-1',
     sellerId: 'seller-1',
     buyerId: 'buyer-1',
+    orderId: 'ORD-2113',
     productId: 'product-1',
     quantity: 1,
     amount: 7500050,
@@ -102,5 +106,53 @@ describe('OrderGateway', () => {
 
       await expect(gateway.notify(order, 'completed')).resolves.toBeUndefined();
     });
+  });
+
+  describe('notifications', () => {
+    beforeEach(() => redis.mget.mockResolvedValue([null, null]));
+
+    it('tells the buyer the seller scanned their code', async () => {
+      await gateway.notify(order, 'completed', 'seller-1');
+
+      expect(notifications.create).toHaveBeenCalledWith({
+        userId: 'buyer-1',
+        type: NotificationType.ORDER_COMPLETED,
+        title: 'Order completed',
+        body: 'Ada scanned your code, order ORD-2113 is complete.',
+        data: { orderId: 'order-1', productId: 'product-1' },
+      });
+    });
+
+    it('tells the seller the buyer completed it', async () => {
+      await gateway.notify(order, 'completed', 'buyer-1');
+
+      expect(notifications.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'seller-1',
+          body: 'Ada marked order ORD-2113 as complete.',
+        }),
+      );
+    });
+
+    it('tells the other side who cancelled', async () => {
+      await gateway.notify(order, 'cancelled', 'buyer-1');
+
+      expect(notifications.create).toHaveBeenCalledWith({
+        userId: 'seller-1',
+        type: NotificationType.ORDER_CANCELLED,
+        title: 'Order cancelled',
+        body: 'Ada cancelled ORD-2113 before handover.',
+        data: { orderId: 'order-1', productId: 'product-1' },
+      });
+    });
+
+    it.each(['placed', 'expired'] as const)(
+      "doesn't add one for an order %s",
+      async (action) => {
+        await gateway.notify(order, action, 'buyer-1');
+
+        expect(notifications.create).not.toHaveBeenCalled();
+      },
+    );
   });
 });

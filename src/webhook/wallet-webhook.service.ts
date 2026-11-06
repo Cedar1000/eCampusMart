@@ -6,6 +6,11 @@ import {
 import { Wallet } from 'src/wallet/entities/wallet.entity';
 import { DataSource, EntityManager } from 'typeorm';
 import { PushService } from 'src/notification/push.service';
+import {
+  NotificationService,
+  formatNaira,
+} from 'src/notification/notification.service';
+import { NotificationType } from 'src/notification/entities/notification.entity';
 import { asString, PaystackEventData } from './webhook.utils';
 
 // A failed top-up can still be paid later on the same reference (e.g. after it expired)
@@ -22,6 +27,8 @@ export class WalletWebhookService {
     private readonly dataSource: DataSource,
 
     private readonly pushService: PushService,
+
+    private readonly notificationService: NotificationService,
   ) {}
 
   async handle(event: string, data: PaystackEventData) {
@@ -76,9 +83,17 @@ export class WalletWebhookService {
       return { userId, amount: Number(transaction.amount) };
     });
 
-    // After the commit, and only by the call that credited it, so it's pushed once
+    // After the commit, and only by the call that credited it, so it's sent once
     if (credited) {
       const naira = credited.amount / 100;
+
+      await this.notificationService.create({
+        userId: credited.userId,
+        type: NotificationType.WALLET_FUNDED,
+        title: 'Wallet funded',
+        body: `Paystack confirmed your ${formatNaira(credited.amount)} top-up. It's ready to spend.`,
+        data: { reference, amount: naira },
+      });
 
       await this.pushService.send([credited.userId], {
         title: 'Wallet funded',

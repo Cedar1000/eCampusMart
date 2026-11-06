@@ -16,6 +16,12 @@ import { UpdateOfferDto } from './dto/update-offer.dto';
 import { Offer, OfferSellerType, OfferStatus } from './entities/offer.entity';
 import { OfferGateway } from './offer.gateway';
 import { PushService } from 'src/notification/push.service';
+import {
+  NotificationService,
+  formatNaira,
+} from 'src/notification/notification.service';
+import { NotificationType } from 'src/notification/entities/notification.entity';
+import { Order } from 'src/order/entities/order.entity';
 import { Product } from 'src/product/entities/product.entity';
 
 @Injectable()
@@ -29,6 +35,8 @@ export class OfferService {
     private readonly offerGateway: OfferGateway,
 
     private readonly pushService: PushService,
+
+    private readonly notificationService: NotificationService,
   ) {}
 
   async findAll(query: Partial<IQuery>) {
@@ -82,11 +90,41 @@ export class OfferService {
     );
 
     const updated = await this.setStatus(offer, status, userId);
+    const created = order.data;
 
-    return {
-      ...updated,
-      data: { ...updated.data, order: (order as { data: unknown }).data },
-    };
+    await this.notifyAccepted(offer, created);
+
+    return { ...updated, data: { ...updated.data, order: created } };
+  }
+
+  // Adds "Offer accepted" to the seller's notifications
+  private async notifyAccepted(
+    offer: Offer,
+    order: Pick<Order, 'id' | 'orderId'>,
+  ) {
+    try {
+      const [sellerUserId, product] = await Promise.all([
+        this.findSellerUserId(offer),
+        this.offerRepo.manager.findOne(Product, {
+          where: { id: offer.productId },
+          select: ['id', 'name'],
+        }),
+      ]);
+
+      await this.notificationService.create({
+        userId: sellerUserId ?? '',
+        type: NotificationType.OFFER_ACCEPTED,
+        title: 'Offer accepted',
+        body: `${formatNaira(offer.amount)} · ${product?.name ?? 'a product'} · order ${order.orderId} created`,
+        data: {
+          offerId: offer.id,
+          orderId: order.id,
+          productId: offer.productId,
+        },
+      });
+    } catch (error) {
+      console.error('Offer accepted notification failed', offer.id, error);
+    }
   }
 
   // Saves the status, tells both sides on the socket, pushes it to whoever

@@ -1,0 +1,43 @@
+$kind: http-example
+request:
+  url: "{{URL}}/notifications?isRead=false"
+  method: GET
+  queryParams:
+    isRead: "false"
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    content-type: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "status": "success",
+        "message": "Get All successful!",
+        "total": 1,
+        "nextPage": null,
+        "prevPage": null,
+        "count": 1,
+        "pages": 1,
+        "currentPage": 1,
+        "data": [
+          {
+            "id": "7d1c4e8a-3b6f-4a9d-8e2c-6f0b5a7d3c19",
+            "createdAt": "2026-11-06T11:20:00.000Z",
+            "updatedAt": "2026-11-06T11:20:00.000Z",
+            "userId": "48c03f11-8cf5-4249-b1fe-304e3197f9bd",
+            "type": "offer-received",
+            "title": "New offer received",
+            "body": "₦6,000 · oraimo 20w fast charger · expires in 24 hrs",
+            "data": {
+              "offerId": "5f0c8a52-3f7e-4b8e-9c55-0f6f2a1d7e10",
+              "productId": "8fe7a3f2-4faa-4cd3-ad4c-25b7a15014fd",
+              "conversationId": "0b2ff029-745f-4c0b-a0f4-040d0870e744",
+              "messageId": "3e4cff2a-84a7-4fb9-b566-3ea6aac08082"
+            },
+            "isRead": false
+          }
+        ]
+      }
+order: 2000

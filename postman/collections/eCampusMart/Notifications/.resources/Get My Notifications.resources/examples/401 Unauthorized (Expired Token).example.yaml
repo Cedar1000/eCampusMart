@@ -1,0 +1,18 @@
+$kind: http-example
+request:
+  url: "{{URL}}/notifications"
+  method: GET
+response:
+  statusCode: 401
+  statusText: Unauthorized
+  headers:
+    content-type: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "message": "Invalid or expired token",
+        "error": "Unauthorized",
+        "statusCode": 401
+      }
+order: 3000

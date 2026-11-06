@@ -25,6 +25,7 @@ describe('ChatService.pushOffline', () => {
     serviceStores as never,
     {} as never,
     push as never,
+    {} as never,
   );
 
   const message = (fields: Partial<Message> = {}) =>

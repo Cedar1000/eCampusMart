@@ -185,7 +185,7 @@ describe('OrderService', () => {
 
     const result = await order();
 
-    expect(result.data).toMatchObject({ id: 'order-new', amount: 7500050 });
+    expect(result.data).toMatchObject({ id: 'order-new', amount: 75000.5 });
     expect(repo.update).not.toHaveBeenCalled();
   });
 
@@ -218,8 +218,12 @@ describe('OrderService', () => {
       sellerId: 'seller-1',
       isStoreOrder: false,
       quantity: 1,
-      amount: 7500050,
+      amount: 75000.5,
     });
+    // Saved in kobo, returned in naira
+    expect(repo.save).toHaveBeenCalledWith(
+      expect.objectContaining({ amount: 7500050 }),
+    );
     expect(result.data).not.toHaveProperty('storeId', 'store-1');
   });
 
@@ -227,7 +231,7 @@ describe('OrderService', () => {
     it('leaves the stock alone', async () => {
       const result = await order(3);
 
-      expect(result.data).toMatchObject({ quantity: 3, amount: 22500150 });
+      expect(result.data).toMatchObject({ quantity: 3, amount: 225001.5 });
       expect(product).toMatchObject({
         quantity: 3,
         status: ProductStatus.ACTIVE,
@@ -261,7 +265,7 @@ describe('OrderService', () => {
     expect(result.data).toMatchObject({
       offerId: 'offer-1',
       quantity: 1,
-      amount: 500000,
+      amount: 5000,
     });
   });
 

@@ -1,3 +1,4 @@
+import { NotificationType } from 'src/notification/entities/notification.entity';
 import { DataSource } from 'typeorm';
 
 import {
@@ -72,12 +73,18 @@ const createDatabase = () => {
   } as unknown as DataSource;
 
   const push = { send: jest.fn() };
+  const notifications = { create: jest.fn() };
 
   return {
     row,
     wallet,
     push,
-    service: new WalletWebhookService(dataSource, push as never),
+    notifications,
+    service: new WalletWebhookService(
+      dataSource,
+      push as never,
+      notifications as never,
+    ),
   };
 };
 
@@ -96,6 +103,22 @@ describe('WalletWebhookService', () => {
     expect(row.status).toBe(TransactionStatus.SUCCESS);
     expect(wallet.balance).toBe(1000000);
     expect(row).toMatchObject({ beforeBalance: 0, afterBalance: 1000000 });
+  });
+
+  it('adds "Wallet funded" to the owner\'s notifications once', async () => {
+    const { notifications, service } = createDatabase();
+
+    await service.handle('charge.success', paid);
+    await service.handle('charge.success', paid);
+
+    expect(notifications.create).toHaveBeenCalledTimes(1);
+    expect(notifications.create).toHaveBeenCalledWith({
+      userId: 'user-1',
+      type: NotificationType.WALLET_FUNDED,
+      title: 'Wallet funded',
+      body: "Paystack confirmed your ₦10,000 top-up. It's ready to spend.",
+      data: { reference: 'ref-1', amount: 10000 },
+    });
   });
 
   it('pushes the top-up to the wallet owner, in naira', async () => {

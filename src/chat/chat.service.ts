@@ -28,6 +28,12 @@ import { ProductStatus } from 'src/product/enums/product-status.enum';
 import { ProductStore } from 'src/product-store/entities/product-store.entity';
 import { ServiceStore } from 'src/service-store/entities/service-store.entity';
 import { PushService } from 'src/notification/push.service';
+import {
+  NotificationService,
+  formatExpiresIn,
+  formatNaira,
+} from 'src/notification/notification.service';
+import { NotificationType } from 'src/notification/entities/notification.entity';
 
 export interface ConversationRecipient {
   id: string;
@@ -70,6 +76,8 @@ export class ChatService {
     private readonly messageSubscriber: MessageSubscriber,
 
     private readonly pushService: PushService,
+
+    private readonly notificationService: NotificationService,
   ) {}
 
   // Pushes a message to a receiver who's offline, so it shows in their phone's
@@ -172,9 +180,9 @@ export class ChatService {
       productId: createChatDto.productId,
     });
     // Before the conversation, so a refused offer doesn't leave an empty one behind
-    if (isOffer) {
-      await this.assertCanOffer(createChatDto.productId, senderId);
-    }
+    const product = isOffer
+      ? await this.assertCanOffer(createChatDto.productId, senderId)
+      : null;
 
     console.log('after assertCanOffer', {
       isOffer,
@@ -200,7 +208,7 @@ export class ChatService {
       return this.messageRepo.save(this.messageRepo.create(message));
     }
 
-    return this.messageRepo.manager.transaction(async (manager) => {
+    const sent = await this.messageRepo.manager.transaction(async (manager) => {
       const offer = await manager.save(
         manager.create(Offer, {
           sellerId: senderId,
@@ -218,14 +226,33 @@ export class ChatService {
       // Naira, like the rest of the API's amounts
       return { ...saved, offer: { ...offer, amount: offer.amount / 100 } };
     });
+
+    // The buyer may be a store: the notification goes to its owner
+    const buyerUserId = await this.findOwnerId(receiverId, receiver.type);
+
+    await this.notificationService.create({
+      userId: buyerUserId ?? '',
+      type: NotificationType.OFFER_RECEIVED,
+      title: 'New offer received',
+      body: `${formatNaira(sent.offer.amount * 100)} · ${product?.name ?? 'a product'} · ${formatExpiresIn(sent.offer.expiresAt)}`,
+      data: {
+        offerId: sent.offer.id,
+        productId: sent.offer.productId,
+        conversationId,
+        messageId: sent.id,
+        expiresAt: new Date(sent.offer.expiresAt).toISOString(),
+      },
+    });
+
+    return sent;
   }
 
   // Only the product's seller (its store, for a store product) can make an offer on it,
-  // and only while it's for sale
+  // and only while it's for sale. Returns the product
   private async assertCanOffer(productId: string, senderId: string) {
     const product = await this.messageRepo.manager.findOne(Product, {
       where: { id: productId },
-      select: ['id', 'userId', 'storeId', 'isStoreProduct', 'status'],
+      select: ['id', 'name', 'userId', 'storeId', 'isStoreProduct', 'status'],
     });
 
     if (!product) throw new NotFoundException('Product not found');
@@ -241,6 +268,8 @@ export class ChatService {
     if (product.status !== ProductStatus.ACTIVE) {
       throw new BadRequestException('This product is no longer available');
     }
+
+    return product;
   }
 
   // Marks the receivers' sent messages (optionally only messageIds) as delivered and

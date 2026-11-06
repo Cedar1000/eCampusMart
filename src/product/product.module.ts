@@ -27,6 +27,8 @@ import { HasProductUploadBalanceGuard } from './guards/has-product-upload-balanc
 import { ProductFavourite } from 'src/product-favourite/entities/product-favourite.entity';
 import { ProductFavouriteService } from 'src/product-favourite/product-favourite.service';
 
+import { NotificationModule } from 'src/notification/notification.module';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -40,6 +42,7 @@ import { ProductFavouriteService } from 'src/product-favourite/product-favourite
       Transaction,
       ProductFavourite,
     ]),
+    NotificationModule,
 
     BullModule.registerQueue({ name: PRODUCT_QUE }),
   ],
