@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Notification } from './entities/notification.entity';
 import { PushToken } from './entities/push-token.entity';
 import { NotificationController } from './notification.controller';
+import { NotificationGateway } from './notification.gateway';
 import { PUSH_QUE } from './notification.constants';
 import { PushReceiptsProcessor } from './processors/push-receipts.processor';
 import { NotificationService } from './notification.service';
@@ -16,7 +17,12 @@ import { PushService } from './push.service';
     BullModule.registerQueue({ name: PUSH_QUE }),
   ],
   controllers: [NotificationController],
-  providers: [PushService, NotificationService, PushReceiptsProcessor],
+  providers: [
+    PushService,
+    NotificationService,
+    NotificationGateway,
+    PushReceiptsProcessor,
+  ],
   exports: [PushService, NotificationService],
 })
 export class NotificationModule {}

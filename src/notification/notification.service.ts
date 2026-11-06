@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -9,6 +9,7 @@ import {
   NotificationData,
   NotificationType,
 } from './entities/notification.entity';
+import { NotificationGateway } from './notification.gateway';
 
 export interface NewNotification {
   userId: string;
@@ -44,6 +45,8 @@ export class NotificationService {
   constructor(
     @InjectRepository(Notification)
     private readonly notificationRepo: Repository<Notification>,
+
+    private readonly notificationGateway: NotificationGateway,
   ) {}
 
   // The user's notifications, newest first. The userId filter can't be
@@ -52,16 +55,45 @@ export class NotificationService {
     return await factory.getAll(this.notificationRepo, query, { userId });
   }
 
-  // Adds notifications to users' lists. Never throws: a missed notification
-  // mustn't fail the action that caused it
+  // Marks one of the user's notifications read; 404 for anyone else's
+  async markRead(id: string, userId: string) {
+    const owned = await this.notificationRepo.exists({ where: { id, userId } });
+
+    if (!owned) throw new NotFoundException('No resource with that ID');
+
+    return await factory.updateOne(this.notificationRepo, id, { read: true });
+  }
+
+  async markAllRead(userId: string) {
+    const { affected } = await this.notificationRepo.update(
+      { userId, read: false },
+      { read: true },
+    );
+
+    return {
+      status: 'success',
+      message: 'update successful!',
+      data: { updated: affected ?? 0 },
+    };
+  }
+
+  // Adds notifications to users' lists, and sends each to its user over the
+  // socket if they're connected. Never throws: a missed notification mustn't
+  // fail the action that caused it
   async create(...notifications: NewNotification[]) {
     const rows = notifications.filter(({ userId }) => !!userId);
     if (!rows.length) return;
 
     try {
-      await this.notificationRepo.insert(
-        rows.map((row) => ({ ...row, data: row.data ?? null })),
+      const saved = await this.notificationRepo.save(
+        rows.map((row) =>
+          this.notificationRepo.create({ ...row, data: row.data ?? null }),
+        ),
       );
+
+      for (const notification of saved) {
+        await this.notificationGateway.notify(notification);
+      }
     } catch (error) {
       this.logger.error(
         `Saving ${rows.map(({ type }) => type).join(', ')} notifications failed`,

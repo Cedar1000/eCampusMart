@@ -476,7 +476,7 @@ The other participant started or stopped typing or recording. The payload is wha
 
 ### `offer-updated`
 
-An offer you're the buyer or seller of changed status: `accepted`, `rejected`, `cancelled` or `expired`. A store's offers reach the store's owner. The payload is the offer, with `amount` in naira:
+An offer you're the buyer or seller of changed status: `accepted`, `rejected`, `cancelled` or `expired`. A store's offers reach the store's owner. The payload is the offer, with `amount` in naira, and its chat:
 
 ```json
 {
@@ -492,12 +492,15 @@ An offer you're the buyer or seller of changed status: `accepted`, `rejected`, `
     "expiresAt": "2026-11-06T10:15:00.000Z",
     "createdAt": "2026-11-05T10:15:00.000Z",
     "updatedAt": "2026-11-05T11:02:00.000Z"
-  }
+  },
+  "conversationId": "0b2ff029-745f-4c0b-a0f4-040d0870e744"
 }
 ```
 
+`conversationId` is the chat the offer was sent in, or `null` if its message can't be found.
+
 ```ts
-socket.on('offer-updated', ({ offer }) => {
+socket.on('offer-updated', ({ offer, conversationId }) => {
   // Find the message whose offerId is offer.id and update its card
   updateOfferCard(offer);
 });

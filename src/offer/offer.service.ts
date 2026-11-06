@@ -23,6 +23,7 @@ import {
 import { NotificationType } from 'src/notification/entities/notification.entity';
 import { Order } from 'src/order/entities/order.entity';
 import { Product } from 'src/product/entities/product.entity';
+import { Message } from 'src/chat/entities/message.entity';
 
 @Injectable()
 export class OfferService {
@@ -120,6 +121,7 @@ export class OfferService {
           offerId: offer.id,
           orderId: order.id,
           productId: offer.productId,
+          conversationId: await this.findConversationId(offer.id),
         },
       });
     } catch (error) {
@@ -134,15 +136,20 @@ export class OfferService {
       status,
     });
     const saved = updated.data as Offer;
+    const conversationId = await this.findConversationId(saved.id);
 
-    await this.offerGateway.notify(saved);
-    await this.pushStatus(saved, actorId);
+    await this.offerGateway.notify(saved, conversationId);
+    await this.pushStatus(saved, actorId, conversationId);
 
     return { ...updated, data: { ...saved, amount: saved.amount / 100 } };
   }
 
   // Never throws, like PushService.send
-  private async pushStatus(offer: Offer, actorId: string) {
+  private async pushStatus(
+    offer: Offer,
+    actorId: string,
+    conversationId: string | null,
+  ) {
     try {
       const sellerUserId = await this.findSellerUserId(offer);
       const userIds = [offer.buyerId, sellerUserId].filter(
@@ -175,10 +182,26 @@ export class OfferService {
           type: 'offer-updated',
           offerId: offer.id,
           status: offer.status,
+          conversationId,
         },
       });
     } catch (error) {
       console.error('Offer push failed', offer.id, error);
+    }
+  }
+
+  // The chat the offer was sent in, from the offer message. Null if it can't be
+  // found, so a missing chat never fails the request
+  private async findConversationId(offerId: string) {
+    try {
+      const message = await this.offerRepo.manager.findOne(Message, {
+        where: { offerId },
+        select: ['id', 'conversationId'],
+      });
+      return message?.conversationId ?? null;
+    } catch (error) {
+      console.error('Offer conversation lookup failed', offerId, error);
+      return null;
     }
   }
 

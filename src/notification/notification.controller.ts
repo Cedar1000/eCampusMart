@@ -5,6 +5,9 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Param,
+  ParseUUIDPipe,
+  Patch,
   Post,
   Query,
   Res,
@@ -29,6 +32,16 @@ export class NotificationController {
   @Get()
   findAll(@Query() query: Partial<IQuery>, @CurrentUser() user: User) {
     return this.notificationService.findAll(query, user.id);
+  }
+
+  @Patch('read-all')
+  markAllRead(@CurrentUser() user: User) {
+    return this.notificationService.markAllRead(user.id);
+  }
+
+  @Patch(':id/read')
+  markRead(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: User) {
+    return this.notificationService.markRead(id, user.id);
   }
 
   // Sent by the app after every sign-in and whenever the token changes:

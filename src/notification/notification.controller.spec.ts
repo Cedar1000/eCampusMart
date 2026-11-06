@@ -60,7 +60,11 @@ describe('push token bodies', () => {
 
 describe('NotificationController', () => {
   const pushService = { saveToken: jest.fn(), removeToken: jest.fn() };
-  const notificationService = { findAll: jest.fn() };
+  const notificationService = {
+    findAll: jest.fn(),
+    markRead: jest.fn(),
+    markAllRead: jest.fn(),
+  };
   const controller = new NotificationController(
     pushService as unknown as PushService,
     notificationService as unknown as NotificationService,
@@ -98,5 +102,13 @@ describe('NotificationController', () => {
       { page: '2' },
       'user-1',
     );
+  });
+
+  it("marks the current user's notifications read", async () => {
+    await controller.markRead('n1', user);
+    await controller.markAllRead(user);
+
+    expect(notificationService.markRead).toHaveBeenCalledWith('n1', 'user-1');
+    expect(notificationService.markAllRead).toHaveBeenCalledWith('user-1');
   });
 });

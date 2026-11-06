@@ -20,17 +20,17 @@ export class OfferGateway {
     private readonly redisClient: Redis,
   ) {}
 
-  // Sends `offer-updated` to the buyer and the seller (a store's owner, for a
-  // store's offer) that are online. Never throws: a missed event mustn't fail
-  // the request
-  async notify(offer: Offer) {
+  // Sends `offer-updated`, with the chat the offer is in, to the buyer and the
+  // seller (a store's owner, for a store's offer) that are online. Never
+  // throws: a missed event mustn't fail the request
+  async notify(offer: Offer, conversationId: string | null) {
     try {
       await emitToOnline(
         this.server,
         this.redisClient,
         [offer.sellerId, offer.buyerId],
         'offer-updated',
-        { offer: { ...offer, amount: offer.amount / 100 } },
+        { offer: { ...offer, amount: offer.amount / 100 }, conversationId },
       );
     } catch (error) {
       this.logger.error(`offer-updated for offer ${offer.id} failed`, error);

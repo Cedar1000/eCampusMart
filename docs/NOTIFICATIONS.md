@@ -1,6 +1,10 @@
-# Push notifications
+# Notifications
 
-The server sends pushes through Expo's push service. Chat pushes only go to users who are offline. Every other push goes out whether the user is online or not; while the app is open, show those as a banner.
+The server tells users about events in three ways:
+
+- **Push:** through Expo's push service. Chat pushes only go to users who are offline. Every other push goes out whether the user is online or not; while the app is open, show those as a banner.
+- **Saved notifications:** rows for the Notifications screen, kept for later, including ones that arrived while the app was closed.
+- **Socket:** each saved notification is also sent as a `notification` event to a user who is connected.
 
 ## Contents
 
@@ -8,6 +12,8 @@ The server sends pushes through Expo's push service. Chat pushes only go to user
 - [Removing a token](#removing-a-token)
 - [What a push looks like](#what-a-push-looks-like)
 - [Push types](#push-types)
+- [The Notifications screen](#the-notifications-screen)
+- [Rating an order](#rating-an-order)
 
 ## Saving a token
 
@@ -92,10 +98,11 @@ An offer was accepted, declined, withdrawn by the seller, or found expired. It g
 | --- | --- |
 | `offerId` | The offer; find the chat message whose `offerId` matches |
 | `status` | `accepted`, `rejected`, `cancelled` or `expired` |
+| `conversationId` | The chat the offer was sent in. `null` only if the offer's message can't be found |
 
 **Example:** title "Offer accepted", body "Your ₦5,000 offer for iphone 12 was accepted".
 
-**Opens:** the chat with that offer. The push has no `conversationId`, so look the offer up among loaded conversations, or open the conversation list.
+**Opens:** the chat `conversationId`. The `offer-updated` socket event carries the same `conversationId`, next to `offer`.
 
 ### `wallet-funded`
 
@@ -130,6 +137,147 @@ The store's free plan ends in 3 days, ends tomorrow, or has ended. Each stage is
 
 **Opens:** the store's subscription screen.
 
+### `review-received`
+
+The other side of a completed order rated the user, or the user's store. See [Rating an order](#rating-an-order).
+
+| Field | Meaning |
+| --- | --- |
+| `orderId` | The rated order |
+| `stars` | 1 to 5 |
+
+**Example:** title "New review", body "Ada rated you 5 stars".
+
+**Opens:** the order `orderId`.
+
 ### Not sent yet
 
 **Withdrawals:** there's no withdrawal flow in the backend yet, so there's no withdrawal push.
+
+## The Notifications screen
+
+Each user sees only their own notifications. All three routes need the Bearer token.
+
+### List them
+
+`GET /notifications?page=1`
+
+Newest first, paged like the other lists: `page`, `limit` (10 by default), and `nextPage` is `null` on the last page. Filter on any field, e.g. `read=false` for unread only, or `type=offer-received,wallet-funded`.
+
+```json
+{
+  "status": "success",
+  "message": "Get All successful!",
+  "total": 1,
+  "nextPage": null,
+  "prevPage": null,
+  "count": 1,
+  "pages": 1,
+  "currentPage": 1,
+  "data": [
+    {
+      "id": "c3f1a9e2-7b4d-4c8e-9a51-2e6d0b8f4a17",
+      "userId": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+      "type": "offer-accepted",
+      "title": "Offer accepted",
+      "body": "₦6,000 · oraimo 20w fast charger · order ORD-L1MK-WQ created",
+      "data": {
+        "offerId": "5f0c8a52-3f7e-4b8e-9c55-0f6f2a1d7e10",
+        "orderId": "102d83e3-cc2a-4757-b056-f5b5e7b3a689",
+        "productId": "8fe7a3f2-4faa-4cd3-ad4c-25b7a15014fd",
+        "conversationId": "0b2ff029-745f-4c0b-a0f4-040d0870e744"
+      },
+      "read": false,
+      "createdAt": "2026-11-06T10:42:18.512Z",
+      "updatedAt": "2026-11-06T10:42:18.512Z"
+    }
+  ]
+}
+```
+
+Show `title` and `body`, with `createdAt` as the time. Use `type` and `data` to open the right screen. Amounts in `data` are in naira.
+
+### Mark them read
+
+- `PATCH /notifications/{id}/read` marks one read and returns the row. Another user's id, or one that doesn't exist, gets a `404`.
+- `PATCH /notifications/read-all` marks all of the user's unread ones read and returns `{ "data": { "updated": 3 } }`.
+
+### Types
+
+**These aren't the push types.** Saved notifications follow the Notifications screen's own types, and some events save a notification with no matching push:
+
+| `type` | When | Who | `data` | Title, body |
+| --- | --- | --- | --- | --- |
+| `offer-received` | A seller sends an offer in chat | The buyer (a store's owner, if sent to a store) | `offerId`, `productId`, `conversationId`, `messageId`, `expiresAt` | "New offer received", "₦6,000 · oraimo 20w fast charger · expires in 24 hrs" |
+| `offer-accepted` | The buyer accepts | The seller (a store's owner, for a store's offer) | `offerId`, `orderId`, `productId`, `conversationId` | "Offer accepted", "₦6,000 · … · order ORD-2113 created" |
+| `order-completed` | An order is completed | The other party | `orderId`, `productId` | "Order completed", "Adaeze scanned your code, order ORD-2113 is complete." |
+| `order-cancelled` | An order is cancelled | The other party | `orderId`, `productId` | "Order cancelled", "Adaeze cancelled ORD-2113 before handover." |
+| `review-received` | Someone rates the user or their store | The rated user, or the store's owner | `orderId`, `stars`, `ratingId` | "New review", "Ada rated you 5 stars" |
+| `wallet-funded` | A top-up is credited | The wallet owner | `reference`, `amount` | "Wallet funded", "Paystack confirmed your ₦5,000 top-up. It's ready to spend." |
+| `wallet-debited` | A product or housing listing fee is taken | The lister | `reference`, `amount`, `productId` or `housingId` | "Wallet debited", "₦300 listing fee debited." |
+
+`review-pending` and `wallet-refunded` are reserved but not sent yet. Placed and expired orders, declined, withdrawn and expired offers, and subscription and free plan notices are pushed but not saved.
+
+The text in `body` is fixed when the notification is saved. For an offer's expiry, show the time left from `data.expiresAt` rather than from the body.
+
+### Socket event: `notification`
+
+When a notification is saved and its user is connected, the same row is sent as a `notification` event, so an open Notifications screen can add it without reloading:
+
+```ts
+socket.on('notification', (notification) => {
+  // Same shape as a row from GET /notifications
+  prependToList(notification);
+});
+```
+
+This only reaches a connected app. The app disconnects in the background, so reload `GET /notifications` when the screen opens.
+
+## Rating an order
+
+`POST /orders/{id}/rating` (Bearer)
+
+```json
+{ "stars": 5, "comment": "quick pickup, no stress." }
+```
+
+- **Who:** the order's buyer rates the seller, or the store for a store order. The seller rates the buyer.
+- **When:** only once the order is `completed`, and once per side.
+- **Then:** the rated user's or store's `ratingsAverage` and `ratingsCount` are updated, and they get a `review-received` push, a saved notification and the `notification` socket event.
+- **Body:** `stars` is a whole number from 1 to 5. `comment` is optional, up to 1,000 characters.
+
+**Response:** `201` with the order and both sides' ratings, `null` for a side that hasn't rated:
+
+```json
+{
+  "status": "success",
+  "message": "create successful!",
+  "data": {
+    "id": "102d83e3-cc2a-4757-b056-f5b5e7b3a689",
+    "status": "completed",
+    "ratings": {
+      "buyer": {
+        "id": "9b2e4c1a-…",
+        "orderId": "102d83e3-cc2a-4757-b056-f5b5e7b3a689",
+        "raterId": "48c03f11-8cf5-4249-b1fe-304e3197f9bd",
+        "raterRole": "buyer",
+        "rateeId": "91a8ea62-98ce-4168-9a4a-61fc93aaf2dc",
+        "rateeType": "product-store",
+        "stars": 5,
+        "comment": "quick pickup, no stress.",
+        "createdAt": "2026-11-06T12:00:00.000Z"
+      },
+      "seller": null
+    }
+  }
+}
+```
+
+`GET /orders/buyer` and `GET /orders/seller` return the same `ratings` on every order.
+
+| Status | When |
+| --- | --- |
+| `400` | The order isn't `completed`, or `stars` isn't 1 to 5 |
+| `403` | The user isn't the order's buyer or seller |
+| `404` | No order with that id |
+| `409` | This side has already rated the order |

@@ -39,5 +39,5 @@ export class Notification extends BaseEntity {
   data: NotificationData | null;
 
   @Column({ default: false })
-  isRead: boolean;
+  read: boolean;
 }

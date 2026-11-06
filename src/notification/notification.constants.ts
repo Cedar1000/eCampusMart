@@ -24,10 +24,16 @@ export type PushData =
       orderId: string;
       action: 'placed' | 'cancelled' | 'completed' | 'expired';
     }
-  | { type: 'offer-updated'; offerId: string; status: string }
+  | {
+      type: 'offer-updated';
+      offerId: string;
+      status: string;
+      conversationId: string | null;
+    }
   | { type: 'wallet-funded'; reference: string; amount: number }
   | { type: 'subscription-updated'; storeId: string; status: string }
-  | { type: 'free-plan-ending'; storeId: string; stage: '3d' | '1d' | 'ended' };
+  | { type: 'free-plan-ending'; storeId: string; stage: '3d' | '1d' | 'ended' }
+  | { type: 'review-received'; orderId: string; stars: number };
 
 export interface PushMessage {
   title: string;

@@ -3,6 +3,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { OrderController } from './order.controller';
 import { OrderService } from './order.service';
 import { OrderGateway } from './order.gateway';
+import { OrderRatingService } from './order-rating.service';
 import { Order } from './entities/order.entity';
 import { Product } from 'src/product/entities/product.entity';
 import { User } from 'src/auth/entities/user.entity';
@@ -18,6 +19,7 @@ describe('OrderController', () => {
         OrderService,
         { provide: getRepositoryToken(Order), useValue: {} },
         { provide: OrderGateway, useValue: {} },
+        { provide: OrderRatingService, useValue: {} },
         { provide: getRepositoryToken(Product), useValue: {} },
         { provide: getRepositoryToken(User), useValue: {} },
         { provide: getRepositoryToken(ProductStore), useValue: {} },

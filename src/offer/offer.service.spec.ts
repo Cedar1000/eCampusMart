@@ -12,6 +12,7 @@ import { Offer, OfferSellerType, OfferStatus } from './entities/offer.entity';
 import { OfferService } from './offer.service';
 import { NotificationType } from 'src/notification/entities/notification.entity';
 import { Product } from 'src/product/entities/product.entity';
+import { Message } from 'src/chat/entities/message.entity';
 
 describe('OfferService.update', () => {
   let offer: Partial<Offer> | null;
@@ -56,6 +57,8 @@ describe('OfferService.update', () => {
         findOne: jest.fn(
           (entity: unknown, { where }: { where: { id: string } }) => {
             if (entity === Product) return { id: where.id, name: 'iPhone 12' };
+            if (entity === Message)
+              return { id: 'message-1', conversationId: 'conversation-1' };
             const store = ownedStores.find(
               (owned) => owned.entity === entity && owned.id === where.id,
             );
@@ -111,6 +114,7 @@ describe('OfferService.update', () => {
           id: 'offer-1',
           status: OfferStatus.ACCEPTED,
         }),
+        'conversation-1',
       );
     });
 
@@ -138,6 +142,7 @@ describe('OfferService.update', () => {
       expect(orderService.create).not.toHaveBeenCalled();
       expect(gateway.notify).toHaveBeenCalledWith(
         expect.objectContaining({ status: OfferStatus.REJECTED }),
+        'conversation-1',
       );
     });
 
@@ -153,6 +158,7 @@ describe('OfferService.update', () => {
       expect(result.data).toMatchObject({ status: OfferStatus.CANCELLED });
       expect(gateway.notify).toHaveBeenCalledWith(
         expect.objectContaining({ status: OfferStatus.CANCELLED }),
+        'conversation-1',
       );
     });
 
@@ -196,6 +202,7 @@ describe('OfferService.update', () => {
     );
     expect(gateway.notify).toHaveBeenCalledWith(
       expect.objectContaining({ status: OfferStatus.EXPIRED }),
+      'conversation-1',
     );
     expect(orderService.create).not.toHaveBeenCalled();
   });
@@ -217,6 +224,7 @@ describe('OfferService.update', () => {
           type: 'offer-updated',
           offerId: 'offer-1',
           status: OfferStatus.ACCEPTED,
+          conversationId: 'conversation-1',
         },
       });
     });
@@ -284,6 +292,7 @@ describe('OfferService.update', () => {
           offerId: 'offer-1',
           orderId: 'order-1',
           productId: 'product-1',
+          conversationId: 'conversation-1',
         },
       });
     });
@@ -313,6 +322,24 @@ describe('OfferService.update', () => {
       await reject();
 
       expect(notifications.create).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('conversation', () => {
+    it('still answers the offer when the chat lookup fails', async () => {
+      const findOne = repo.manager.findOne.getMockImplementation()!;
+      repo.manager.findOne.mockImplementation(
+        (entity: unknown, options: never) => {
+          if (entity === Message) throw new Error('db down');
+          return findOne(entity, options) as unknown;
+        },
+      );
+      jest.spyOn(console, 'error').mockImplementation(() => undefined);
+
+      await expect(reject()).resolves.toMatchObject({
+        data: { status: OfferStatus.REJECTED },
+      });
+      expect(gateway.notify).toHaveBeenCalledWith(expect.anything(), null);
     });
   });
 });
