@@ -83,13 +83,25 @@ export class OrderGateway {
     }
   }
 
-  // Adds "Order completed" or "Order cancelled" to the list of whoever didn't
-  // make the change, e.g. "Adaeze cancelled ORD-2113 before handover."
+  // Adds "New order", "Order completed" or "Order cancelled" to the list of
+  // whoever didn't make the change, e.g. "Adaeze cancelled ORD-2113 before
+  // handover." Expired orders are only pushed
   private async addNotification(
     order: NotifiedOrder,
     action: OrderAction,
     actorId?: string,
   ) {
+    if (action === 'placed') {
+      const { buyerName, item } = await this.describe(order);
+      await this.notificationService.create({
+        userId: order.sellerId,
+        type: NotificationType.ORDER_PLACED,
+        title: PUSH_TITLES.placed,
+        body: `${buyerName} ordered ${item}`,
+        data: { orderId: order.id, productId: order.productId },
+      });
+      return;
+    }
     if (action !== 'completed' && action !== 'cancelled') return;
 
     const actor = actorId
@@ -136,6 +148,24 @@ export class OrderGateway {
     );
     if (!userIds.length) return;
 
+    const { buyerName, item } = await this.describe(order);
+
+    const bodies: Record<OrderAction, string> = {
+      placed: `${buyerName} ordered ${item}`,
+      cancelled: `The order for ${item} was cancelled`,
+      completed: `The order for ${item} is complete`,
+      expired: `The order for ${item} expired before it was completed`,
+    };
+
+    await this.pushService.send(userIds, {
+      title: PUSH_TITLES[action],
+      body: bodies[action],
+      data: { type: 'order-updated', orderId: order.id, action },
+    });
+  }
+
+  // "2 × iphone 12" and the buyer's full name, for the order's texts
+  private async describe(order: NotifiedOrder) {
     const [product, buyer] = await Promise.all([
       this.productRepo.findOne({
         where: { id: order.productId },
@@ -152,17 +182,6 @@ export class OrderGateway {
       [buyer?.firstName, buyer?.lastName].filter(Boolean).join(' ') ||
       'Someone';
 
-    const bodies: Record<OrderAction, string> = {
-      placed: `${buyerName} ordered ${item}`,
-      cancelled: `The order for ${item} was cancelled`,
-      completed: `The order for ${item} is complete`,
-      expired: `The order for ${item} expired before it was completed`,
-    };
-
-    await this.pushService.send(userIds, {
-      title: PUSH_TITLES[action],
-      body: bodies[action],
-      data: { type: 'order-updated', orderId: order.id, action },
-    });
+    return { buyerName, item };
   }
 }

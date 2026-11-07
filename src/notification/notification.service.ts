@@ -61,13 +61,13 @@ export class NotificationService {
 
     if (!owned) throw new NotFoundException('No resource with that ID');
 
-    return await factory.updateOne(this.notificationRepo, id, { read: true });
+    return await factory.updateOne(this.notificationRepo, id, { isRead: true });
   }
 
   async markAllRead(userId: string) {
     const { affected } = await this.notificationRepo.update(
-      { userId, read: false },
-      { read: true },
+      { userId, isRead: false },
+      { isRead: true },
     );
 
     return {

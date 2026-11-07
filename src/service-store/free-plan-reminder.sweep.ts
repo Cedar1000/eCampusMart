@@ -4,6 +4,8 @@ import { Between, DataSource, In, IsNull } from 'typeorm';
 
 import sendEmail from 'utils/sendEmail';
 import { PushService } from 'src/notification/push.service';
+import { NotificationService } from 'src/notification/notification.service';
+import { NotificationType } from 'src/notification/entities/notification.entity';
 import { User } from 'src/auth/entities/user.entity';
 import { Subscription } from 'src/subscription/entities/subscription.entity';
 import { TRIAL_DAYS } from 'src/subscription/subscription.constants';
@@ -41,6 +43,8 @@ export class FreePlanReminderSweep {
     private readonly dataSource: DataSource,
 
     private readonly pushService: PushService,
+
+    private readonly notificationService: NotificationService,
   ) {}
 
   @Cron(CronExpression.EVERY_HOUR)
@@ -177,11 +181,19 @@ export class FreePlanReminderSweep {
       trialReminderSent: reminder,
     });
 
-    // Once the email went out, so a retry doesn't push twice
+    // Once the email went out, so a retry doesn't push or save it twice
     await this.pushService.send([owner.id], {
       title: email.subject,
       body: email.message,
       data: { type: 'free-plan-ending', storeId: store.id, stage: reminder },
+    });
+
+    await this.notificationService.create({
+      userId: owner.id,
+      type: NotificationType.FREE_PLAN_ENDING,
+      title: email.subject,
+      body: email.message,
+      data: { storeId: store.id, stage: reminder },
     });
 
     return true;

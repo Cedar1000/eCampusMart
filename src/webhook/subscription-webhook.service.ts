@@ -14,6 +14,8 @@ import {
 } from 'utils/paystack';
 import { syncStoreVisibility } from 'src/service-store/store-visibility';
 import { PushService } from 'src/notification/push.service';
+import { NotificationService } from 'src/notification/notification.service';
+import { NotificationType } from 'src/notification/entities/notification.entity';
 import { getSubscriptionEmail } from './subscription-webhook.emails';
 import { asRecord, asString, PaystackEventData } from './webhook.utils';
 
@@ -32,6 +34,8 @@ export class SubscriptionWebhookService {
     private readonly dataSource: DataSource,
 
     private readonly pushService: PushService,
+
+    private readonly notificationService: NotificationService,
   ) {}
 
   async handle(event: string, data: PaystackEventData) {
@@ -121,14 +125,23 @@ export class SubscriptionWebhookService {
 
       if (!user || !email) return;
 
+      const data = {
+        storeId: subscription.storeId,
+        status: subscription.status,
+      };
+
       await this.pushService.send([user.id], {
         title: email.subject,
         body: email.message,
-        data: {
-          type: 'subscription-updated',
-          storeId: subscription.storeId,
-          status: subscription.status,
-        },
+        data: { type: 'subscription-updated', ...data },
+      });
+
+      await this.notificationService.create({
+        userId: user.id,
+        type: NotificationType.SUBSCRIPTION_UPDATED,
+        title: email.subject,
+        body: email.message,
+        data,
       });
 
       await sendEmail({

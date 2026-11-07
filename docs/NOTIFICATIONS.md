@@ -162,7 +162,7 @@ Each user sees only their own notifications. All three routes need the Bearer to
 
 `GET /notifications?page=1`
 
-Newest first, paged like the other lists: `page`, `limit` (10 by default), and `nextPage` is `null` on the last page. Filter on any field, e.g. `read=false` for unread only, or `type=offer-received,wallet-funded`.
+Newest first, paged like the other lists: `page`, `limit` (10 by default), and `nextPage` is `null` on the last page. Filter on any field, e.g. `isRead=false` for unread only, or `type=offer-received,wallet-funded`.
 
 ```json
 {
@@ -187,7 +187,7 @@ Newest first, paged like the other lists: `page`, `limit` (10 by default), and `
         "productId": "8fe7a3f2-4faa-4cd3-ad4c-25b7a15014fd",
         "conversationId": "0b2ff029-745f-4c0b-a0f4-040d0870e744"
       },
-      "read": false,
+      "isRead": false,
       "createdAt": "2026-11-06T10:42:18.512Z",
       "updatedAt": "2026-11-06T10:42:18.512Z"
     }
@@ -210,13 +210,16 @@ Show `title` and `body`, with `createdAt` as the time. Use `type` and `data` to 
 | --- | --- | --- | --- | --- |
 | `offer-received` | A seller sends an offer in chat | The buyer (a store's owner, if sent to a store) | `offerId`, `productId`, `conversationId`, `messageId`, `expiresAt` | "New offer received", "₦6,000 · oraimo 20w fast charger · expires in 24 hrs" |
 | `offer-accepted` | The buyer accepts | The seller (a store's owner, for a store's offer) | `offerId`, `orderId`, `productId`, `conversationId` | "Offer accepted", "₦6,000 · … · order ORD-2113 created" |
+| `order-placed` | Someone orders the seller's item | The seller (a store's owner, for a store's item) | `orderId`, `productId` | "New order", "Ada Obi ordered 2 × iphone 12" |
 | `order-completed` | An order is completed | The other party | `orderId`, `productId` | "Order completed", "Adaeze scanned your code, order ORD-2113 is complete." |
 | `order-cancelled` | An order is cancelled | The other party | `orderId`, `productId` | "Order cancelled", "Adaeze cancelled ORD-2113 before handover." |
 | `review-received` | Someone rates the user or their store | The rated user, or the store's owner | `orderId`, `stars`, `ratingId` | "New review", "Ada rated you 5 stars" |
 | `wallet-funded` | A top-up is credited | The wallet owner | `reference`, `amount` | "Wallet funded", "Paystack confirmed your ₦5,000 top-up. It's ready to spend." |
 | `wallet-debited` | A product or housing listing fee is taken | The lister | `reference`, `amount`, `productId` or `housingId` | "Wallet debited", "₦300 listing fee debited." |
+| `subscription-updated` | A store's plan changes (paid, failed, renewing, cancelled) | The store's owner | `storeId`, `status` | Same as the email, e.g. "Subscription will not renew", "Your subscription for Ada Cuts …" |
+| `free-plan-ending` | A store's free plan ends in 3 days, 1 day, or has ended | The store's owner | `storeId`, `stage` (`3d`, `1d` or `ended`) | Same as the email, e.g. "Your free plan ends tomorrow", "Your free plan for Ada Cuts ends on …" |
 
-`review-pending` and `wallet-refunded` are reserved but not sent yet. Placed and expired orders, declined, withdrawn and expired offers, and subscription and free plan notices are pushed but not saved.
+`review-pending` and `wallet-refunded` are reserved but not sent yet. Expired orders, and declined, withdrawn and expired offers, are pushed but not saved.
 
 The text in `body` is fixed when the notification is saved. For an offer's expiry, show the time left from `data.expiresAt` rather than from the body.
 

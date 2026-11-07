@@ -1,5 +1,6 @@
 import sendEmail from 'utils/sendEmail';
 import { User } from 'src/auth/entities/user.entity';
+import { NotificationType } from 'src/notification/entities/notification.entity';
 import { Subscription } from 'src/subscription/entities/subscription.entity';
 import { ServiceStore } from './entities/service-store.entity';
 import { dueReminder, FreePlanReminderSweep } from './free-plan-reminder.sweep';
@@ -13,6 +14,7 @@ describe('FreePlanReminderSweep', () => {
   let store: Partial<ServiceStore>;
   let onPlan: boolean;
   let push: { send: jest.Mock };
+  let notifications: { create: jest.Mock };
   let sweep: FreePlanReminderSweep;
   // When the sweep runs, so the fake query applies the same date window
   let runningAt: Date;
@@ -70,7 +72,12 @@ describe('FreePlanReminderSweep', () => {
     };
 
     push = { send: jest.fn() };
-    sweep = new FreePlanReminderSweep({ manager } as never, push as never);
+    notifications = { create: jest.fn() };
+    sweep = new FreePlanReminderSweep(
+      { manager } as never,
+      push as never,
+      notifications as never,
+    );
   });
 
   it('works out which reminder is due', () => {
@@ -112,6 +119,20 @@ describe('FreePlanReminderSweep', () => {
       title: 'Your free plan ends tomorrow',
       body: expect.stringContaining('Ada Cuts') as string,
       data: { type: 'free-plan-ending', storeId: 'store-1', stage: '1d' },
+    });
+  });
+
+  it('saves each reminder to the owner’s notifications once', async () => {
+    await runAt(DAY - HOUR);
+    await runAt(DAY - 2 * HOUR);
+
+    expect(notifications.create).toHaveBeenCalledTimes(1);
+    expect(notifications.create).toHaveBeenCalledWith({
+      userId: 'owner-1',
+      type: NotificationType.FREE_PLAN_ENDING,
+      title: 'Your free plan ends tomorrow',
+      body: expect.stringContaining('Ada Cuts') as string,
+      data: { storeId: 'store-1', stage: '1d' },
     });
   });
 

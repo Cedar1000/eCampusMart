@@ -16,7 +16,7 @@ describe('NotificationService.findAll', () => {
       title: 'Offer accepted',
       body: '₦6,000 · Oraimo 20W fast charger · order ORD-2113 created',
       data: { offerId: 'offer-1', orderId: 'order-1' },
-      read: false,
+      isRead: false,
     },
   ];
   const repo = {
@@ -61,7 +61,7 @@ describe('NotificationService.create', () => {
     save: jest.fn((rows: object[]): Promise<object[]> | object[] =>
       rows.map((row, i) => ({
         id: `notification-${i + 1}`,
-        read: false,
+        isRead: false,
         ...row,
       })),
     ),
@@ -107,7 +107,7 @@ describe('NotificationService.create', () => {
 });
 
 describe('NotificationService read', () => {
-  let rows: { id: string; userId: string; read: boolean }[];
+  let rows: { id: string; userId: string; isRead: boolean }[];
   const repo = {
     exists: jest.fn(({ where }: { where: { id: string; userId: string } }) =>
       rows.some((r) => r.id === where.id && r.userId === where.userId),
@@ -115,7 +115,7 @@ describe('NotificationService read', () => {
     findOneBy: jest.fn(({ id }: { id: string }) =>
       rows.find((r) => r.id === id),
     ),
-    save: jest.fn((row: { id: string; read: boolean }) => {
+    save: jest.fn((row: { id: string; isRead: boolean }) => {
       Object.assign(
         rows.find((r) => r.id === row.id)!,
         row,
@@ -123,9 +123,12 @@ describe('NotificationService read', () => {
       return row;
     }),
     update: jest.fn(
-      (where: { userId: string; read: boolean }, values: { read: boolean }) => {
+      (
+        where: { userId: string; isRead: boolean },
+        values: { isRead: boolean },
+      ) => {
         const matched = rows.filter(
-          (r) => r.userId === where.userId && r.read === where.read,
+          (r) => r.userId === where.userId && r.isRead === where.isRead,
         );
         matched.forEach((r) => Object.assign(r, values));
         return { affected: matched.length };
@@ -136,31 +139,31 @@ describe('NotificationService read', () => {
 
   beforeEach(() => {
     rows = [
-      { id: 'n1', userId: 'user-1', read: false },
-      { id: 'n2', userId: 'user-1', read: false },
-      { id: 'n3', userId: 'user-2', read: false },
+      { id: 'n1', userId: 'user-1', isRead: false },
+      { id: 'n2', userId: 'user-1', isRead: false },
+      { id: 'n3', userId: 'user-2', isRead: false },
     ];
   });
 
   it("marks one of the user's notifications read", async () => {
     const result = await service.markRead('n1', 'user-1');
 
-    expect(result.data).toMatchObject({ id: 'n1', read: true });
-    expect(rows.map((r) => r.read)).toEqual([true, false, false]);
+    expect(result.data).toMatchObject({ id: 'n1', isRead: true });
+    expect(rows.map((r) => r.isRead)).toEqual([true, false, false]);
   });
 
   it("returns 404 for someone else's notification", async () => {
     await expect(service.markRead('n3', 'user-1')).rejects.toThrow(
       NotFoundException,
     );
-    expect(rows[2].read).toBe(false);
+    expect(rows[2].isRead).toBe(false);
   });
 
   it("marks all the user's notifications read, and only theirs", async () => {
     const result = await service.markAllRead('user-1');
 
     expect(result.data).toEqual({ updated: 2 });
-    expect(rows.map((r) => r.read)).toEqual([true, true, false]);
+    expect(rows.map((r) => r.isRead)).toEqual([true, true, false]);
   });
 });
 

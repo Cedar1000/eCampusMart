@@ -5,6 +5,7 @@ import { BaseEntity } from 'src/common/base.entity';
 export enum NotificationType {
   OFFER_RECEIVED = 'offer-received',
   OFFER_ACCEPTED = 'offer-accepted',
+  ORDER_PLACED = 'order-placed',
   ORDER_COMPLETED = 'order-completed',
   ORDER_CANCELLED = 'order-cancelled',
   REVIEW_PENDING = 'review-pending',
@@ -12,6 +13,8 @@ export enum NotificationType {
   WALLET_FUNDED = 'wallet-funded',
   WALLET_DEBITED = 'wallet-debited',
   WALLET_REFUNDED = 'wallet-refunded',
+  SUBSCRIPTION_UPDATED = 'subscription-updated',
+  FREE_PLAN_ENDING = 'free-plan-ending',
 }
 
 // What the app needs to open the notification's screen, e.g. { orderId } or
@@ -39,5 +42,5 @@ export class Notification extends BaseEntity {
   data: NotificationData | null;
 
   @Column({ default: false })
-  read: boolean;
+  isRead: boolean;
 }

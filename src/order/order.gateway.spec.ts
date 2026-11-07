@@ -77,6 +77,18 @@ describe('OrderGateway', () => {
       });
     });
 
+    it('saves "New order" to the seller’s notifications', async () => {
+      await gateway.notify({ ...order, quantity: 2 }, 'placed', 'buyer-1');
+
+      expect(notifications.create).toHaveBeenCalledWith({
+        userId: 'seller-1',
+        type: NotificationType.ORDER_PLACED,
+        title: 'New order',
+        body: 'Ada Obi ordered 2 × iphone 12',
+        data: { orderId: 'order-1', productId: 'product-1' },
+      });
+    });
+
     it('pushes a cancellation by the seller to the buyer', async () => {
       await gateway.notify(order, 'cancelled', 'seller-1');
 
@@ -146,13 +158,10 @@ describe('OrderGateway', () => {
       });
     });
 
-    it.each(['placed', 'expired'] as const)(
-      "doesn't add one for an order %s",
-      async (action) => {
-        await gateway.notify(order, action, 'buyer-1');
+    it("doesn't add one for an expired order", async () => {
+      await gateway.notify(order, 'expired');
 
-        expect(notifications.create).not.toHaveBeenCalled();
-      },
-    );
+      expect(notifications.create).not.toHaveBeenCalled();
+    });
   });
 });

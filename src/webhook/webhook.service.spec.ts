@@ -16,6 +16,7 @@ import { SubscriptionStatus } from 'src/subscription/enums/subscription-status.e
 import { Transaction } from 'src/transaction/entities/transaction.entity';
 import { SubscriptionWebhookService } from './subscription-webhook.service';
 import { PushService } from 'src/notification/push.service';
+import { NotificationType } from 'src/notification/entities/notification.entity';
 import { NotificationService } from 'src/notification/notification.service';
 import { WalletWebhookService } from './wallet-webhook.service';
 import { WebhookService } from './webhook.service';
@@ -32,6 +33,7 @@ const flush = () => new Promise((resolve) => setImmediate(resolve));
 
 describe('WebhookService', () => {
   const push = { send: jest.fn() };
+  const notifications = { create: jest.fn() };
   let service: WebhookService;
   let subscription: Partial<Subscription>;
   let rows: Partial<Subscription>[];
@@ -64,6 +66,7 @@ describe('WebhookService', () => {
     };
     jest.mocked(sendEmail).mockReset();
     push.send.mockReset();
+    notifications.create.mockReset();
     rows = [subscription];
     storeExists = true;
 
@@ -100,7 +103,7 @@ describe('WebhookService', () => {
         WalletWebhookService,
         SubscriptionWebhookService,
         { provide: PushService, useValue: push },
-        { provide: NotificationService, useValue: { create: jest.fn() } },
+        { provide: NotificationService, useValue: notifications },
         {
           provide: getRepositoryToken(Transaction),
           useValue: {},
@@ -529,6 +532,23 @@ describe('WebhookService', () => {
       title: 'Subscription will not renew',
       body: expect.stringContaining('Ada Cuts') as string,
       data: expect.objectContaining({ type: 'subscription-updated' }) as object,
+    });
+  });
+
+  it('saves the notice to the store owner’s notifications', async () => {
+    await send('subscription.not_renew', { subscription_code: 'SUB_1' });
+    await flush();
+
+    expect(notifications.create).toHaveBeenCalledTimes(1);
+    expect(notifications.create).toHaveBeenCalledWith({
+      userId: 'user-1',
+      type: NotificationType.SUBSCRIPTION_UPDATED,
+      title: 'Subscription will not renew',
+      body: expect.stringContaining('Ada Cuts') as string,
+      data: {
+        storeId: subscription.storeId,
+        status: subscription.status,
+      },
     });
   });
 
