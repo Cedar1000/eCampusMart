@@ -8,7 +8,7 @@ import { Housing } from 'src/housing/entities/housing.entity';
 import { Offer } from 'src/offer/entities/offer.entity';
 import { Message } from './entities/message.entity';
 
-interface MessageProduct {
+export interface MessageProduct {
   id: string;
   name: string;
   description: string;
@@ -16,7 +16,7 @@ interface MessageProduct {
   photo: string | null;
 }
 
-interface MessageService {
+export interface MessageService {
   id: string;
   title?: string;
   description?: string;
@@ -24,7 +24,7 @@ interface MessageService {
   photo: string | null;
 }
 
-interface MessageHousing {
+export interface MessageHousing {
   id: string;
   title: string;
   description: string;
