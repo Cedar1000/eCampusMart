@@ -98,34 +98,56 @@ export class ServiceStoreService {
    * on a paid plan · canceled: the seller cancelled the free month or plan · expired:
    * the free month or plan ran out. isFreeTrial is true while the store isn't paying
    * yet (a free trial or an old free month), isOnExplore is what Explore currently
-   * shows, and canStartFreeTrial whether POST /subscriptions/start-free-trial would be allowed.
+   * shows, and canStartFreeTrial whether POST /subscriptions/start-free-trial would be
+   * allowed. The store's own hasFreeTrial means "hasn't used its free trial yet" and
+   * hasActiveSubscription means "on Explore"; the app should read these fields instead.
    */
   private async getSubscriptionState(store: ServiceStore) {
     const trialEndsAt = getTrialEnd(store);
 
-    const paid = await this.subscriptionRepo.findOne({
+    // Newest first. During a switch there are two: the plan still running (now
+    // non-renewing) and the next one, saved active, starting when it ends
+    const paid = await this.subscriptionRepo.find({
       where: { storeId: store.id, status: In(PAID_STATUSES) },
       order: { createdAt: 'DESC' },
     });
 
-    if (paid) {
-      const plan = await this.subscriptionPlanRepo.findOne({
-        where: { id: paid.planId },
+    if (paid.length) {
+      const now = new Date();
+      const [latest] = paid;
+      const running = paid.find(
+        (row) =>
+          row !== latest &&
+          row.status === SubscriptionStatus.NON_RENEWING &&
+          new Date(row.expiresAt) > now,
+      );
+      const current = running ?? latest;
+      const next = running ? latest : null;
+
+      const plans = await this.subscriptionPlanRepo.find({
+        where: { id: In([current.planId, ...(next ? [next.planId] : [])]) },
         select: ['id', 'name', 'type'],
       });
+      const planOf = (row: Subscription) =>
+        plans.find((plan) => plan.id === row.planId) ?? null;
 
-      const isFreeTrial = isRunningTrial(paid);
+      const isFreeTrial = isRunningTrial(current, now);
 
       return {
         status: isFreeTrial ? 'trial' : 'active',
         isFreeTrial,
-        plan,
-        // Billing starts when the trial ends for plans taken during it
-        endsAt: paid.expiresAt,
-        renews: paid.status === SubscriptionStatus.ACTIVE,
-        trialEndsAt,
+        plan: planOf(current),
+        // When the plan running now stops, or renews if `renews`. During a free
+        // trial it's the first charge, when the plan starts being paid for
+        endsAt: current.expiresAt,
+        renews: current.status === SubscriptionStatus.ACTIVE,
+        // Only while the store isn't paying yet; the same date as endsAt
+        trialEndsAt: isFreeTrial ? current.expiresAt : null,
+        // The plan switched to, charged for the first time on startsAt
+        nextPlan: next
+          ? { plan: planOf(next), startsAt: next.expiresAt }
+          : null,
         isOnExplore: store.hasActiveSubscription,
-        canRestartFree: false,
         canStartFreeTrial: false,
       };
     }
@@ -138,8 +160,8 @@ export class ServiceStoreService {
         endsAt: trialEndsAt,
         renews: false,
         trialEndsAt,
+        nextPlan: null,
         isOnExplore: store.hasActiveSubscription,
-        canRestartFree: false,
         canStartFreeTrial: false,
       };
     }
@@ -150,11 +172,12 @@ export class ServiceStoreService {
       order: { createdAt: 'DESC' },
     });
 
-    const canRestartFree = store.trialCancelled && trialEndsAt > new Date();
+    // A free trial cancelled before its end still counts as cancelled, not expired
+    const cancelledTrial = store.trialCancelled && trialEndsAt > new Date();
 
     return {
       status:
-        canRestartFree || lastPlan?.status === SubscriptionStatus.CANCELLED
+        cancelledTrial || lastPlan?.status === SubscriptionStatus.CANCELLED
           ? 'canceled'
           : 'expired',
       isFreeTrial: false,
@@ -162,8 +185,8 @@ export class ServiceStoreService {
       endsAt: null,
       renews: false,
       trialEndsAt,
+      nextPlan: null,
       isOnExplore: store.hasActiveSubscription,
-      canRestartFree,
       canStartFreeTrial: !!store.hasFreeTrial,
     };
   }

@@ -8,7 +8,12 @@ describe('OrderGateway', () => {
   const emit = jest.fn();
   const to = jest.fn(() => ({ emit }));
   const redis = { mget: jest.fn() };
-  const products = { findOne: jest.fn(() => ({ name: 'iphone 12' })) };
+  const products = {
+    findOne: jest.fn(() => ({ name: 'iphone 12' })),
+    manager: {
+      findOne: jest.fn(() => ({ id: 'store-1', name: 'Gadget Hub' })),
+    },
+  };
   const users = {
     findOne: jest.fn(() => ({ firstName: 'Ada', lastName: 'Obi' })),
   };
@@ -89,18 +94,39 @@ describe('OrderGateway', () => {
       });
     });
 
-    it('pushes a cancellation by the seller to the buyer', async () => {
-      await gateway.notify(order, 'cancelled', 'seller-1');
+    it('pushes a cancellation by the seller to the buyer, saying who', async () => {
+      await gateway.notify(
+        { ...order, cancelledBy: 'seller-1', cancelledByRole: 'seller' },
+        'cancelled',
+        'seller-1',
+      );
 
       expect(push.send).toHaveBeenCalledWith(['buyer-1'], {
         title: 'Order cancelled',
-        body: 'The order for iphone 12 was cancelled',
+        body: 'Ada Obi cancelled the order for iphone 12',
         data: {
           type: 'order-updated',
           orderId: 'order-1',
           action: 'cancelled',
+          cancelledBy: 'seller-1',
+          cancelledByRole: 'seller',
         },
       });
+    });
+
+    it("names the store when a store's order is cancelled by its owner", async () => {
+      await gateway.notify(
+        { ...order, cancelledBy: 'store-1', cancelledByRole: 'seller' },
+        'cancelled',
+        'seller-1',
+      );
+
+      expect(push.send).toHaveBeenCalledWith(
+        ['buyer-1'],
+        expect.objectContaining({
+          body: 'Gadget Hub cancelled the order for iphone 12',
+        }),
+      );
     });
 
     it('pushes an expiry to both sides', async () => {

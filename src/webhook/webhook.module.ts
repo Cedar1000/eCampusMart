@@ -5,6 +5,7 @@ import { SubscriptionWebhookService } from './subscription-webhook.service';
 import { WebhookController } from './webhook.controller';
 import { PaymentController } from './payment.controller';
 import { PaymentService } from './payment.service';
+import { TopUpExpirySweep } from './top-up-expiry.sweep';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Transaction } from 'src/transaction/entities/transaction.entity';
 import { Wallet } from 'src/wallet/entities/wallet.entity';
@@ -35,6 +36,7 @@ import { NotificationModule } from 'src/notification/notification.module';
     SubscriptionWebhookService,
     PaymentService,
     PaymentProcessor,
+    TopUpExpirySweep,
   ],
   exports: [PaymentService],
 })

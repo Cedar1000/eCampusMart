@@ -173,4 +173,44 @@ describe('PaymentService.verify', () => {
       expect.objectContaining({ reference: 'ref-1' }),
     );
   });
+
+  describe('a store checkout replaced by a newer one', () => {
+    beforeEach(() => {
+      transaction = null;
+      subscription = {
+        reference: 'ref-1',
+        userId: USER,
+        amount: 90000,
+        status: SubscriptionStatus.EXPIRED,
+        subscriptionCode: undefined,
+      };
+    });
+
+    it('asks Paystack, and reports it paid once the webhook code activates it', async () => {
+      jest
+        .mocked(verifyPaystackTransaction)
+        .mockResolvedValue({ status: 'success', amount: 90000 });
+      subscriptionWebhook.handle.mockImplementation(() => {
+        subscription!.status = SubscriptionStatus.ACTIVE;
+      });
+
+      const result = await service.verify('ref-1', USER);
+
+      expect(subscriptionWebhook.handle).toHaveBeenCalledWith(
+        'charge.success',
+        expect.objectContaining({ reference: 'ref-1' }),
+      );
+      expect(result.data.status).toBe('success');
+    });
+
+    it('reports it failed when it was never paid', async () => {
+      jest
+        .mocked(verifyPaystackTransaction)
+        .mockResolvedValue({ status: 'abandoned', amount: 90000 });
+
+      const result = await service.verify('ref-1', USER);
+
+      expect(result.data.status).toBe('failed');
+    });
+  });
 });

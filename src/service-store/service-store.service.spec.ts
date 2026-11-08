@@ -18,7 +18,7 @@ describe('ServiceStoreService', () => {
     create: jest.Mock;
     save: jest.Mock;
   };
-  let subscriptionRepo: { findOne: jest.Mock };
+  let subscriptionRepo: { findOne: jest.Mock; find: jest.Mock };
 
   const store = (fields: Partial<ServiceStore> = {}) =>
     ({
@@ -43,7 +43,10 @@ describe('ServiceStoreService', () => {
       create: jest.fn((row: unknown) => row),
       save: jest.fn((row: unknown) => row),
     };
-    subscriptionRepo = { findOne: jest.fn(() => null) };
+    subscriptionRepo = {
+      findOne: jest.fn(() => null),
+      find: jest.fn(() => []),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -56,7 +59,10 @@ describe('ServiceStoreService', () => {
         {
           provide: getRepositoryToken(SubscriptionPlan),
           useValue: {
-            findOne: jest.fn(() => ({ id: 'plan-1', name: 'Monthly' })),
+            find: jest.fn(() => [
+              { id: 'plan-1', name: 'Monthly', type: 'monthly' },
+              { id: 'plan-2', name: 'Yearly', type: 'yearly' },
+            ]),
           },
         },
         { provide: ListingCleanupService, useValue: {} },
@@ -122,46 +128,88 @@ describe('ServiceStoreService', () => {
       );
     });
 
-    it('is active on a paid plan', async () => {
-      subscriptionRepo.findOne.mockReturnValueOnce({
-        planId: 'plan-1',
-        status: SubscriptionStatus.ACTIVE,
-        expiresAt: new Date(),
-      });
+    it('is active on a paid plan, with no trial date', async () => {
+      subscriptionRepo.find.mockReturnValueOnce([
+        {
+          planId: 'plan-1',
+          status: SubscriptionStatus.ACTIVE,
+          expiresAt: new Date(Date.now() + 30 * DAY),
+        },
+      ]);
 
       await expect(statusOf({})).resolves.toEqual(
         expect.objectContaining({
           status: 'active',
           isFreeTrial: false,
           renews: true,
+          trialEndsAt: null,
+          nextPlan: null,
         }),
       );
     });
 
-    it('is a free trial while a start-free-trial plan has not started billing', async () => {
-      subscriptionRepo.findOne.mockReturnValueOnce({
-        planId: 'plan-1',
-        status: SubscriptionStatus.ACTIVE,
-        isTrial: true,
-        expiresAt: new Date(Date.now() + 20 * DAY),
-      });
+    it('is a free trial until the plan is first charged, and says when', async () => {
+      const firstCharge = new Date(Date.now() + 20 * DAY);
+      subscriptionRepo.find.mockReturnValueOnce([
+        {
+          planId: 'plan-1',
+          status: SubscriptionStatus.ACTIVE,
+          isTrial: true,
+          expiresAt: firstCharge,
+        },
+      ]);
 
       await expect(statusOf({})).resolves.toEqual(
         expect.objectContaining({
           status: 'trial',
           isFreeTrial: true,
-          plan: expect.objectContaining({ id: 'plan-1' }),
+          plan: expect.objectContaining({ id: 'plan-1' }) as object,
+          endsAt: firstCharge,
+          trialEndsAt: firstCharge,
         }),
       );
     });
 
-    it('is canceled, and can restart, after cancelling the free month', async () => {
+    it('shows the plan still running during a switch, and the next one', async () => {
+      const switchAt = new Date(Date.now() + 10 * DAY);
+      subscriptionRepo.find.mockReturnValueOnce([
+        // Newest first: the yearly plan switched to, then the monthly one
+        {
+          planId: 'plan-2',
+          status: SubscriptionStatus.ACTIVE,
+          expiresAt: switchAt,
+        },
+        {
+          planId: 'plan-1',
+          status: SubscriptionStatus.NON_RENEWING,
+          expiresAt: switchAt,
+        },
+      ]);
+
+      await expect(statusOf({})).resolves.toEqual(
+        expect.objectContaining({
+          status: 'active',
+          plan: expect.objectContaining({ id: 'plan-1' }) as object,
+          endsAt: switchAt,
+          renews: false,
+          nextPlan: {
+            plan: expect.objectContaining({ id: 'plan-2' }) as object,
+            startsAt: switchAt,
+          },
+        }),
+      );
+    });
+
+    it('is canceled after cancelling the free trial', async () => {
       await expect(
-        statusOf({ trialCancelled: true, hasActiveSubscription: false }),
+        statusOf({
+          trialCancelled: true,
+          trialEndsAt: new Date(Date.now() + 5 * DAY),
+          hasActiveSubscription: false,
+        }),
       ).resolves.toEqual(
         expect.objectContaining({
           status: 'canceled',
-          canRestartFree: true,
           isOnExplore: false,
         }),
       );
@@ -174,7 +222,7 @@ describe('ServiceStoreService', () => {
           hasActiveSubscription: false,
         }),
       ).resolves.toEqual(
-        expect.objectContaining({ status: 'expired', canRestartFree: false }),
+        expect.objectContaining({ status: 'expired', nextPlan: null }),
       );
     });
   });

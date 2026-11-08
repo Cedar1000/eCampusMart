@@ -4,6 +4,8 @@ import { BaseEntity } from 'src/common/base.entity';
 import { OrderStatus } from '../enums/order-status.enum';
 import { randomInt } from 'crypto';
 
+export type OrderParty = 'buyer' | 'seller';
+
 @Entity('order')
 export class Order extends BaseEntity {
   @Column()
@@ -47,6 +49,32 @@ export class Order extends BaseEntity {
 
   @Column()
   expiresAt: Date;
+
+  // When the order left pending, for the app's timeline (createdAt is when it
+  // was placed). Null until it happens
+  @Column({ type: 'timestamptz', nullable: true })
+  completedAt: Date | null;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  cancelledAt: Date | null;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  expiredAt: Date | null;
+
+  // Who cancelled: the buyer's user id, or the seller's (its store's id for a
+  // store order). Null unless cancelled
+  @Column({ type: 'varchar', nullable: true })
+  cancelledBy: string | null;
+
+  @Column({ type: 'varchar', nullable: true })
+  cancelledByRole: OrderParty | null;
+
+  // DELETE /orders/:id hides an expired order from that side's list only
+  @Column({ default: false })
+  hiddenBySeller: boolean;
+
+  @Column({ default: false })
+  hiddenByBuyer: boolean;
 
   @BeforeInsert()
   setExpiration() {

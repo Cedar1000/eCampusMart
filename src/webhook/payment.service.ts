@@ -30,6 +30,9 @@ type PaymentStatus = 'success' | 'pending' | 'failed';
 interface Payment {
   purpose: PaymentPurpose;
   status: PaymentStatus;
+  // Not settled yet, so Paystack is asked: pending, or a store checkout replaced
+  // by a newer one before it was paid
+  open: boolean;
   amount: number; // kobo
   expiresAt?: Date; // only top-ups expire as checkouts
 }
@@ -60,7 +63,7 @@ export class PaymentService {
   async verify(reference: string, userId: string) {
     let payment = await this.findOwnedPayment(reference, userId);
 
-    if (payment.status === 'pending') {
+    if (payment.open) {
       await this.settleWithPaystack(reference, payment);
       payment = await this.findOwnedPayment(reference, userId);
     }
@@ -135,9 +138,12 @@ export class PaymentService {
         );
       }
 
+      const status = this.transactionStatus(transaction.status);
+
       return {
         purpose: 'fund',
-        status: this.transactionStatus(transaction.status),
+        status,
+        open: status === 'pending',
         amount: transaction.amount,
         expiresAt: transaction.expiresAt,
       };
@@ -150,9 +156,17 @@ export class PaymentService {
     if (subscription) {
       if (subscription.userId !== userId) throw this.notYours();
 
+      const replaced =
+        subscription.status === SubscriptionStatus.EXPIRED &&
+        !subscription.subscriptionCode;
+
       return {
         purpose: 'subscription',
-        status: this.subscriptionStatus(subscription.status),
+        // A replaced checkout that Paystack didn't settle was never paid
+        status: replaced
+          ? 'failed'
+          : this.subscriptionStatus(subscription.status),
+        open: replaced || subscription.status === SubscriptionStatus.PENDING,
         amount: subscription.amount,
       };
     }

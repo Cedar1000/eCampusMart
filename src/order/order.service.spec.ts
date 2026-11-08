@@ -294,7 +294,11 @@ describe('OrderService', () => {
   });
 
   it('lists orders through the query', async () => {
-    const result = await service.findAll({ page: '1' } as never);
+    const result = await service.findAll(
+      { page: '1' } as never,
+      'seller',
+      'seller-1',
+    );
 
     expect(result).toMatchObject({ status: 'success', count: 1, data: [row] });
   });
@@ -324,6 +328,55 @@ describe('OrderService', () => {
     );
   });
 
+  describe('deleting an expired order', () => {
+    beforeEach(() => {
+      row!.status = OrderStatus.EXPIRED;
+    });
+
+    it.each([
+      ['seller-1', { hiddenBySeller: true }],
+      ['buyer-1', { hiddenByBuyer: true }],
+    ])('hides it from %s’s list only', async (user, hidden) => {
+      await service.remove('order-1', user);
+
+      expect(repo.update).toHaveBeenCalledWith('order-1', hidden);
+    });
+
+    it.each([
+      OrderStatus.PENDING,
+      OrderStatus.COMPLETED,
+      OrderStatus.CANCELLED,
+    ])('refuses an order that is %s', async (status) => {
+      row!.status = status;
+
+      await expect(service.remove('order-1', 'seller-1')).rejects.toThrow(
+        BadRequestException,
+      );
+      expect(repo.update).not.toHaveBeenCalled();
+    });
+
+    it('refuses someone else’s order', async () => {
+      await expect(service.remove('order-1', 'someone')).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+
+    it('leaves the hidden orders out of that side’s list', async () => {
+      await service.findAll({} as never, 'buyer', 'buyer-1');
+
+      expect(repo.find).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: [
+            expect.objectContaining({
+              buyerId: 'buyer-1',
+              hiddenByBuyer: false,
+            }),
+          ] as object,
+        }),
+      );
+    });
+  });
+
   describe('cancel and complete', () => {
     // The pending order is for 2 of the product's 3 units
     beforeEach(() => {
@@ -347,6 +400,57 @@ describe('OrderService', () => {
         'cancelled',
         'seller-1',
       );
+    });
+
+    it.each([
+      ['buyer-1', 'buyer', 'buyer-1'],
+      ['seller-1', 'seller', 'seller-1'],
+    ])(
+      'records that %s cancelled, and when',
+      async (user, role, cancelledBy) => {
+        const result = await service.cancel('order-1', user);
+
+        expect(row).toMatchObject({
+          cancelledBy,
+          cancelledByRole: role,
+          cancelledAt: expect.any(Date) as Date,
+        });
+        expect(result.data).toMatchObject({
+          cancelledBy,
+          cancelledByRole: role,
+        });
+      },
+    );
+
+    it("records a store order's cancellation by its owner as the store", async () => {
+      Object.assign(row!, { isStoreOrder: true, storeId: 'store-1' });
+
+      await service.cancel('order-1', 'seller-1');
+
+      expect(row).toMatchObject({
+        cancelledBy: 'store-1',
+        cancelledByRole: 'seller',
+      });
+    });
+
+    it('returns the closed order in naira', async () => {
+      row!.amount = 7500050;
+
+      const result = await service.cancel('order-1', 'buyer-1');
+
+      expect(result.data.amount).toBe(75000.5);
+      expect(gateway.notify).toHaveBeenCalledWith(
+        expect.objectContaining({ amount: 7500050 }),
+        'cancelled',
+        'buyer-1',
+      );
+    });
+
+    it('records when an order was completed', async () => {
+      await service.complete('order-1', 'buyer-1');
+
+      expect(row).toMatchObject({ completedAt: expect.any(Date) as Date });
+      expect(row!.cancelledBy).toBeUndefined();
     });
 
     it('completing takes the units and keeps the rest on sale', async () => {

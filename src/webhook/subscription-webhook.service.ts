@@ -6,13 +6,23 @@ import { Subscription } from 'src/subscription/entities/subscription.entity';
 import { SubscriptionStatus } from 'src/subscription/enums/subscription-status.enum';
 import { SubscriptionPlan } from 'src/subscription-plan/entities/subscription-plan.entity';
 import { PlanType } from 'src/subscription-plan/enums/plan-type.enum';
-import { DataSource, EntityManager, In, IsNull, Repository } from 'typeorm';
+import {
+  DataSource,
+  EntityManager,
+  In,
+  IsNull,
+  Not,
+  Repository,
+} from 'typeorm';
 import sendEmail from 'utils/sendEmail';
 import {
   createPaystackSubscription,
   refundPaystackTransaction,
 } from 'utils/paystack';
-import { syncStoreVisibility } from 'src/service-store/store-visibility';
+import {
+  PAID_STATUSES,
+  syncStoreVisibility,
+} from 'src/service-store/store-visibility';
 import { PushService } from 'src/notification/push.service';
 import { NotificationService } from 'src/notification/notification.service';
 import { NotificationType } from 'src/notification/entities/notification.entity';
@@ -169,6 +179,7 @@ export class SubscriptionWebhookService {
     data: PaystackEventData,
   ) {
     let storeDeleted = false;
+    let alreadyOnPlan = false;
 
     const subscription = await this.dataSource.transaction(async (manager) => {
       const subscription = await manager.findOne(Subscription, {
@@ -202,6 +213,23 @@ export class SubscriptionWebhookService {
         return null;
       }
 
+      // A second checkout paid after the store's plan started (e.g. an older,
+      // replaced one): the store keeps one plan, and this payment is given back
+      if (
+        await manager.exists(Subscription, {
+          where: {
+            storeId: subscription.storeId,
+            id: Not(subscription.id),
+            status: In(PAID_STATUSES),
+          },
+        })
+      ) {
+        alreadyOnPlan = true;
+        subscription.status = SubscriptionStatus.FAILED;
+        await manager.save(subscription);
+        return null;
+      }
+
       subscription.status = SubscriptionStatus.ACTIVE;
 
       // Throws before commit, so Paystack retries the webhook if it fails
@@ -223,6 +251,18 @@ export class SubscriptionWebhookService {
 
       return subscription;
     });
+
+    if (alreadyOnPlan) {
+      console.error('Store already on a plan, refunding', reference);
+
+      try {
+        await refundPaystackTransaction(reference);
+      } catch (error) {
+        console.error('Duplicate plan refund failed', reference, error);
+      }
+
+      return null;
+    }
 
     if (storeDeleted) {
       console.error(
@@ -337,6 +377,16 @@ export class SubscriptionWebhookService {
 
       if (!subscription) {
         console.error('Subscription not found', { subscriptionCode, status });
+        return null;
+      }
+
+      // A plan the seller cancelled runs to the end of its paid period, but Paystack
+      // sends subscription.disable as soon as it's cancelled
+      if (
+        status === SubscriptionStatus.CANCELLED &&
+        subscription.status === SubscriptionStatus.NON_RENEWING &&
+        new Date(subscription.expiresAt) > new Date()
+      ) {
         return null;
       }
 

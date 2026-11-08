@@ -14,7 +14,7 @@ import { In, MoreThan, QueryFailedError, Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
 
-import { User } from './entities/user.entity';
+import { toPublicUser, User } from './entities/user.entity';
 
 import IQuery from 'interfaces/query.Interface';
 
@@ -405,7 +405,8 @@ export class AuthService {
 
     // Checks if the current password matches the one in the database
     if (passwordCheck) {
-      throw new UnauthorizedException(`You can't use your old password`);
+      // Not 401: the app signs the user out on a 401
+      throw new BadRequestException(`You can't use your old password`);
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
@@ -510,12 +511,26 @@ export class AuthService {
     }
   }
 
-  async getSingleUser(id: string, query: Partial<IQuery>) {
-    return await factory.getOne(this.userRepo, id, query);
+  async getSingleUser(id: string, query: Partial<IQuery>, viewerId: string) {
+    const result = await factory.getOne(this.userRepo, id, query);
+
+    return { ...result, data: this.visibleTo(result.data as User, viewerId) };
   }
 
-  async findAll(query: Partial<IQuery>) {
-    return await factory.getAll(this.userRepo, query);
+  async findAll(query: Partial<IQuery>, viewerId: string) {
+    const result = await factory.getAll(this.userRepo, query);
+
+    return {
+      ...result,
+      data: (result.data as User[]).map((user) =>
+        this.visibleTo(user, viewerId),
+      ),
+    };
+  }
+
+  // Someone else's email, phone, login times, Clerk id and role stay private
+  private visibleTo(user: User, viewerId: string) {
+    return user.id === viewerId ? user : toPublicUser(user);
   }
 
   async updateRole(userId: string, payload: UpdateRoleDto) {

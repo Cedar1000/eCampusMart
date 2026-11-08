@@ -7,8 +7,26 @@ Chat has two parts:
 
 Base URL in development: `http://localhost:3000` (Socket.IO on `ws://localhost:3000`).
 
+## Changelog
+
+Newest first. Each entry says what changed for the app.
+
+**8 Nov 2026**
+
+- **Connecting with the access token.** Pass the same token as the REST API: `io(url, { auth: { token } })`. The `userid` header still works for now, but it will be refused once `CHAT_REQUIRE_TOKEN` is turned on before launch. A bad or expired token is refused even if a `userid` header is sent too. See [Connecting](#connecting).
+- **`mark-all-as-read` checks `senderId`.** It must be you or one of your stores, like `new-message`. Otherwise the server answers with an `exception`, marks nothing read and tells nobody.
+- **Listings on `new-message`.** The event and the sender's acknowledgement now carry the same `product`, `service` or `housing` summary (and `offer`) as `GET` messages.
+- **`order-updated` for a cancellation** says who cancelled: `order.cancelledBy` (a user id, or the store's id for a store order) and `order.cancelledByRole` (`buyer` or `seller`). Orders also have `completedAt`, `cancelledAt` and `expiredAt`.
+- **Chat uploads.** Ask for the upload signature with `{ "purpose": "chat" }` so chat files go to their own folder. See [`ChatMedia`](#chatmedia).
+
+**7 Nov 2026**
+
+- `offer-updated` carries `conversationId`.
+- New `notification` event; see `docs/NOTIFICATIONS.md`.
+
 ## Contents
 
+- [Changelog](#changelog)
 - [Concepts](#concepts)
 - [Connecting](#connecting)
 - [Socket events: client → server](#socket-events-client--server)
@@ -78,22 +96,20 @@ A message can reference **one** listing the conversation is about:
 | `serviceId` | A service           |
 | `housingId` | A housing listing   |
 
-When you load messages over REST, the server adds a short summary of the listing (`product`, `service` or `housing`) so you can render a card. See [List messages in a conversation](#list-messages-in-a-conversation).
+The server adds a short summary of the listing (`product`, `service` or `housing`) so you can render a card: on messages loaded over REST (see [List messages in a conversation](#list-messages-in-a-conversation)), on the `new-message` event, and on the sender's acknowledgement.
 
 ---
 
 ## Connecting
 
-Connect with the Socket.IO **v4** client and pass the logged-in user's id in a `userid` header.
+Connect with the Socket.IO **v4** client and pass the logged-in user's access token, the same one the REST API takes:
 
 ```ts
 import { io } from 'socket.io-client';
 
 const socket = io('http://localhost:3000', {
   transports: ['websocket'],
-  extraHeaders: {
-    userid: currentUser.id, // the user's id, not a store id
-  },
+  auth: { token: accessToken }, // the JWT from login, without "Bearer "
 });
 
 socket.on('connect', () => console.log('connected', socket.id));
@@ -101,12 +117,15 @@ socket.on('disconnect', (reason) => console.log('disconnected', reason));
 socket.on('exception', (error) => console.error('chat error', error));
 ```
 
+The server takes the user from the token. An `Authorization: Bearer …` header works too.
+
 The server **disconnects the socket immediately** if:
 
-- the `userid` header is missing or empty, or
+- the token is invalid or expired (refresh it, then reconnect), or
+- there's no token and no `userid` header, or
 - no user has that id.
 
-> **Browsers:** browsers can't set custom headers on a WebSocket, so `extraHeaders` only works with the `polling` transport there (leave out `transports: ['websocket']`), or in React Native and Node. Ask the backend team before relying on this in a browser build; moving the id to `auth` (`io(url, { auth: { ... } })`) is planned.
+> **The old `userid` header** (`extraHeaders: { userid: currentUser.id }`) still works while there's no token, so existing builds keep connecting. It goes away before launch, when the server sets `CHAT_REQUIRE_TOKEN=true`: anyone who knows a user's id can connect as them with it.
 
 ### What happens on connect
 
@@ -121,7 +140,7 @@ On disconnect, the user and their stores are marked offline (`isOnline: false`).
 1. **New → WebSocket**, then change the type from **Raw** to **Socket.IO**.
 2. URL: `ws://localhost:3000`.
 3. **Settings:** client version **v4**.
-4. **Headers:** `userid` = a real user id.
+4. **Settings → Handshake auth:** `{ "token": "<access token>" }` (or the old **Headers:** `userid` = a real user id).
 5. **Events:** listen for `new-message`, `message-delivered`, `mark-all-as-read`, `typing`, `stop-typing`, `recording`, `stop-recording` and `exception`.
 
 ---
@@ -130,7 +149,7 @@ On disconnect, the user and their stores are marked offline (`isOnline: false`).
 
 Every payload is validated strictly. **Unknown fields are rejected**, so send only the fields listed for each event. A rejected payload comes back as an [`exception`](#errors) event that says which field is wrong.
 
-**You can only act as yourself.** `senderId` on `new-message`, `typing`, `stop-typing`, `recording` and `stop-recording` must be the connected user's id or the id of one of their stores. Anything else is refused.
+**You can only act as yourself.** `senderId` on `new-message`, `typing`, `stop-typing`, `recording`, `stop-recording` and `mark-all-as-read` must be the connected user's id or the id of one of their stores. Anything else is refused.
 
 Only `new-message` returns data. It comes back through a Socket.IO **acknowledgement**: pass a callback as the last argument to `emit`, or use `emitWithAck`. Send every other event with a plain `emit`; they don't acknowledge, so `emitWithAck` would wait forever.
 
@@ -396,6 +415,8 @@ Use a plain `emit`. There's **no acknowledgement**, so `emitWithAck` would never
 
 **What the server does**
 
+If `senderId` isn't you or one of your stores, the server answers with an [`exception`](#errors) and does nothing else: no messages are marked read and the other participant isn't told.
+
 1. Sends [`mark-all-as-read`](#mark-all-as-read-1) to `receiverId` if they're online, with `{ conversationId }`.
 2. Marks every `sent` or `delivered` message in the conversation whose `receiverId` is your `senderId` as `read`.
 3. Sets your unread count for the conversation (`unReadCount[senderId]`) to `0`, and recalculates your total unread count.
@@ -416,7 +437,7 @@ Step 1 runs every time you emit, even when there was nothing unread. The other p
 
 ### `new-message`
 
-A message was sent to you or one of your stores. The payload is the full [`Message`](#message), the same as the sender's acknowledgement.
+A message was sent to you or one of your stores. The payload is the full [`Message`](#message), the same as the sender's acknowledgement, with the listing summary (`product`, `service` or `housing`) and `offer` when the message has one, as in [List messages in a conversation](#list-messages-in-a-conversation).
 
 ```ts
 socket.on('new-message', (message) => {
@@ -544,7 +565,24 @@ socket.on('order-updated', ({ action, order }) => {
 });
 ```
 
-You also get it for your own actions, e.g. the buyer gets `placed` after placing an order. It's only sent while you're connected: reload the orders list when the Orders screen opens.
+You also get it for your own actions, e.g. the buyer gets `placed` after placing an order. For `cancelled`, `order.cancelledBy` and `order.cancelledByRole` say who cancelled, so a phone can tell its own cancellation from the other side's:
+
+```json
+{
+  "action": "cancelled",
+  "order": {
+    "id": "102d83e3-cc2a-4757-b056-f5b5e7b3a689",
+    "status": "cancelled",
+    "cancelledBy": "91a8ea62-98ce-4168-9a4a-61fc93aaf2dc",
+    "cancelledByRole": "seller",
+    "cancelledAt": "2026-11-06T09:02:11.000Z"
+  }
+}
+```
+
+`cancelledBy` is the buyer's user id, the seller's user id, or the store's id when a store order's owner cancels.
+
+It's only sent while you're connected: reload the orders list when the Orders screen opens.
 
 ### `exception`
 
@@ -848,7 +886,7 @@ After it succeeds, empty the open conversation in the UI. Reloading the messages
 
 | Field       | Type   | Required | Notes                                                    |
 | ----------- | ------ | -------- | -------------------------------------------------------- |
-| `url`       | string | Yes      | Public URL of the uploaded file.                         |
+| `url`       | string | Yes      | Public URL of the uploaded file. Upload chat files with a signature from `POST /uploads/signature` `{ "purpose": "chat" }`, so they go to the `ECampusMart/chat` folder, not with listing photos. |
 | `thumbnail` | string | No       | Preview image for images and videos.                     |
 | `size`      | number | No       | Bytes.                                                   |
 | `duration`  | number | No       | Seconds, for audio, video and voice notes.               |
@@ -1041,7 +1079,7 @@ const message = await socket.timeout(10_000).emitWithAck('new-message', payload)
 
 ### Opening the chat screen
 
-1. Connect the socket with the `userid` header.
+1. Connect the socket with the access token (`auth: { token }`).
 2. `GET /chat/conversations/:userId` for the conversation list. A user with stores can call it again with each store id to show store inboxes.
 3. Listen for `new-message` to move conversations to the top and increase unread badges.
 

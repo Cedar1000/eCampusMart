@@ -1,15 +1,16 @@
 import { CallHandler, ExecutionContext } from '@nestjs/common';
 import { firstValueFrom, of } from 'rxjs';
 
+import { MessageListingsService } from '../message-listings.service';
 import { IncludeMessageListingsInterceptor } from './include-message-listings.interceptor';
 
 describe('IncludeMessageListingsInterceptor offers', () => {
   const offerFind = jest.fn();
   const none = { find: jest.fn(() => []) } as never;
 
-  const interceptor = new IncludeMessageListingsInterceptor(none, none, none, {
-    find: offerFind,
-  } as never);
+  const interceptor = new IncludeMessageListingsInterceptor(
+    new MessageListingsService(none, none, none, { find: offerFind } as never),
+  );
 
   const run = (data: object[]) =>
     firstValueFrom(

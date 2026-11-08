@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { HousingService } from './housing.service';
 import { HousingController } from './housing.controller';
+import { HouseTypeController } from './house-type.controller';
 import { Housing } from './entities/housing.entity';
 import { HousingImage } from './entities/housing-image.entity';
 import { CampusLocation } from 'src/campus-location/entities/campus-location.entity';
@@ -37,7 +38,7 @@ import { NotificationModule } from 'src/notification/notification.module';
 
     BullModule.registerQueue({ name: HOUSING_QUE }),
   ],
-  controllers: [HousingController],
+  controllers: [HousingController, HouseTypeController],
   providers: [
     HousingService,
     ValidCampusLocationGuard,

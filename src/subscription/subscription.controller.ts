@@ -40,11 +40,6 @@ export class SubscriptionController {
     return this.subscriptionService.cancelSubscription(dto.storeId, user.id);
   }
 
-  @Post('restart-free')
-  restartFree(@Body() dto: CancelSubscriptionDto, @CurrentUser() user: User) {
-    return this.subscriptionService.restartFreeMonth(dto.storeId, user.id);
-  }
-
   // The app charges the card check with Paystack first and sends its reference
   @Post('start-free-trial')
   startFreeTrial(@Body() dto: StartFreeTrialDto, @CurrentUser() user: User) {

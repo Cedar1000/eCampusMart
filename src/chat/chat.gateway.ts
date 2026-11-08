@@ -20,6 +20,8 @@ import {
   onlineIdsOf as onlineIds,
 } from './chat.service';
 import { ChatExceptionFilter } from './filters/chat-exception.filter';
+import { socketUserId } from './socket-auth';
+import { MessageListingsService } from './message-listings.service';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { MarkAsReadDto } from './dto/mark-as-read.dto';
 import { TypingDto } from './dto/typing.dto';
@@ -54,17 +56,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     @Inject(REDIS_CLIENT)
     private readonly redisClient: Redis,
+
+    private readonly listings: MessageListingsService,
   ) {}
 
   async handleConnection(client: ChatSocket) {
     try {
       console.log(`Client connected: ${client.id}`);
 
-      // TODO: authenticate the socket instead of trusting the userid header
-      const { userid } = client.handshake.headers;
+      const userid = socketUserId(client.handshake);
 
-      if (typeof userid !== 'string' || !userid) {
-        console.log('No userid provided, disconnecting client');
+      if (!userid) {
+        console.log('No valid token or userid, disconnecting client');
         client.disconnect(true);
         return;
       }
@@ -131,10 +134,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody(validPayload) createChatDto: CreateChatDto,
     @ConnectedSocket() client: ChatSocket,
   ) {
-    const message = await this.chatService.create(
+    const saved = await this.chatService.create(
       createChatDto,
       this.connectedUserId(client),
     );
+
+    // The listing's summary, as GET messages gives it, for the ack and the receiver
+    const [message] = await this.listings.attach([saved]);
 
     console.log({ message });
 
@@ -155,7 +161,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       await this.notifyDelivered(delivered);
     } else {
       // Not awaited, so the sender's ack isn't held up
-      void this.chatService.pushOffline(message);
+      void this.chatService.pushOffline(saved);
     }
 
     return message;
@@ -211,30 +217,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody(validPayload) markAsReadDto: MarkAsReadDto,
     @ConnectedSocket() client: ChatSocket,
   ) {
-    const { conversationId, receiverId } = markAsReadDto;
+    const { conversationId, receiverId, senderId } = markAsReadDto;
 
-    // Only the reader can mark their own messages as read
-    // this.assertOwnId(client, receiverId);
+    // senderId is the reader: only they (or their store) can mark the chat
+    // read, so nobody can send false read receipts for someone else
+    this.assertOwnId(client, senderId);
 
     await this.emitToUser(receiverId, 'mark-all-as-read', { conversationId });
 
-    const read = await this.chatService.markAsRead(markAsReadDto);
-
-    // if (read.length) {
-    //   // The senders of the read messages, so their ticks turn blue, and the reader
-    //   const notify = new Set([
-    //     ...read.map(({ senderId }) => senderId),
-    //     receiverId,
-    //   ]);
-
-    //   await Promise.all(
-    //     [...notify].map((id) =>
-    //       this.emitToUser(id, 'mark-all-as-read', conversationId),
-    //     ),
-    //   );
-    // }
-
-    // return read.map(({ id }) => id);
+    await this.chatService.markAsRead(markAsReadDto);
   }
 
   private connectedUserId(client: ChatSocket) {

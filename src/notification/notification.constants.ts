@@ -23,6 +23,9 @@ export type PushData =
       type: 'order-updated';
       orderId: string;
       action: 'placed' | 'cancelled' | 'completed' | 'expired';
+      // Only for a cancellation: who cancelled (a user id, or the store's id)
+      cancelledBy?: string | null;
+      cancelledByRole?: 'buyer' | 'seller' | null;
     }
   | {
       type: 'offer-updated';

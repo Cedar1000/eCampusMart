@@ -26,7 +26,7 @@ export class OrderExpirySweep {
       const expired = await this.orderRepo
         .createQueryBuilder()
         .update(Order)
-        .set({ status: OrderStatus.EXPIRED })
+        .set({ status: OrderStatus.EXPIRED, expiredAt: () => 'now()' })
         .where('status = :pending AND "expiresAt" < now()', {
           pending: OrderStatus.PENDING,
         })

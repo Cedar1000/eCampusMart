@@ -27,7 +27,6 @@ import { SubscriptionPlan } from 'src/subscription-plan/entities/subscription-pl
 import { PlanType } from 'src/subscription-plan/enums/plan-type.enum';
 import { SubscriptionStatus } from './enums/subscription-status.enum';
 import {
-  getTrialEnd,
   isInFreeMonth,
   PAID_STATUSES,
   syncStoreVisibility,
@@ -160,10 +159,11 @@ export class SubscriptionService {
 
       const expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
 
-      // One open checkout per store; a late payment on an older one is still honoured
+      // One open checkout per store. The older one is expired, not failed: it may
+      // have been paid already, and the webhook still honours a paid expired checkout
       await this.subscriptionRepo.update(
         { storeId: store.id, status: SubscriptionStatus.PENDING },
-        { status: SubscriptionStatus.FAILED },
+        { status: SubscriptionStatus.EXPIRED },
       );
 
       await this.subscriptionRepo.save(
@@ -249,7 +249,14 @@ export class SubscriptionService {
         );
       }
 
-      subscription.status = SubscriptionStatus.CANCELLED;
+      // Paid time isn't taken away: Paystack stops charging, and the store stays on
+      // Explore until expiresAt (SubscriptionExpirySweep then expires it). A plan
+      // whose renewal failed has no paid time left, so it stops now
+      subscription.status =
+        subscription.status !== SubscriptionStatus.INACTIVE &&
+        new Date(subscription.expiresAt) > new Date()
+          ? SubscriptionStatus.NON_RENEWING
+          : SubscriptionStatus.CANCELLED;
     }
 
     await this.dataSource.transaction(async (manager) => {
@@ -262,42 +269,6 @@ export class SubscriptionService {
       status: 'success',
       message: 'Subscription cancelled',
       data: subscription,
-    };
-  }
-
-  // After cancelling, the free month can be taken back until its original end date
-  async restartFreeMonth(storeId: string, userId: string) {
-    const store = await this.findOwnedStore(storeId, userId);
-
-    if (
-      await this.subscriptionRepo.exists({
-        where: { storeId, status: In(PAID_STATUSES) },
-      })
-    ) {
-      throw new BadRequestException('Store is already on a paid plan');
-    }
-
-    const trialEndsAt = getTrialEnd(store);
-
-    if (trialEndsAt <= new Date()) {
-      throw new BadRequestException(
-        'The free month has ended, please subscribe to a plan',
-      );
-    }
-
-    if (!store.trialCancelled) {
-      throw new BadRequestException('Store is already on its free month');
-    }
-
-    await this.dataSource.transaction(async (manager) => {
-      await manager.update(ServiceStore, storeId, { trialCancelled: false });
-      await syncStoreVisibility(manager, storeId);
-    });
-
-    return {
-      status: 'success',
-      message: 'Free month restarted',
-      data: { storeId, trialEndsAt },
     };
   }
 
@@ -407,8 +378,9 @@ export class SubscriptionService {
 
   /**
    * Puts the store on its one free plan: TRIAL_DAYS on Explore with no card. The free
-   * plan lives on the store (trialEndsAt), like the old free month, so visibility,
-   * cancel and restart-free already handle it. FreePlanReminderSweep emails the owner
+   * plan lives on the store (trialEndsAt), like the old free month, so visibility
+   * and cancel already handle it. A store gets it once: after it ends or is cancelled,
+   * only a paid plan puts the store back on Explore. FreePlanReminderSweep emails the owner
    * before it ends, pointing them to initialize-subscription.
    */
   async startFreeTrial(dto: StartFreeTrialDto, user: User) {

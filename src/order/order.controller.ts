@@ -6,6 +6,8 @@ import {
   Param,
   Query,
   Controller,
+  Delete,
+  HttpCode,
   ParseUUIDPipe,
   UseGuards,
   UseInterceptors,
@@ -44,7 +46,7 @@ export class OrderController {
     IncludeOrderRatingsInterceptor,
   )
   findAsSeller(@Query() query: IQuery, @CurrentUser() user: User) {
-    return this.orderService.findAll({ ...query, sellerId: user.id });
+    return this.orderService.findAll(query, 'seller', user.id);
   }
 
   @Get('buyer')
@@ -54,7 +56,7 @@ export class OrderController {
     IncludeOrderRatingsInterceptor,
   )
   findAsBuyer(@Query() query: IQuery, @CurrentUser() user: User) {
-    return this.orderService.findAll({ ...query, buyerId: user.id });
+    return this.orderService.findAll(query, 'buyer', user.id);
   }
 
   @Patch(':id/cancel')
@@ -65,6 +67,16 @@ export class OrderController {
   @Patch(':id/complete')
   complete(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: User) {
     return this.orderService.complete(id, user.id);
+  }
+
+  // Only an expired order, and only from the caller's own list
+  @Delete(':id')
+  @HttpCode(204)
+  async remove(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: User,
+  ) {
+    await this.orderService.remove(id, user.id);
   }
 
   // The buyer or seller rates the other side, once, after completion

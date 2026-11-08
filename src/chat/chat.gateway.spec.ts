@@ -117,9 +117,22 @@ describe('ChatGateway', () => {
   };
   const redis = { get: jest.fn((key: string) => `socket-of-${key}`) };
 
+  // Adds a product summary to messages about a product, like the real lookup
+  const listings = {
+    attach: jest.fn((messages: { productId?: string }[]) =>
+      Promise.resolve(
+        messages.map((m) =>
+          m.productId
+            ? { ...m, product: { id: m.productId, name: 'iphone 12' } }
+            : m,
+        ),
+      ),
+    ),
+  };
   const gateway = new ChatGateway(
     chatService as unknown as ChatService,
     redis as never,
+    listings as never,
   );
   Object.assign(gateway, { server: { to: () => ({ emit }) } });
 
@@ -132,33 +145,40 @@ describe('ChatGateway', () => {
 
   beforeEach(() => jest.clearAllMocks());
 
-  it('sends mark-all-as-read to the senders of the read messages and the reader', async () => {
-    chatService.markAsRead.mockResolvedValue([
-      { id: 'm1', senderId: OTHER, receiverType: 'user' },
-      { id: 'm2', senderId: OTHER, receiverType: 'user' },
-    ]);
+  it('tells the other participant and marks the reader’s messages read', async () => {
+    const dto = {
+      conversationId: CONVERSATION,
+      senderId: USER,
+      receiverId: OTHER,
+    };
 
-    const ids = await gateway.markAllAsRead(
-      { conversationId: CONVERSATION, receiverId: USER, senderId: OTHER },
+    await gateway.markAllAsRead(dto, client);
+
+    expect(redis.get).toHaveBeenCalledWith(`user-${OTHER}`);
+    expect(emit).toHaveBeenCalledWith('mark-all-as-read', {
+      conversationId: CONVERSATION,
+    });
+    expect(chatService.markAsRead).toHaveBeenCalledWith(dto);
+  });
+
+  it('lets a user mark a chat read as their own store', async () => {
+    await gateway.markAllAsRead(
+      { conversationId: CONVERSATION, senderId: STORE, receiverId: OTHER },
       client,
     );
 
-    expect(ids).toEqual(['m1', 'm2']);
-    expect(redis.get.mock.calls.map(([key]) => key).sort()).toEqual(
-      [`user-${OTHER}`, `user-${USER}`].sort(),
-    );
-    expect(emit).toHaveBeenCalledTimes(2);
-    expect(emit).toHaveBeenCalledWith('mark-all-as-read', CONVERSATION);
+    expect(chatService.markAsRead).toHaveBeenCalled();
   });
 
-  it("refuses to mark someone else's messages as read", async () => {
+  it('refuses to mark a chat read as someone else, and tells nobody', async () => {
     await expect(
       gateway.markAllAsRead(
-        { conversationId: CONVERSATION, receiverId: OTHER, senderId: USER },
+        { conversationId: CONVERSATION, senderId: OTHER, receiverId: USER },
         client,
       ),
     ).rejects.toThrow(WsException);
     expect(chatService.markAsRead).not.toHaveBeenCalled();
+    expect(emit).not.toHaveBeenCalled();
   });
 
   it('lets a user type as their own store but not as someone else', async () => {
@@ -205,6 +225,21 @@ describe('ChatGateway', () => {
       await send();
 
       expect(chatService.pushOffline).not.toHaveBeenCalled();
+    });
+
+    it('sends the listing summary to the receiver and in the ack', async () => {
+      chatService.create.mockResolvedValue({
+        ...message,
+        productId: 'product-1',
+      });
+
+      const ack = await send();
+
+      const withProduct = expect.objectContaining({
+        product: { id: 'product-1', name: 'iphone 12' },
+      }) as object;
+      expect(emit).toHaveBeenCalledWith('new-message', withProduct);
+      expect(ack).toEqual(withProduct);
     });
   });
 

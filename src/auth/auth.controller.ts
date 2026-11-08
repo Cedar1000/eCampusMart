@@ -187,17 +187,19 @@ export class AuthController {
     return this.authService.verifyEmailChange(user.id, payload.otp);
   }
 
+  // Other users come back with public fields only; the caller's own row in full
   @Get('/users')
-  async getAllUser(@Query() query: Partial<IQuery>) {
-    return this.authService.findAll(query);
+  async getAllUser(@Query() query: Partial<IQuery>, @CurrentUser() user: User) {
+    return this.authService.findAll(query, user.id);
   }
 
   @Get('/users/:id')
   async getSingleUser(
     @Param('id', ParseUUIDPipe) id: string,
     @Query() query: Partial<IQuery>,
+    @CurrentUser() user: User,
   ) {
-    return this.authService.getSingleUser(id, query);
+    return this.authService.getSingleUser(id, query, user.id);
   }
 
   @Get('/me')

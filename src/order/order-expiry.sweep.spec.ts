@@ -49,7 +49,13 @@ describe('OrderExpirySweep', () => {
     await sweep.sweep();
 
     expect(updates).toEqual([
-      { target: Order, fields: { status: OrderStatus.EXPIRED } },
+      {
+        target: Order,
+        fields: {
+          status: OrderStatus.EXPIRED,
+          expiredAt: expect.any(Function) as () => string,
+        },
+      },
     ]);
   });
 

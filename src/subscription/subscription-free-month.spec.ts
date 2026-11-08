@@ -90,11 +90,12 @@ describe('SubscriptionService free month', () => {
     expect(disablePaystackSubscription).not.toHaveBeenCalled();
   });
 
-  it('cancels a paid plan on Paystack too', async () => {
+  it('cancels a paid plan on Paystack, and lets it run to its end date', async () => {
     const plan = {
       status: SubscriptionStatus.ACTIVE,
       subscriptionCode: 'SUB_1',
       emailToken: 'TOKEN_1',
+      expiresAt: new Date(Date.now() + 10 * DAY),
     };
     subscriptionRepo.findOne.mockReturnValue(plan);
 
@@ -104,8 +105,22 @@ describe('SubscriptionService free month', () => {
       'SUB_1',
       'TOKEN_1',
     );
-    expect(plan.status).toBe(SubscriptionStatus.CANCELLED);
+    expect(plan.status).toBe(SubscriptionStatus.NON_RENEWING);
     expect(store.trialCancelled).toBe(true);
+  });
+
+  it('stops a plan whose renewal already failed straight away', async () => {
+    const plan = {
+      status: SubscriptionStatus.INACTIVE,
+      subscriptionCode: 'SUB_1',
+      emailToken: 'TOKEN_1',
+      expiresAt: new Date(Date.now() - DAY),
+    };
+    subscriptionRepo.findOne.mockReturnValue(plan);
+
+    await service.cancelSubscription('store-1', 'owner-1');
+
+    expect(plan.status).toBe(SubscriptionStatus.CANCELLED);
   });
 
   it('has nothing to cancel once the free month is over and there is no plan', async () => {
@@ -116,41 +131,9 @@ describe('SubscriptionService free month', () => {
     ).rejects.toThrow(BadRequestException);
   });
 
-  it('restarts a cancelled free month until its original end', async () => {
-    store.trialCancelled = true;
-
-    const result = await service.restartFreeMonth('store-1', 'owner-1');
-
-    expect(store.trialCancelled).toBe(false);
-    expect(store.hasActiveSubscription).toBe(true);
-    expect(
-      Math.round((result.data.trialEndsAt.getTime() - Date.now()) / DAY),
-    ).toBe(25);
-  });
-
-  it("can't restart a free month that has ended", async () => {
-    Object.assign(store, {
-      trialCancelled: true,
-      createdAt: new Date(Date.now() - 40 * DAY),
-    });
-
-    await expect(
-      service.restartFreeMonth('store-1', 'owner-1'),
-    ).rejects.toThrow(BadRequestException);
-  });
-
-  it("can't restart a free month that is still running", async () => {
-    await expect(
-      service.restartFreeMonth('store-1', 'owner-1'),
-    ).rejects.toThrow(BadRequestException);
-  });
-
-  it("only lets the store's owner cancel or restart", async () => {
+  it("only lets the store's owner cancel", async () => {
     await expect(
       service.cancelSubscription('store-1', 'someone-else'),
-    ).rejects.toThrow(BadRequestException);
-    await expect(
-      service.restartFreeMonth('store-1', 'someone-else'),
     ).rejects.toThrow(BadRequestException);
   });
 

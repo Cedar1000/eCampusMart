@@ -46,9 +46,17 @@ export const uploadToCloudinary = async (
   return result.secure_url;
 };
 
-export const signCloudinaryUpload = () => {
+// Listing photos stay in the top folder, where existing ones already are
+const UPLOAD_FOLDERS = {
+  listing: CLOUDINARY_FOLDER,
+  chat: `${CLOUDINARY_FOLDER}/chat`,
+} as const;
+
+export const signCloudinaryUpload = (
+  purpose: keyof typeof UPLOAD_FOLDERS = 'listing',
+) => {
   const timestamp = Math.round(Date.now() / 1000);
-  const paramsToSign = { timestamp, folder: CLOUDINARY_FOLDER };
+  const paramsToSign = { timestamp, folder: UPLOAD_FOLDERS[purpose] };
 
   return {
     ...paramsToSign,

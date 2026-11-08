@@ -131,3 +131,28 @@ export const USER_SECRET_FIELDS = [
   'emailChangeOtpExpiration',
   'emailChangeAttempts',
 ] as const satisfies readonly (keyof User)[];
+
+// What anyone may see of another user: no contact details, login data or role
+export const USER_PUBLIC_FIELDS = [
+  'id',
+  'firstName',
+  'lastName',
+  'photo',
+  'campusId',
+  'ratingsAverage',
+  'ratingsCount',
+  'isOnline',
+  'createdAt',
+] as const satisfies readonly (keyof User)[];
+
+export type PublicUser = Pick<User, (typeof USER_PUBLIC_FIELDS)[number]>;
+
+export const toPublicUser = (user: User): PublicUser => {
+  const shown: Partial<PublicUser> = {};
+
+  for (const field of USER_PUBLIC_FIELDS) {
+    (shown as Record<string, unknown>)[field] = user[field];
+  }
+
+  return shown as PublicUser;
+};

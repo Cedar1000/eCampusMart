@@ -19,7 +19,7 @@ import { uploadToCloudinary } from 'utils/cloudinary';
 import * as factory from 'utils/handlerFactory';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
-import { Order } from './entities/order.entity';
+import { Order, OrderParty } from './entities/order.entity';
 import { OrderStatus } from './enums/order-status.enum';
 import { OrderGateway } from './order.gateway';
 import { takeStock } from './order-stock';
@@ -105,8 +105,15 @@ export class OrderService {
     return { ...created, data: { ...order, amount: order.amount / 100 } };
   }
 
-  async findAll(query: IQuery & { sellerId?: string; buyerId?: string }) {
-    return await factory.getAll(this.orderRepo, query);
+  // Leaves out the orders this side deleted (see remove)
+  async findAll(query: IQuery, side: OrderParty, userId: string) {
+    return await factory.getAll(
+      this.orderRepo,
+      query,
+      side === 'seller'
+        ? { sellerId: userId, hiddenBySeller: false }
+        : { buyerId: userId, hiddenByBuyer: false },
+    );
   }
 
   findOne(id: number) {
@@ -154,11 +161,26 @@ export class OrderService {
         throw new ForbiddenException('This order is not yours');
       }
 
+      const now = new Date();
+      const role: OrderParty = order.buyerId === userId ? 'buyer' : 'seller';
+      const changes: Partial<Order> =
+        status === OrderStatus.COMPLETED
+          ? { status, completedAt: now }
+          : {
+              status,
+              cancelledAt: now,
+              cancelledByRole: role,
+              cancelledBy:
+                role === 'seller' && order.isStoreOrder && order.storeId
+                  ? order.storeId
+                  : userId,
+            };
+
       // Conditional, so a cancel and a complete at once can't both go through
       const closed = await manager
         .createQueryBuilder()
         .update(Order)
-        .set({ status })
+        .set(changes)
         .where('id = :id AND status = :pending', {
           id,
           pending: OrderStatus.PENDING,
@@ -176,7 +198,7 @@ export class OrderService {
       return {
         status: 'success',
         message: 'update successful!',
-        data: { ...order, status },
+        data: { ...order, ...changes },
       };
     });
 
@@ -186,10 +208,35 @@ export class OrderService {
       userId,
     );
 
-    return closed;
+    // Saved in kobo; shown in naira like the other order responses
+    return {
+      ...closed,
+      data: { ...closed.data, amount: Number(closed.data.amount) / 100 },
+    };
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} order`;
+  // Hides an expired order from the caller's list; the other side still sees it
+  async remove(id: string, userId: string) {
+    const order = await this.orderRepo.findOne({
+      where: { id },
+      select: ['id', 'buyerId', 'sellerId', 'status'],
+    });
+
+    if (!order) throw new NotFoundException('No resource with that ID');
+
+    if (order.buyerId !== userId && order.sellerId !== userId) {
+      throw new ForbiddenException('This order is not yours');
+    }
+
+    if (order.status !== OrderStatus.EXPIRED) {
+      throw new BadRequestException('Only an expired order can be deleted');
+    }
+
+    await this.orderRepo.update(
+      id,
+      order.sellerId === userId
+        ? { hiddenBySeller: true }
+        : { hiddenByBuyer: true },
+    );
   }
 }

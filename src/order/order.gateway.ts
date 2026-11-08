@@ -11,6 +11,7 @@ import { PushService } from 'src/notification/push.service';
 import { NotificationService } from 'src/notification/notification.service';
 import { NotificationType } from 'src/notification/entities/notification.entity';
 import { Product } from 'src/product/entities/product.entity';
+import { ProductStore } from 'src/product-store/entities/product-store.entity';
 import { REDIS_CLIENT } from 'src/redis/constants/redis.constant';
 import { Order } from './entities/order.entity';
 
@@ -25,7 +26,8 @@ type NotifiedOrder = Pick<
   | 'amount'
   | 'productId'
   | 'quantity'
->;
+> &
+  Partial<Pick<Order, 'cancelledBy' | 'cancelledByRole'>>;
 
 const PUSH_TITLES: Record<OrderAction, string> = {
   placed: 'New order',
@@ -149,10 +151,12 @@ export class OrderGateway {
     if (!userIds.length) return;
 
     const { buyerName, item } = await this.describe(order);
+    const canceller =
+      action === 'cancelled' ? await this.cancellerName(order, buyerName) : '';
 
     const bodies: Record<OrderAction, string> = {
       placed: `${buyerName} ordered ${item}`,
-      cancelled: `The order for ${item} was cancelled`,
+      cancelled: `${canceller} cancelled the order for ${item}`,
       completed: `The order for ${item} is complete`,
       expired: `The order for ${item} expired before it was completed`,
     };
@@ -160,8 +164,43 @@ export class OrderGateway {
     await this.pushService.send(userIds, {
       title: PUSH_TITLES[action],
       body: bodies[action],
-      data: { type: 'order-updated', orderId: order.id, action },
+      data: {
+        type: 'order-updated',
+        orderId: order.id,
+        action,
+        ...(action === 'cancelled' && {
+          cancelledBy: order.cancelledBy ?? null,
+          cancelledByRole: order.cancelledByRole ?? null,
+        }),
+      },
     });
+  }
+
+  // "Ada Obi" for the buyer; the seller's name, or their store's for a store order
+  private async cancellerName(order: NotifiedOrder, buyerName: string) {
+    if (order.cancelledByRole === 'buyer') return buyerName;
+
+    if (order.cancelledByRole === 'seller') {
+      const store =
+        order.cancelledBy && order.cancelledBy !== order.sellerId
+          ? await this.productRepo.manager.findOne(ProductStore, {
+              where: { id: order.cancelledBy },
+              select: ['id', 'name'],
+            })
+          : null;
+      if (store?.name) return store.name;
+
+      const seller = await this.userRepo.findOne({
+        where: { id: order.sellerId },
+        select: ['id', 'firstName', 'lastName'],
+      });
+      const name = [seller?.firstName, seller?.lastName]
+        .filter(Boolean)
+        .join(' ');
+      if (name) return name;
+    }
+
+    return 'The other party';
   }
 
   // "2 × iphone 12" and the buyer's full name, for the order's texts

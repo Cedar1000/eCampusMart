@@ -14,6 +14,7 @@ The server tells users about events in three ways:
 - [Push types](#push-types)
 - [The Notifications screen](#the-notifications-screen)
 - [Rating an order](#rating-an-order)
+- [Reviews](#reviews)
 
 ## Saving a token
 
@@ -85,8 +86,10 @@ An order was placed, cancelled, completed or expired. It goes to the buyer and t
 | --- | --- |
 | `orderId` | The order |
 | `action` | `placed`, `cancelled`, `completed` or `expired` |
+| `cancelledBy` | Only for `cancelled`: who cancelled, a user id or (for a store order's owner) the store's id |
+| `cancelledByRole` | Only for `cancelled`: `buyer` or `seller` |
 
-**Example:** title "New order", body "Ada Obi ordered 2 × iphone 12".
+**Example:** title "New order", body "Ada Obi ordered 2 × iphone 12". A cancellation names who did it: "Gadget Hub cancelled the order for iphone 12".
 
 **Opens:** the order `orderId` (the seller's or buyer's Orders).
 
@@ -284,3 +287,61 @@ This only reaches a connected app. The app disconnects in the background, so rel
 | `403` | The user isn't the order's buyer or seller |
 | `404` | No order with that id |
 | `409` | This side has already rated the order |
+
+## Reviews
+
+Reviews are the ratings left on orders, read back for the profile screens. All three take a Bearer token.
+
+| Request | Returns |
+| --- | --- |
+| `GET /reviews/received?userId=…` | Reviews of that user and of their product stores, newest first. Leave out `userId` for your own |
+| `GET /reviews/given` | Reviews you wrote, newest first |
+| `GET /reviews/summary?userId=…` | `average` (1 decimal), `count`, and `breakdown`: how many of each star. Leave out `userId` for your own |
+
+The two lists page like the others (`page`, `limit`, 10 by default). Each review is the rating, plus:
+
+- `rater`: `{ id, name, photo, type: "user" }`
+- `ratee`: the user or store rated, `{ id, name, photo, type }`, where `type` is `user` or `product-store` and `photo` is a store's logo
+- `order`: `{ id, orderId, product: { id, name } }`
+
+```json
+{
+  "status": "success",
+  "total": 1,
+  "count": 1,
+  "pages": 1,
+  "currentPage": 1,
+  "nextPage": null,
+  "prevPage": null,
+  "data": [
+    {
+      "id": "9b2e4c1a-5d7f-4e21-8a3b-6c0d9e1f2a47",
+      "orderId": "102d83e3-cc2a-4757-b056-f5b5e7b3a689",
+      "raterRole": "buyer",
+      "stars": 5,
+      "comment": "quick pickup, no stress.",
+      "createdAt": "2026-11-06T12:00:00.000Z",
+      "rater": { "id": "48c03f11-…", "name": "Ada Obi", "photo": "https://…", "type": "user" },
+      "ratee": { "id": "91a8ea62-…", "name": "Gadget Hub", "photo": "https://…", "type": "product-store" },
+      "order": { "id": "102d83e3-…", "orderId": "ORD-L1MK-WQ", "product": { "id": "8fe7a3f2-…", "name": "iphone 12" } }
+    }
+  ]
+}
+```
+
+Summary:
+
+```json
+{
+  "status": "success",
+  "data": {
+    "userId": "48c03f11-8cf5-4249-b1fe-304e3197f9bd",
+    "average": 4.8,
+    "count": 4,
+    "breakdown": { "1": 0, "2": 0, "3": 0, "4": 1, "5": 3 }
+  }
+}
+```
+
+The profile's `ratingsAverage` and `ratingsCount` on the user are the user's own reviews only; the summary also counts their stores'.
+

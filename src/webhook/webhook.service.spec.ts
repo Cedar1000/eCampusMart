@@ -331,6 +331,22 @@ describe('WebhookService', () => {
     expect(subscription.status).toBe(SubscriptionStatus.ACTIVE);
   });
 
+  it('refunds a replaced checkout paid after the store’s plan started', async () => {
+    subscription.status = SubscriptionStatus.EXPIRED;
+    rows.push({ storeId: 'store-1', status: SubscriptionStatus.ACTIVE });
+    jest.mocked(refundPaystackTransaction).mockReset();
+    jest.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    await send('charge.success', {
+      reference: 'ref-1',
+      amount: 500000,
+      metadata: { description: 'store-subscription' },
+    });
+
+    expect(subscription.status).toBe(SubscriptionStatus.FAILED);
+    expect(refundPaystackTransaction).toHaveBeenCalledWith('ref-1');
+  });
+
   it('ignores a charge for a period that already ended', async () => {
     Object.assign(subscription, {
       status: SubscriptionStatus.EXPIRED,
@@ -496,6 +512,22 @@ describe('WebhookService', () => {
       );
     },
   );
+
+  it('keeps a plan the seller cancelled until its paid period ends', async () => {
+    Object.assign(subscription, {
+      status: SubscriptionStatus.NON_RENEWING,
+      subscriptionCode: 'SUB_1',
+      expiresAt: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000),
+    });
+
+    await send('subscription.disable', {
+      subscription_code: 'SUB_1',
+      status: 'cancelled',
+    });
+
+    expect(subscription.status).toBe(SubscriptionStatus.NON_RENEWING);
+    expect(manager.update).not.toHaveBeenCalled();
+  });
 
   it('sends a reminder on invoice.create without changing anything', async () => {
     await send('invoice.create', {
