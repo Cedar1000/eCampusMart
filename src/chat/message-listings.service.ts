@@ -32,12 +32,22 @@ export interface MessageHousing {
   photo: string | null;
 }
 
-export type MessageWithListings = Message & {
+// Anything that points at a listing or offer: chat messages, pending reviews
+export interface ListingRefs {
+  productId?: string | null;
+  serviceId?: string | null;
+  housingId?: string | null;
+  offerId?: string | null;
+}
+
+export interface ListingSummaries {
   product?: MessageProduct | null;
   service?: MessageService | null;
   housing?: MessageHousing | null;
   offer?: Offer | null;
-};
+}
+
+export type MessageWithListings = Message & ListingSummaries;
 
 const LISTING_SELECT = {
   id: true,
@@ -50,13 +60,14 @@ const LISTING_SELECT = {
 const coverPhoto = (images?: { url: string; isCoverImage: boolean }[]) =>
   (images?.find((image) => image.isCoverImage) ?? images?.[0])?.url ?? null;
 
-const uniqueIds = (ids: (string | undefined)[]) => [
+const uniqueIds = (ids: (string | null | undefined)[]) => [
   ...new Set(ids.filter((id): id is string => Boolean(id))),
 ];
 
 // Adds the product, service or housing (id, name/title, description, price and
 // cover photo) to messages that reference one, and the offer to offer messages.
-// Used by GET messages and by the new-message event, so both look the same
+// Used by GET messages and by the new-message event, so both look the same,
+// and by the review lists
 @Injectable()
 export class MessageListingsService {
   constructor(
@@ -70,9 +81,9 @@ export class MessageListingsService {
     private readonly offerRepo: Repository<Offer>,
   ) {}
 
-  async attach<T extends Message>(
+  async attach<T extends ListingRefs>(
     messages: T[],
-  ): Promise<(T & MessageWithListings)[]> {
+  ): Promise<(T & ListingSummaries)[]> {
     const productIds = uniqueIds(messages.map((m) => m.productId));
     const serviceIds = uniqueIds(messages.map((m) => m.serviceId));
     const housingIds = uniqueIds(messages.map((m) => m.housingId));

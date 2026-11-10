@@ -10,7 +10,8 @@ import { Product } from 'src/product/entities/product.entity';
 import { ProductStatus } from 'src/product/enums/product-status.enum';
 import { Order } from './entities/order.entity';
 import { OrderStatus } from './enums/order-status.enum';
-import { OrderService } from './order.service';
+import { OrderService, pendingReviewsFor } from './order.service';
+import { PendingReview } from 'src/review/entities/pending-review.entity';
 import { uploadToCloudinary } from 'utils/cloudinary';
 
 jest.mock('qrcode', () => ({
@@ -142,6 +143,7 @@ describe('OrderService', () => {
         entity === Order ? row && { ...row } : product && { ...product },
       ),
       createQueryBuilder: () => fakeUpdate(() => ({ row, product })),
+      insert: jest.fn(),
       getRepository: () => repo,
       transaction: jest.fn((run: (m: unknown) => unknown): unknown =>
         run(manager),
@@ -444,6 +446,64 @@ describe('OrderService', () => {
         'cancelled',
         'buyer-1',
       );
+    });
+
+    it('creates a pending review for each side when completed', async () => {
+      await service.complete('order-1', 'buyer-1');
+
+      const { insert } = repo.manager as { insert: jest.Mock };
+      expect(insert).toHaveBeenCalledWith(PendingReview, [
+        {
+          orderId: 'order-1',
+          productId: 'product-1',
+          buyerId: 'buyer-1',
+          sellerId: 'seller-1',
+          senderId: 'buyer-1',
+          senderIsStore: false,
+          receiverId: 'seller-1',
+          receiverIsStore: false,
+        },
+        {
+          orderId: 'order-1',
+          productId: 'product-1',
+          buyerId: 'buyer-1',
+          sellerId: 'seller-1',
+          senderId: 'seller-1',
+          senderIsStore: false,
+          receiverId: 'buyer-1',
+          receiverIsStore: false,
+        },
+      ]);
+    });
+
+    it("puts the store on the seller's side of a store order's reviews", () => {
+      const [buyerReview, sellerReview] = pendingReviewsFor({
+        id: 'order-1',
+        productId: 'product-1',
+        buyerId: 'buyer-1',
+        sellerId: 'seller-1',
+        isStoreOrder: true,
+        storeId: 'store-1',
+      });
+
+      expect(buyerReview).toMatchObject({
+        senderId: 'buyer-1',
+        receiverId: 'store-1',
+        receiverIsStore: true,
+      });
+      expect(sellerReview).toMatchObject({
+        senderId: 'store-1',
+        senderIsStore: true,
+        receiverId: 'buyer-1',
+      });
+    });
+
+    it('creates no pending reviews when cancelled', async () => {
+      await service.cancel('order-1', 'buyer-1');
+
+      expect(
+        (repo.manager as { insert: jest.Mock }).insert,
+      ).not.toHaveBeenCalled();
     });
 
     it('records when an order was completed', async () => {

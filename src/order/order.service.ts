@@ -12,6 +12,7 @@ import { Repository } from 'typeorm';
 
 import { Offer } from 'src/offer/entities/offer.entity';
 import { Product } from 'src/product/entities/product.entity';
+import { PendingReview } from 'src/review/entities/pending-review.entity';
 import { ProductStatus } from 'src/product/enums/product-status.enum';
 
 import IQuery from 'interfaces/query.Interface';
@@ -23,6 +24,41 @@ import { Order, OrderParty } from './entities/order.entity';
 import { OrderStatus } from './enums/order-status.enum';
 import { OrderGateway } from './order.gateway';
 import { takeStock } from './order-stock';
+
+// One review each way: the buyer reviews the seller, the seller the buyer. On
+// a store order the store is the seller's side, as with cancelledBy
+export const pendingReviewsFor = (
+  order: Pick<
+    Order,
+    'id' | 'buyerId' | 'sellerId' | 'isStoreOrder' | 'storeId' | 'productId'
+  >,
+): Partial<PendingReview>[] => {
+  const isStore = !!(order.isStoreOrder && order.storeId);
+  const sellerSide = isStore ? order.storeId : order.sellerId;
+  const common = {
+    orderId: order.id,
+    productId: order.productId,
+    buyerId: order.buyerId,
+    sellerId: order.sellerId,
+  };
+
+  return [
+    {
+      ...common,
+      senderId: order.buyerId,
+      senderIsStore: false,
+      receiverId: sellerSide,
+      receiverIsStore: isStore,
+    },
+    {
+      ...common,
+      senderId: sellerSide,
+      senderIsStore: isStore,
+      receiverId: order.buyerId,
+      receiverIsStore: false,
+    },
+  ];
+};
 
 @Injectable()
 export class OrderService {
@@ -193,6 +229,7 @@ export class OrderService {
 
       if (status === OrderStatus.COMPLETED) {
         await takeStock(manager, order.productId, order.quantity);
+        await manager.insert(PendingReview, pendingReviewsFor(order));
       }
 
       return {

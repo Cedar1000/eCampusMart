@@ -48,6 +48,7 @@ import { ChatModule } from './chat/chat.module';
 import { OfferModule } from './offer/offer.module';
 import { OrderModule } from './order/order.module';
 import { NotificationModule } from './notification/notification.module';
+import { ReviewModule } from './review/review.module';
 
 @Module({
   imports: [
@@ -90,6 +91,7 @@ import { NotificationModule } from './notification/notification.module';
     OfferModule,
     OrderModule,
     NotificationModule,
+    ReviewModule,
   ],
   controllers: [AppController],
   providers: [AppService],
