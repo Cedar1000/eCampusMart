@@ -55,7 +55,18 @@ Tokens of phones that uninstalled the app are removed by the server when Expo re
   "channelId": "default",
   "richContent": { "image": "https://…" },
   "mutableContent": true,
-  "data": { "type": "chat-message", "conversationId": "…", "receiverId": "…", "messageId": "…", "sender": { "id": "…", "type": "user", "name": "Grace Drinks", "photo": "https://…" } }
+  "data": {
+    "type": "chat-message",
+    "conversationId": "…",
+    "receiverId": "…",
+    "messageId": "…",
+    "sender": {
+      "id": "…",
+      "type": "user",
+      "name": "Grace Drinks",
+      "photo": "https://…"
+    }
+  }
 }
 ```
 
@@ -69,12 +80,12 @@ Ids are UUIDs and amounts are in naira.
 
 Sent when a `new-message` is saved and the receiver isn't connected, so the message's status stays `sent`. Nobody who's online gets one.
 
-| Field | Meaning |
-| --- | --- |
-| `conversationId` | The chat to open |
-| `receiverId` | Who the message was sent to: the user, or the store when it was sent to a store. A store's messages go to the store's owner. |
-| `messageId` | The message |
-| `sender` | Who sent it: `{ id, type, name, photo }`, the same as `sender` on the `new-message` event. `type` is `user`, `product-store` or `service-store`, and a store's `photo` is its logo. `photo` is `null` when there's none |
+| Field            | Meaning                                                                                                                                                                                                                 |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `conversationId` | The chat to open                                                                                                                                                                                                        |
+| `receiverId`     | Who the message was sent to: the user, or the store when it was sent to a store. A store's messages go to the store's owner.                                                                                            |
+| `messageId`      | The message                                                                                                                                                                                                             |
+| `sender`         | Who sent it: `{ id, type, name, photo }`, the same as `sender` on the `new-message` event. `type` is `user`, `product-store` or `service-store`, and a store's `photo` is its logo. `photo` is `null` when there's none |
 
 - **`title`:** the sender's name, or the store's name when sent as a store.
 - **Photo:** the push carries `"richContent": { "image": "<photo URL>" }` and `"mutableContent": true`. The image is the sender's profile photo, or the store's logo when sent as a store. Both are left out when there's no photo. On iOS the image shows only if the app has a Notification Service Extension to download it; without one the push still arrives, just without the picture. The same URL is in `data.sender.photo`.
@@ -86,12 +97,12 @@ Sent when a `new-message` is saved and the receiver isn't connected, so the mess
 
 An order was placed, cancelled, completed or expired. It goes to the buyer and the seller, except whoever made the change; an expiry goes to both. It's the same moment as the `order-updated` socket event.
 
-| Field | Meaning |
-| --- | --- |
-| `orderId` | The order |
-| `action` | `placed`, `cancelled`, `completed` or `expired` |
-| `cancelledBy` | Only for `cancelled`: who cancelled, a user id or (for a store order's owner) the store's id |
-| `cancelledByRole` | Only for `cancelled`: `buyer` or `seller` |
+| Field             | Meaning                                                                                      |
+| ----------------- | -------------------------------------------------------------------------------------------- |
+| `orderId`         | The order                                                                                    |
+| `action`          | `placed`, `cancelled`, `completed` or `expired`                                              |
+| `cancelledBy`     | Only for `cancelled`: who cancelled, a user id or (for a store order's owner) the store's id |
+| `cancelledByRole` | Only for `cancelled`: `buyer` or `seller`                                                    |
 
 **Example:** title "New order", body "Ada Obi ordered 2 × iphone 12". A cancellation names who did it: "Gadget Hub cancelled the order for iphone 12".
 
@@ -101,10 +112,10 @@ An order was placed, cancelled, completed or expired. It goes to the buyer and t
 
 An offer was accepted, declined, withdrawn by the seller, or found expired. It goes to the side that didn't make the change. A store's offers go to the store's owner.
 
-| Field | Meaning |
-| --- | --- |
-| `offerId` | The offer; find the chat message whose `offerId` matches |
-| `status` | `accepted`, `rejected`, `cancelled` or `expired` |
+| Field            | Meaning                                                                           |
+| ---------------- | --------------------------------------------------------------------------------- |
+| `offerId`        | The offer; find the chat message whose `offerId` matches                          |
+| `status`         | `accepted`, `rejected`, `cancelled` or `expired`                                  |
 | `conversationId` | The chat the offer was sent in. `null` only if the offer's message can't be found |
 
 **Example:** title "Offer accepted", body "Your ₦5,000 offer for iphone 12 was accepted".
@@ -115,10 +126,10 @@ An offer was accepted, declined, withdrawn by the seller, or found expired. It g
 
 A top-up was credited to the user's wallet. It's sent once per top-up.
 
-| Field | Meaning |
-| --- | --- |
-| `reference` | The top-up's reference |
-| `amount` | The amount added, in naira |
+| Field       | Meaning                    |
+| ----------- | -------------------------- |
+| `reference` | The top-up's reference     |
+| `amount`    | The amount added, in naira |
 
 **Opens:** the wallet.
 
@@ -126,10 +137,10 @@ A top-up was credited to the user's wallet. It's sent once per top-up.
 
 A store subscription event that also sends an email: activated, renewal reminder, not renewing, cancelled or renewal failed. The title and body are the email's subject and text.
 
-| Field | Meaning |
-| --- | --- |
-| `storeId` | The service store |
-| `status` | The subscription's status after the event |
+| Field     | Meaning                                   |
+| --------- | ----------------------------------------- |
+| `storeId` | The service store                         |
+| `status`  | The subscription's status after the event |
 
 **Opens:** the store's subscription screen.
 
@@ -137,10 +148,10 @@ A store subscription event that also sends an email: activated, renewal reminder
 
 The store's free plan ends in 3 days, ends tomorrow, or has ended. Each stage is sent once, with the same text as the reminder email.
 
-| Field | Meaning |
-| --- | --- |
-| `storeId` | The service store |
-| `stage` | `3d`, `1d` or `ended` |
+| Field     | Meaning               |
+| --------- | --------------------- |
+| `storeId` | The service store     |
+| `stage`   | `3d`, `1d` or `ended` |
 
 **Opens:** the store's subscription screen.
 
@@ -148,10 +159,10 @@ The store's free plan ends in 3 days, ends tomorrow, or has ended. Each stage is
 
 The other side of a completed order rated the user, or the user's store. See [Rating an order](#rating-an-order).
 
-| Field | Meaning |
-| --- | --- |
+| Field     | Meaning         |
+| --------- | --------------- |
 | `orderId` | The rated order |
-| `stars` | 1 to 5 |
+| `stars`   | 1 to 5          |
 
 **Example:** title "New review", body "Ada rated you 5 stars".
 
@@ -213,18 +224,18 @@ Show `title` and `body`, with `createdAt` as the time. Use `type` and `data` to 
 
 **These aren't the push types.** Saved notifications follow the Notifications screen's own types, and some events save a notification with no matching push:
 
-| `type` | When | Who | `data` | Title, body |
-| --- | --- | --- | --- | --- |
-| `offer-received` | A seller sends an offer in chat | The buyer (a store's owner, if sent to a store) | `offerId`, `productId`, `conversationId`, `messageId`, `expiresAt` | "New offer received", "₦6,000 · oraimo 20w fast charger · expires in 24 hrs" |
-| `offer-accepted` | The buyer accepts | The seller (a store's owner, for a store's offer) | `offerId`, `orderId`, `productId`, `conversationId` | "Offer accepted", "₦6,000 · … · order ORD-2113 created" |
-| `order-placed` | Someone orders the seller's item | The seller (a store's owner, for a store's item) | `orderId`, `productId` | "New order", "Ada Obi ordered 2 × iphone 12" |
-| `order-completed` | An order is completed | The other party | `orderId`, `productId` | "Order completed", "Adaeze scanned your code, order ORD-2113 is complete." |
-| `order-cancelled` | An order is cancelled | The other party | `orderId`, `productId` | "Order cancelled", "Adaeze cancelled ORD-2113 before handover." |
-| `review-received` | Someone rates the user or their store | The rated user, or the store's owner | `orderId`, `stars`, `ratingId` | "New review", "Ada rated you 5 stars" |
-| `wallet-funded` | A top-up is credited | The wallet owner | `reference`, `amount` | "Wallet funded", "Paystack confirmed your ₦5,000 top-up. It's ready to spend." |
-| `wallet-debited` | A product or housing listing fee is taken | The lister | `reference`, `amount`, `productId` or `housingId` | "Wallet debited", "₦300 listing fee debited." |
-| `subscription-updated` | A store's plan changes (paid, failed, renewing, cancelled) | The store's owner | `storeId`, `status` | Same as the email, e.g. "Subscription will not renew", "Your subscription for Ada Cuts …" |
-| `free-plan-ending` | A store's free plan ends in 3 days, 1 day, or has ended | The store's owner | `storeId`, `stage` (`3d`, `1d` or `ended`) | Same as the email, e.g. "Your free plan ends tomorrow", "Your free plan for Ada Cuts ends on …" |
+| `type`                 | When                                                       | Who                                               | `data`                                                             | Title, body                                                                                     |
+| ---------------------- | ---------------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
+| `offer-received`       | A seller sends an offer in chat                            | The buyer (a store's owner, if sent to a store)   | `offerId`, `productId`, `conversationId`, `messageId`, `expiresAt` | "New offer received", "₦6,000 · oraimo 20w fast charger · expires in 24 hrs"                    |
+| `offer-accepted`       | The buyer accepts                                          | The seller (a store's owner, for a store's offer) | `offerId`, `orderId`, `productId`, `conversationId`                | "Offer accepted", "₦6,000 · … · order ORD-2113 created"                                         |
+| `order-placed`         | Someone orders the seller's item                           | The seller (a store's owner, for a store's item)  | `orderId`, `productId`                                             | "New order", "Ada Obi ordered 2 × iphone 12"                                                    |
+| `order-completed`      | An order is completed                                      | The other party                                   | `orderId`, `productId`                                             | "Order completed", "Adaeze scanned your code, order ORD-2113 is complete."                      |
+| `order-cancelled`      | An order is cancelled                                      | The other party                                   | `orderId`, `productId`                                             | "Order cancelled", "Adaeze cancelled ORD-2113 before handover."                                 |
+| `review-received`      | Someone rates the user or their store                      | The rated user, or the store's owner              | `orderId`, `stars`, `ratingId`                                     | "New review", "Ada rated you 5 stars"                                                           |
+| `wallet-funded`        | A top-up is credited                                       | The wallet owner                                  | `reference`, `amount`                                              | "Wallet funded", "Paystack confirmed your ₦5,000 top-up. It's ready to spend."                  |
+| `wallet-debited`       | A product or housing listing fee is taken                  | The lister                                        | `reference`, `amount`, `productId` or `housingId`                  | "Wallet debited", "₦300 listing fee debited."                                                   |
+| `subscription-updated` | A store's plan changes (paid, failed, renewing, cancelled) | The store's owner                                 | `storeId`, `status`                                                | Same as the email, e.g. "Subscription will not renew", "Your subscription for Ada Cuts …"       |
+| `free-plan-ending`     | A store's free plan ends in 3 days, 1 day, or has ended    | The store's owner                                 | `storeId`, `stage` (`3d`, `1d` or `ended`)                         | Same as the email, e.g. "Your free plan ends tomorrow", "Your free plan for Ada Cuts ends on …" |
 
 `review-pending` and `wallet-refunded` are reserved but not sent yet. Expired orders, and declined, withdrawn and expired offers, are pushed but not saved.
 
@@ -243,64 +254,15 @@ socket.on('notification', (notification) => {
 
 This only reaches a connected app. The app disconnects in the background, so reload `GET /notifications` when the screen opens.
 
-## Rating an order
-
-`POST /orders/{id}/rating` (Bearer)
-
-```json
-{ "stars": 5, "comment": "quick pickup, no stress." }
-```
-
-- **Who:** the order's buyer rates the seller, or the store for a store order. The seller rates the buyer.
-- **When:** only once the order is `completed`, and once per side.
-- **Then:** the rated user's or store's `ratingsAverage` and `ratingsCount` are updated, and they get a `review-received` push, a saved notification and the `notification` socket event.
-- **Body:** `stars` is a whole number from 1 to 5. `comment` is optional, up to 1,000 characters.
-
-**Response:** `201` with the order and both sides' ratings, `null` for a side that hasn't rated:
-
-```json
-{
-  "status": "success",
-  "message": "create successful!",
-  "data": {
-    "id": "102d83e3-cc2a-4757-b056-f5b5e7b3a689",
-    "status": "completed",
-    "ratings": {
-      "buyer": {
-        "id": "9b2e4c1a-…",
-        "orderId": "102d83e3-cc2a-4757-b056-f5b5e7b3a689",
-        "raterId": "48c03f11-8cf5-4249-b1fe-304e3197f9bd",
-        "raterRole": "buyer",
-        "rateeId": "91a8ea62-98ce-4168-9a4a-61fc93aaf2dc",
-        "rateeType": "product-store",
-        "stars": 5,
-        "comment": "quick pickup, no stress.",
-        "createdAt": "2026-11-06T12:00:00.000Z"
-      },
-      "seller": null
-    }
-  }
-}
-```
-
-`GET /orders/buyer` and `GET /orders/seller` return the same `ratings` on every order.
-
-| Status | When |
-| --- | --- |
-| `400` | The order isn't `completed`, or `stars` isn't 1 to 5 |
-| `403` | The user isn't the order's buyer or seller |
-| `404` | No order with that id |
-| `409` | This side has already rated the order |
-
 ## Reviews
 
 Reviews are the ratings left on orders, read back for the profile screens. All three take a Bearer token.
 
-| Request | Returns |
-| --- | --- |
-| `GET /reviews/received?userId=…` | Reviews of that user and of their product stores, newest first. Leave out `userId` for your own |
-| `GET /reviews/given` | Reviews you wrote, newest first |
-| `GET /reviews/summary?userId=…` | `average` (1 decimal), `count`, and `breakdown`: how many of each star. Leave out `userId` for your own |
+| Request                          | Returns                                                                                                 |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `GET /reviews/received?userId=…` | Reviews of that user and of their product stores, newest first. Leave out `userId` for your own         |
+| `GET /reviews/given`             | Reviews you wrote, newest first                                                                         |
+| `GET /reviews/summary?userId=…`  | `average` (1 decimal), `count`, and `breakdown`: how many of each star. Leave out `userId` for your own |
 
 The two lists page like the others (`page`, `limit`, 10 by default). Each review is the rating, plus:
 
@@ -325,9 +287,23 @@ The two lists page like the others (`page`, `limit`, 10 by default). Each review
       "stars": 5,
       "comment": "quick pickup, no stress.",
       "createdAt": "2026-11-06T12:00:00.000Z",
-      "rater": { "id": "48c03f11-…", "name": "Ada Obi", "photo": "https://…", "type": "user" },
-      "ratee": { "id": "91a8ea62-…", "name": "Gadget Hub", "photo": "https://…", "type": "product-store" },
-      "order": { "id": "102d83e3-…", "orderId": "ORD-L1MK-WQ", "product": { "id": "8fe7a3f2-…", "name": "iphone 12" } }
+      "rater": {
+        "id": "48c03f11-…",
+        "name": "Ada Obi",
+        "photo": "https://…",
+        "type": "user"
+      },
+      "ratee": {
+        "id": "91a8ea62-…",
+        "name": "Gadget Hub",
+        "photo": "https://…",
+        "type": "product-store"
+      },
+      "order": {
+        "id": "102d83e3-…",
+        "orderId": "ORD-L1MK-WQ",
+        "product": { "id": "8fe7a3f2-…", "name": "iphone 12" }
+      }
     }
   ]
 }
@@ -348,4 +324,3 @@ Summary:
 ```
 
 The profile's `ratingsAverage` and `ratingsCount` on the user are the user's own reviews only; the summary also counts their stores'.
-

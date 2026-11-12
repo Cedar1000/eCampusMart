@@ -9,7 +9,7 @@ const jwt = jsonwebtoken as unknown as {
 // The user a socket connects as, from the access token the REST API uses:
 // io(url, { auth: { token } }), or an `Authorization: Bearer …` header.
 // Null without a valid token: a `userid` header alone is never trusted, since
-// anyone who knows a user's id could then connect as them. The gateway also
+// anyone who knows a user's id couldconnethen connect as them. The gateway also
 // checks the user still exists, as the REST middleware does
 export const socketUserId = (
   handshake: Pick<Socket['handshake'], 'auth' | 'headers'>,
