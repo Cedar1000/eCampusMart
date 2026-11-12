@@ -18,6 +18,13 @@ export type PushData =
       conversationId: string;
       receiverId: string;
       messageId: string;
+      // As on the new-message event: a store's photo is its logo
+      sender: {
+        id: string;
+        type: string;
+        name: string;
+        photo: string | null;
+      } | null;
     }
   | {
       type: 'order-updated';

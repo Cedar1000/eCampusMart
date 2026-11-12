@@ -5,7 +5,12 @@ describe('ChatService.pushOffline', () => {
   const push = { send: jest.fn() };
   const users = {
     find: jest.fn(() => [
-      { id: 'sender-1', firstName: 'Ada', lastName: 'Obi' },
+      {
+        id: 'sender-1',
+        firstName: 'Ada',
+        lastName: 'Obi',
+        photo: 'https://res.cloudinary.com/ada.png',
+      },
     ]),
   };
   const productStores = {
@@ -41,7 +46,7 @@ describe('ChatService.pushOffline', () => {
 
   beforeEach(() => jest.clearAllMocks());
 
-  it("pushes the message with the sender's name and opens its chat", async () => {
+  it("pushes the message with the sender's name and photo, and opens its chat", async () => {
     await service.pushOffline(message());
 
     expect(push.send).toHaveBeenCalledWith(['receiver-1'], {
@@ -52,6 +57,12 @@ describe('ChatService.pushOffline', () => {
         conversationId: 'conversation-1',
         receiverId: 'receiver-1',
         messageId: 'message-1',
+        sender: {
+          id: 'sender-1',
+          type: MessageIndentity.USER,
+          name: 'Ada Obi',
+          photo: 'https://res.cloudinary.com/ada.png',
+        },
       },
     });
   });

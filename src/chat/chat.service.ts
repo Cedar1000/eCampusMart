@@ -80,9 +80,6 @@ export class ChatService {
     private readonly notificationService: NotificationService,
   ) {}
 
-  // Pushes a message to a receiver who's offline, so it shows in their phone's
-  // notification tray. A message to a store goes to the store's owner. Never
-  // throws, like PushService.send
   // Who sent a message, as shown with it: a user, or a store (its logo as
   // photo). Null if they no longer exist
   async findSender(senderId: string) {
@@ -98,11 +95,14 @@ export class ChatService {
       : null;
   }
 
+  // Pushes a message to a receiver who's offline, so it shows in their phone's
+  // notification tray. A message to a store goes to the store's owner. Never
+  // throws, like PushService.send
   async pushOffline(message: Message & { offer?: Pick<Offer, 'amount'> }) {
     try {
-      const [ownerId, recipients] = await Promise.all([
+      const [ownerId, sender] = await Promise.all([
         this.findOwnerId(message.receiverId, message.receiverType),
-        this.findRecipients([message.senderId]),
+        this.findSender(message.senderId),
       ]);
 
       if (!ownerId) return;
@@ -115,13 +115,14 @@ export class ChatService {
           : 'New message');
 
       await this.pushService.send([ownerId], {
-        title: recipients.get(message.senderId)?.name || 'New message',
+        title: sender?.name || 'New message',
         body: body.length > 150 ? `${body.slice(0, 149)}…` : body,
         data: {
           type: 'chat-message',
           conversationId: message.conversationId,
           receiverId: message.receiverId,
           messageId: message.id,
+          sender,
         },
       });
     } catch (error) {
