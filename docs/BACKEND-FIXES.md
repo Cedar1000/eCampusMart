@@ -190,9 +190,10 @@ Two new endpoints for screens on sample data:
 ### 5.1 Chat socket authentication
 
 The socket takes the user from the access token: `io(url, { auth: { token } })`
-or an `Authorization: Bearer …` header. A bad or expired token is refused.
-The old `userid` header still works until the app sends the token; it will be
-turned off before launch.
+or an `Authorization: Bearer …` header. A missing, bad or expired token, or
+one for a user who no longer exists, disconnects the socket. The old `userid`
+header is no longer accepted, so a build that still sends only the header
+can't connect.
 
 ## Still open
 

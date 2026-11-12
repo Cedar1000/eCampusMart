@@ -17,7 +17,6 @@ describe('socketUserId', () => {
 
   beforeEach(() => {
     process.env.JWT_SECRET = SECRET;
-    delete process.env.CHAT_REQUIRE_TOKEN;
   });
 
   it('takes the user from auth.token', () => {
@@ -53,13 +52,17 @@ describe('socketUserId', () => {
     ).toBeNull();
   });
 
-  it('still accepts a plain userid header until tokens are required', () => {
-    expect(socketUserId({ auth: {}, headers: { userid: 'ada' } })).toBe('ada');
+  it('refuses a plain userid header without a token', () => {
+    expect(socketUserId({ auth: {}, headers: { userid: 'ada' } })).toBeNull();
   });
 
-  it('refuses a plain userid header once CHAT_REQUIRE_TOKEN is set', () => {
-    process.env.CHAT_REQUIRE_TOKEN = 'true';
+  it('refuses a connection with no token at all', () => {
+    expect(socketUserId({ auth: {}, headers: {} })).toBeNull();
+  });
 
-    expect(socketUserId({ auth: {}, headers: { userid: 'ada' } })).toBeNull();
+  it('refuses a token without a user id', () => {
+    const noId = jwt.sign({ role: 'user' }, SECRET, { expiresIn: '1h' });
+
+    expect(socketUserId({ auth: { token: noId }, headers: {} })).toBeNull();
   });
 });

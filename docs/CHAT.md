@@ -13,6 +13,7 @@ Newest first. Each entry says what changed for the app.
 
 **12 Nov 2026**
 
+- **The access token is required to connect.** The `userid` header is no longer accepted; a socket without a valid token is disconnected at once. Connect with `io(url, { auth: { token } })`. See [Connecting](#connecting).
 - **The sender on `new-message`.** The event and the sender's acknowledgement carry `sender`: `{ id, type, name, photo }`, the user's or store's name and photo (a store's logo). See [`new-message`](#new-message-1).
 - **The sender on the chat push.** The `chat-message` push's `data` carries the same `sender`, and the push shows the sender's photo (or the store's logo) through `richContent.image`; see `docs/NOTIFICATIONS.md`.
 
@@ -126,11 +127,11 @@ The server takes the user from the token. An `Authorization: Bearer …` header 
 
 The server **disconnects the socket immediately** if:
 
+- there's no token,
 - the token is invalid or expired (refresh it, then reconnect), or
-- there's no token and no `userid` header, or
-- no user has that id.
+- the token's user no longer exists.
 
-> **The old `userid` header** (`extraHeaders: { userid: currentUser.id }`) still works while there's no token, so existing builds keep connecting. It goes away before launch, when the server sets `CHAT_REQUIRE_TOKEN=true`: anyone who knows a user's id can connect as them with it.
+> **The old `userid` header** (`extraHeaders: { userid: currentUser.id }`) is no longer accepted: anyone who knew a user's id could connect as them with it. A socket that sends only the header is disconnected straight away.
 
 ### What happens on connect
 
@@ -145,8 +146,11 @@ On disconnect, the user and their stores are marked offline (`isOnline: false`).
 1. **New → WebSocket**, then change the type from **Raw** to **Socket.IO**.
 2. URL: `ws://localhost:3000`.
 3. **Settings:** client version **v4**.
-4. **Settings → Handshake auth:** `{ "token": "<access token>" }` (or the old **Headers:** `userid` = a real user id).
+4. **Settings → Handshake auth:** `{ "token": "<access token>" }`, the `jwt` from Email Login.
 5. **Events:** listen for `new-message`, `message-delivered`, `mark-all-as-read`, `typing`, `stop-typing`, `recording`, `stop-recording` and `exception`.
+6. **Acknowledgement:** tick **Acknowledgement** when sending `new-message` to see the saved message, with `sender` and the listing summary.
+
+Socket.IO requests can't be saved into the shared collection through Postman's API, so the collection's **Chat** folder has only the REST requests. Their descriptions point back here for the socket events.
 
 ---
 
@@ -973,6 +977,16 @@ interface Message {
     createdAt: string;
     updatedAt: string;
   } | null;
+  // Only on the new-message event and its acknowledgement, not over REST
+  sender?: MessageSender | null;
+}
+
+// Who sent a message. A store's photo is its logo
+interface MessageSender {
+  id: string;
+  type: ParticipantType;
+  name: string;
+  photo: string | null;
 }
 
 interface Conversation {
@@ -1118,6 +1132,8 @@ const message = await socket.timeout(10_000).emitWithAck('new-message', payload)
 ### Receiving a message
 
 1. On `new-message`: if that conversation is open, append the message and emit `mark-all-as-read` (`senderId`: you, `receiverId`: the message's `senderId`). Otherwise increase the conversation's unread badge.
+2. A message from someone not yet in the conversation list (a new chat) can be shown straight away with `sender.name` and `sender.photo`, and the listing it's about with `product`, `service` or `housing`, without loading anything first.
+3. While the app is closed or in the background the socket is disconnected, so the message comes as a `chat-message` push instead. The push shows the sender's name as its title and their photo (or the store's logo) as its picture, and tapping it opens `data.conversationId`. See `docs/NOTIFICATIONS.md`.
 
 ### Showing read receipts
 
