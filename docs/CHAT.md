@@ -11,6 +11,10 @@ Base URL in development: `http://localhost:3000` (Socket.IO on `ws://localhost:3
 
 Newest first. Each entry says what changed for the app.
 
+**12 Nov 2026**
+
+- **The sender on `new-message`.** The event and the sender's acknowledgement carry `sender`: `{ id, type, name, photo }`, the user's or store's name and photo (a store's logo). See [`new-message`](#new-message-1).
+
 **8 Nov 2026**
 
 - **Connecting with the access token.** Pass the same token as the REST API: `io(url, { auth: { token } })`. The `userid` header still works for now, but it will be refused once `CHAT_REQUIRE_TOKEN` is turned on before launch. A bad or expired token is refused even if a `userid` header is sent too. See [Connecting](#connecting).
@@ -438,6 +442,19 @@ Step 1 runs every time you emit, even when there was nothing unread. The other p
 ### `new-message`
 
 A message was sent to you or one of your stores. The payload is the full [`Message`](#message), the same as the sender's acknowledgement, with the listing summary (`product`, `service` or `housing`) and `offer` when the message has one, as in [List messages in a conversation](#list-messages-in-a-conversation).
+
+It also has `sender`, so a message from someone not in the conversation list yet can be shown without loading them:
+
+```json
+"sender": {
+  "id": "fa98a8f0-fc09-49c3-9cab-91e19b9dabc3",
+  "type": "user",
+  "name": "Ada Obi",
+  "photo": "https://res.cloudinary.com/…/ada.jpg"
+}
+```
+
+`type` is `user`, `product-store` or `service-store`, as in `senderType`. A store's `photo` is its logo, and `photo` is `null` when there's none. `sender` is only on this event and the acknowledgement, not on messages loaded over REST.
 
 ```ts
 socket.on('new-message', (message) => {

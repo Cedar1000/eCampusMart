@@ -114,6 +114,12 @@ describe('ChatGateway', () => {
     create: jest.fn(),
     markDelivered: jest.fn(() => []),
     pushOffline: jest.fn(),
+    findSender: jest.fn((id: string) => ({
+      id,
+      type: 'user',
+      name: 'Ada Obi',
+      photo: 'https://res.cloudinary.com/ada.png',
+    })),
   };
   const redis = { get: jest.fn((key: string) => `socket-of-${key}`) };
 
@@ -240,6 +246,22 @@ describe('ChatGateway', () => {
       }) as object;
       expect(emit).toHaveBeenCalledWith('new-message', withProduct);
       expect(ack).toEqual(withProduct);
+    });
+
+    it("sends the sender's name and photo to the receiver and in the ack", async () => {
+      const ack = await send();
+
+      const withSender = expect.objectContaining({
+        sender: {
+          id: USER,
+          type: 'user',
+          name: 'Ada Obi',
+          photo: 'https://res.cloudinary.com/ada.png',
+        },
+      }) as object;
+      expect(chatService.findSender).toHaveBeenCalledWith(USER);
+      expect(emit).toHaveBeenCalledWith('new-message', withSender);
+      expect(ack).toEqual(withSender);
     });
   });
 

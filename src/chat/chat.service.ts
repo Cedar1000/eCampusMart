@@ -83,6 +83,21 @@ export class ChatService {
   // Pushes a message to a receiver who's offline, so it shows in their phone's
   // notification tray. A message to a store goes to the store's owner. Never
   // throws, like PushService.send
+  // Who sent a message, as shown with it: a user, or a store (its logo as
+  // photo). Null if they no longer exist
+  async findSender(senderId: string) {
+    const sender = (await this.findRecipients([senderId])).get(senderId);
+
+    return sender
+      ? {
+          id: sender.id,
+          type: sender.type,
+          name: sender.name,
+          photo: sender.photo,
+        }
+      : null;
+  }
+
   async pushOffline(message: Message & { offer?: Pick<Offer, 'amount'> }) {
     try {
       const [ownerId, recipients] = await Promise.all([

@@ -139,10 +139,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.connectedUserId(client),
     );
 
-    // The listing's summary, as GET messages gives it, for the ack and the receiver
-    const [message] = await this.listings.attach([saved]);
-
-    console.log({ message });
+    // The listing's summary, as GET messages gives it, and the sender's name
+    // and photo, for the ack and the receiver
+    const [[withListings], sender] = await Promise.all([
+      this.listings.attach([saved]),
+      this.chatService.findSender(saved.senderId),
+    ]);
+    const message = { ...withListings, sender };
 
     const isOnline = await this.emitToUser(
       message.receiverId,
