@@ -43,7 +43,8 @@ export type PushData =
   | { type: 'wallet-funded'; reference: string; amount: number }
   | { type: 'subscription-updated'; storeId: string; status: string }
   | { type: 'free-plan-ending'; storeId: string; stage: '3d' | '1d' | 'ended' }
-  | { type: 'review-received'; orderId: string; stars: number };
+  // orderId is null for a service store review
+  | { type: 'review-received'; orderId: string | null; stars: number };
 
 export interface PushMessage {
   title: string;

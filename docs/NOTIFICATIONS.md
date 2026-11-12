@@ -157,16 +157,18 @@ The store's free plan ends in 3 days, ends tomorrow, or has ended. Each stage is
 
 ### `review-received`
 
-The other side of a completed order rated the user, or the user's store. See [Rating an order](#rating-an-order).
+Someone reviewed the user or the user's store: the other side of a completed order through `POST /review` (or the older [Rating an order](#rating-an-order)), or a customer reviewing a service store. A store's review goes to the store's owner.
 
-| Field     | Meaning         |
-| --------- | --------------- |
-| `orderId` | The rated order |
-| `stars`   | 1 to 5          |
+| Field     | Meaning                                              |
+| --------- | ---------------------------------------------------- |
+| `orderId` | The reviewed order, or `null` for a service store review |
+| `stars`   | 1 to 5                                               |
 
-**Example:** title "New review", body "Ada rated you 5 stars".
+**Example:** title "New review", body "Ada rated you 5 stars". The name is the reviewer's first name, or the store's name when a store wrote it.
 
-**Opens:** the order `orderId`.
+**Opens:** the order `orderId`; for a service store review (`orderId` is `null`), the store's reviews.
+
+The same review is also saved as a `review-received` notification in `GET /notifications` (see [The Notifications screen](#the-notifications-screen)) and sent as the `notification` socket event when the user is connected.
 
 ### Not sent yet
 
@@ -231,7 +233,7 @@ Show `title` and `body`, with `createdAt` as the time. Use `type` and `data` to 
 | `order-placed`         | Someone orders the seller's item                           | The seller (a store's owner, for a store's item)  | `orderId`, `productId`                                             | "New order", "Ada Obi ordered 2 × iphone 12"                                                    |
 | `order-completed`      | An order is completed                                      | The other party                                   | `orderId`, `productId`                                             | "Order completed", "Adaeze scanned your code, order ORD-2113 is complete."                      |
 | `order-cancelled`      | An order is cancelled                                      | The other party                                   | `orderId`, `productId`                                             | "Order cancelled", "Adaeze cancelled ORD-2113 before handover."                                 |
-| `review-received`      | Someone rates the user or their store                      | The rated user, or the store's owner              | `orderId`, `stars`, `ratingId`                                     | "New review", "Ada rated you 5 stars"                                                           |
+| `review-received`      | Someone reviews the user or their store                    | The reviewed user, or the store's owner           | `orderId` (`null` for a service store), `stars`; from `POST /review` also `reviewId`, `receiverId`, `receiverType`; from the older order rating, `ratingId` | "New review", "Ada rated you 5 stars"                                                           |
 | `wallet-funded`        | A top-up is credited                                       | The wallet owner                                  | `reference`, `amount`                                              | "Wallet funded", "Paystack confirmed your ₦5,000 top-up. It's ready to spend."                  |
 | `wallet-debited`       | A product or housing listing fee is taken                  | The lister                                        | `reference`, `amount`, `productId` or `housingId`                  | "Wallet debited", "₦300 listing fee debited."                                                   |
 | `subscription-updated` | A store's plan changes (paid, failed, renewing, cancelled) | The store's owner                                 | `storeId`, `status`                                                | Same as the email, e.g. "Subscription will not renew", "Your subscription for Ada Cuts …"       |

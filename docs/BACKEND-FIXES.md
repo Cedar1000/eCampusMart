@@ -107,6 +107,15 @@ an `order-placed` row in `GET /notifications`.
 - **Reviews:** `GET /reviews/received`, `GET /reviews/given` and
   `GET /reviews/summary` read these ratings back, with `rater`, `ratee` and
   the ordered item.
+- **`POST /review` tells the reviewed person too.** This covers both order
+  reviews and service store reviews. The reviewed user, or the store's owner,
+  gets:
+  - a push: "New review", "Ada rated you 5 stars", with
+    `data: { type: "review-received", orderId, stars }`. `orderId` is `null`
+    for a service store review;
+  - a `review-received` row in `GET /notifications`, whose `data` also has
+    `reviewId`, `receiverId` and `receiverType`;
+  - the `notification` socket event.
 - **Delete an expired order:** `DELETE /orders/{id}` hides an `expired` order
   from your own list only. Other statuses get a `400`.
 

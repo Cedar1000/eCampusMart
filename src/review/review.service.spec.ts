@@ -2,15 +2,20 @@ import {
   BadRequestException,
   ConflictException,
   ForbiddenException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { In } from 'typeorm';
 import { Test, TestingModule } from '@nestjs/testing';
 
+import type IQuery from 'interfaces/query.Interface';
 import * as factory from 'utils/handlerFactory';
 import { User } from 'src/auth/entities/user.entity';
 import { Conversation } from 'src/chat/entities/conversation.entity';
+import { NotificationType } from 'src/notification/entities/notification.entity';
+import { NotificationService } from 'src/notification/notification.service';
+import { PushService } from 'src/notification/push.service';
 import { ProductStore } from 'src/product-store/entities/product-store.entity';
 import { ServiceStore } from 'src/service-store/entities/service-store.entity';
 import { Service } from 'src/service/entities/service.entity';
@@ -32,6 +37,9 @@ describe('ReviewService', () => {
   let serviceStores: Where[];
   let hasChatted: boolean;
   let services: Where[];
+  let users: Where[];
+  const pushService = { send: jest.fn() };
+  const notificationService = { create: jest.fn() };
   let manager: {
     findOne: jest.Mock;
     update: jest.Mock;
@@ -82,8 +90,14 @@ describe('ReviewService', () => {
       receiverId: 'seller-1',
       receiverIsStore: false,
     };
-    productStores = [{ id: 'store-1', userId: 'seller-1' }];
-    serviceStores = [{ id: 'service-store-1', ownerId: 'seller-1' }];
+    productStores = [{ id: 'store-1', userId: 'seller-1', name: 'Gadget Hub' }];
+    serviceStores = [
+      { id: 'service-store-1', ownerId: 'seller-1', name: 'Fresh Cuts' },
+    ];
+    users = [
+      { id: 'buyer-1', firstName: 'Ada' },
+      { id: 'seller-1', firstName: 'Chidi' },
+    ];
     hasChatted = true;
     services = [{ id: 'service-1', storeId: 'service-store-1' }];
     saved = [];
@@ -94,6 +108,12 @@ describe('ReviewService', () => {
       findOne: jest.fn((entity: unknown, { where }: { where: Where }) => {
         if (entity === ServiceStore) {
           return serviceStores.find((store) => store.id === where.id) ?? null;
+        }
+        if (entity === ProductStore) {
+          return productStores.find((store) => store.id === where.id) ?? null;
+        }
+        if (entity === User) {
+          return users.find((user) => user.id === where.id) ?? null;
         }
         return pending && pending.id === where.id ? { ...pending } : null;
       }),
@@ -170,6 +190,8 @@ describe('ReviewService', () => {
           provide: getRepositoryToken(PendingReview),
           useValue: pendingReviewRepo,
         },
+        { provide: PushService, useValue: pushService },
+        { provide: NotificationService, useValue: notificationService },
       ],
     }).compile();
 
@@ -202,7 +224,9 @@ describe('ReviewService', () => {
   it("lists a user with no stores' own pending reviews only", async () => {
     (factory.getAll as jest.Mock).mockResolvedValue({ data: [] });
 
-    await service.findAllPending({ senderId: 'someone-else' }, 'buyer-1');
+    // Filters are any field, so beyond IQuery's own keys
+    const query = { senderId: 'someone-else' } as Partial<IQuery>;
+    await service.findAllPending(query, 'buyer-1');
     expect(factory.getAll).toHaveBeenCalledWith(
       pendingReviewRepo,
       { senderId: 'someone-else' },
@@ -454,6 +478,99 @@ describe('ReviewService', () => {
       await expect(write('stranger')).rejects.toThrow(ForbiddenException);
 
       expect(ratings.size).toBe(0);
+    });
+  });
+
+  describe('telling the reviewed user', () => {
+    it('pushes and saves "Ada rated you 5 stars" for an order review', async () => {
+      await write('buyer-1');
+
+      expect(pushService.send).toHaveBeenCalledWith(['seller-1'], {
+        title: 'New review',
+        body: 'Ada rated you 5 stars',
+        data: { type: 'review-received', orderId: 'order-1', stars: 5 },
+      });
+      // The saved notification also goes out over the notification socket
+      expect(notificationService.create).toHaveBeenCalledWith({
+        userId: 'seller-1',
+        type: NotificationType.REVIEW_RECEIVED,
+        title: 'New review',
+        body: 'Ada rated you 5 stars',
+        data: {
+          orderId: 'order-1',
+          stars: 5,
+          reviewId: 'review-1',
+          receiverId: 'seller-1',
+          receiverType: ReviewPartyType.USER,
+        },
+      });
+    });
+
+    it("tells a product store's owner, with the store's name as sender", async () => {
+      Object.assign(pending!, {
+        senderId: 'store-1',
+        senderIsStore: true,
+        receiverId: 'buyer-1',
+      });
+      await write('seller-1');
+
+      expect(pushService.send).toHaveBeenCalledWith(
+        ['buyer-1'],
+        expect.objectContaining({ body: 'Gadget Hub rated you 5 stars' }),
+      );
+
+      jest.clearAllMocks();
+      Object.assign(pending!, {
+        status: PendingReviewStatus.PENDING,
+        senderId: 'buyer-1',
+        senderIsStore: false,
+        receiverId: 'store-1',
+        receiverIsStore: true,
+      });
+      await write('buyer-1');
+
+      expect(pushService.send).toHaveBeenCalledWith(
+        ['seller-1'],
+        expect.anything(),
+      );
+    });
+
+    it("tells a service store's owner, with no orderId", async () => {
+      await service.create(
+        { serviceStoreId: 'service-store-1', rating: 1 },
+        'buyer-1',
+      );
+
+      expect(pushService.send).toHaveBeenCalledWith(['seller-1'], {
+        title: 'New review',
+        body: 'Ada rated you 1 star',
+        data: { type: 'review-received', orderId: null, stars: 1 },
+      });
+      expect(notificationService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'seller-1',
+          data: expect.objectContaining({
+            orderId: null,
+            receiverType: ReviewPartyType.SERVICE_STORE,
+          }) as object,
+        }),
+      );
+    });
+
+    it('tells nobody when the review is refused', async () => {
+      await expect(write('stranger')).rejects.toThrow(ForbiddenException);
+
+      expect(pushService.send).not.toHaveBeenCalled();
+      expect(notificationService.create).not.toHaveBeenCalled();
+    });
+
+    it('still saves the review when the notice fails', async () => {
+      pushService.send.mockRejectedValueOnce(new Error('expo down'));
+      jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
+
+      await expect(write('buyer-1')).resolves.toMatchObject({
+        status: 'success',
+      });
     });
   });
 });

@@ -3,6 +3,7 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -12,6 +13,9 @@ import type IQuery from 'interfaces/query.Interface';
 import * as factory from 'utils/handlerFactory';
 import { User } from 'src/auth/entities/user.entity';
 import { Conversation } from 'src/chat/entities/conversation.entity';
+import { NotificationType } from 'src/notification/entities/notification.entity';
+import { NotificationService } from 'src/notification/notification.service';
+import { PushService } from 'src/notification/push.service';
 import { ProductStore } from 'src/product-store/entities/product-store.entity';
 import { ServiceStore } from 'src/service-store/entities/service-store.entity';
 import { Service } from 'src/service/entities/service.entity';
@@ -39,7 +43,13 @@ export class ReviewService {
 
     @InjectRepository(PendingReview)
     private readonly pendingReviewRepo: Repository<PendingReview>,
+
+    private readonly pushService: PushService,
+
+    private readonly notificationService: NotificationService,
   ) {}
+
+  private readonly logger = new Logger(ReviewService.name);
 
   // Paged, filtered and sorted like the other lists, e.g. ?receiverId=…&sort=-createdAt
   async findAll(query: Partial<IQuery>) {
@@ -84,7 +94,95 @@ export class ReviewService {
       ? await this.reviewServiceStore(dto.serviceStoreId, dto, userId)
       : await this.reviewOrder(dto.pendingReviewId as string, dto, userId);
 
+    // After the transaction, so a review that rolled back tells nobody
+    await this.notifyReceiver(review);
+
     return { status: 'success', message: 'create successful!', data: review };
+  }
+
+  // "New review: Ada rated you 5 stars" to the reviewed user, or the store's
+  // owner, as a push, a saved notification and (through the saved
+  // notification) the socket. Never throws: the review is already saved
+  private async notifyReceiver(review: Review) {
+    try {
+      const manager = this.reviewRepo.manager;
+      const [ownerId, senderName] = await Promise.all([
+        this.partyOwnerId(manager, review.receiverId, review.receiverType),
+        this.partyName(manager, review.senderId, review.senderType),
+      ]);
+
+      if (!ownerId) return;
+
+      const title = 'New review';
+      const body = `${senderName || 'Someone'} rated you ${review.rating} ${review.rating === 1 ? 'star' : 'stars'}`;
+      const orderId = review.orderId ?? null;
+
+      await this.pushService.send([ownerId], {
+        title,
+        body,
+        data: { type: 'review-received', orderId, stars: review.rating },
+      });
+
+      await this.notificationService.create({
+        userId: ownerId,
+        type: NotificationType.REVIEW_RECEIVED,
+        title,
+        body,
+        data: {
+          orderId,
+          stars: review.rating,
+          reviewId: review.id,
+          receiverId: review.receiverId,
+          receiverType: review.receiverType,
+        },
+      });
+    } catch (error) {
+      this.logger.error(`Review notice for ${review.id} failed`, error);
+    }
+  }
+
+  // The user behind a user or store id: a store's owner
+  private async partyOwnerId(
+    manager: EntityManager,
+    id: string,
+    type: ReviewPartyType,
+  ) {
+    if (type === ReviewPartyType.USER) return id;
+
+    if (type === ReviewPartyType.PRODUCT_STORE) {
+      const store = await manager.findOne(ProductStore, {
+        where: { id },
+        select: ['id', 'userId'],
+      });
+      return store?.userId ?? null;
+    }
+
+    const store = await manager.findOne(ServiceStore, {
+      where: { id },
+      select: ['id', 'ownerId'],
+    });
+    return store?.ownerId ?? null;
+  }
+
+  // A user's first name, or a store's name
+  private async partyName(
+    manager: EntityManager,
+    id: string,
+    type: ReviewPartyType,
+  ) {
+    if (type === ReviewPartyType.USER) {
+      const user = await manager.findOne(User, {
+        where: { id },
+        select: ['id', 'firstName'],
+      });
+      return user?.firstName ?? null;
+    }
+
+    const store = await manager.findOne(
+      type === ReviewPartyType.PRODUCT_STORE ? ProductStore : ServiceStore,
+      { where: { id }, select: ['id', 'name'] },
+    );
+    return store?.name ?? null;
   }
 
   // Any user who has chatted with the store, except its owner, once per store

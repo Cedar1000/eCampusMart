@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { MessageListingsService } from 'src/chat/message-listings.service';
 import { Housing } from 'src/housing/entities/housing.entity';
+import { NotificationModule } from 'src/notification/notification.module';
 import { Offer } from 'src/offer/entities/offer.entity';
 import { Order } from 'src/order/entities/order.entity';
 import { Product } from 'src/product/entities/product.entity';
@@ -15,6 +16,8 @@ import { ReviewService } from './review.service';
 
 @Module({
   imports: [
+    // PushService and NotificationService, to tell the reviewed user
+    NotificationModule,
     TypeOrmModule.forFeature([
       Review,
       PendingReview,
