@@ -124,6 +124,8 @@ export class ChatService {
           messageId: message.id,
           sender,
         },
+        // A user's photo, or a store's logo
+        image: sender?.photo,
       });
     } catch (error) {
       console.error('Chat push failed', message.id, error);

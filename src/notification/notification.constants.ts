@@ -49,4 +49,7 @@ export interface PushMessage {
   title: string;
   body: string;
   data: PushData;
+  // A picture shown on the notification, e.g. the sender's photo. Left off
+  // when there is none
+  image?: string | null;
 }

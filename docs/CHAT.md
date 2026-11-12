@@ -14,7 +14,7 @@ Newest first. Each entry says what changed for the app.
 **12 Nov 2026**
 
 - **The sender on `new-message`.** The event and the sender's acknowledgement carry `sender`: `{ id, type, name, photo }`, the user's or store's name and photo (a store's logo). See [`new-message`](#new-message-1).
-- **The sender on the chat push.** The `chat-message` push's `data` carries the same `sender`; see `docs/NOTIFICATIONS.md`.
+- **The sender on the chat push.** The `chat-message` push's `data` carries the same `sender`, and the push shows the sender's photo (or the store's logo) through `richContent.image`; see `docs/NOTIFICATIONS.md`.
 
 **8 Nov 2026**
 

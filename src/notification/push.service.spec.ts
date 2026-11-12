@@ -41,6 +41,7 @@ describe('PushService', () => {
       conversationId: 'conversation-1',
       receiverId: 'user-1',
       messageId: 'message-1',
+      sender: null,
     },
   };
 
@@ -168,6 +169,35 @@ describe('PushService', () => {
         },
         expect.objectContaining({ delay: 15 * 60 * 1000 }),
       );
+    });
+
+    it('shows the image on the notification when there is one', async () => {
+      expo.sendPushNotificationsAsync.mockResolvedValue([]);
+
+      await service.send(['user-1'], {
+        ...message,
+        image: 'https://cdn/a.png',
+      });
+
+      expect(expo.sendPushNotificationsAsync).toHaveBeenCalledWith([
+        expect.objectContaining({
+          richContent: { image: 'https://cdn/a.png' },
+          mutableContent: true,
+        }),
+        expect.anything(),
+      ]);
+    });
+
+    it('leaves richContent out when there is no image', async () => {
+      expo.sendPushNotificationsAsync.mockResolvedValue([]);
+
+      await service.send(['user-1'], { ...message, image: null });
+
+      const [[sent]] = expo.sendPushNotificationsAsync.mock.calls as [
+        Record<string, unknown>[],
+      ][];
+      expect(sent[0]).not.toHaveProperty('richContent');
+      expect(sent[0]).not.toHaveProperty('mutableContent');
     });
 
     it('removes a token whose ticket says the app was uninstalled', async () => {

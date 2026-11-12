@@ -64,7 +64,22 @@ describe('ChatService.pushOffline', () => {
           photo: 'https://res.cloudinary.com/ada.png',
         },
       },
+      image: 'https://res.cloudinary.com/ada.png',
     });
+  });
+
+  it("shows a store's logo when the sender is a store", async () => {
+    users.find.mockReturnValueOnce([]);
+    productStores.find.mockReturnValueOnce([
+      { id: 'sender-1', name: 'Grace Drinks', logo: 'https://cdn/logo.png' },
+    ] as never);
+
+    await service.pushOffline(message());
+
+    expect(push.send).toHaveBeenCalledWith(
+      ['receiver-1'],
+      expect.objectContaining({ image: 'https://cdn/logo.png' }),
+    );
   });
 
   it.each([

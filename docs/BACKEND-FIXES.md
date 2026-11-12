@@ -125,7 +125,15 @@ an `order-placed` row in `GET /notifications`.
 
 `new-message`, for the receiver and in the sender's acknowledgement, now
 carries the same `product`, `service` or `housing` summary as `GET` messages,
-plus the offer amount in naira.
+plus the offer amount in naira. It also carries `sender`:
+`{ id, type, name, photo }`.
+
+### N.3 Sender's photo on message pushes
+
+The `chat-message` push now has `"richContent": { "image": "<photo URL>" }`
+and `"mutableContent": true`. The image is the sender's profile photo, or the
+store's logo when the message is sent as a store. Both are left out when
+there is no photo. The same details are in `data.sender`.
 
 ## 4. Missing endpoints
 

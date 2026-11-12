@@ -53,6 +53,8 @@ Tokens of phones that uninstalled the app are removed by the server when Expo re
   "body": "Is this still available?",
   "sound": "default",
   "channelId": "default",
+  "richContent": { "image": "https://…" },
+  "mutableContent": true,
   "data": { "type": "chat-message", "conversationId": "…", "receiverId": "…", "messageId": "…", "sender": { "id": "…", "type": "user", "name": "Grace Drinks", "photo": "https://…" } }
 }
 ```
@@ -75,7 +77,7 @@ Sent when a `new-message` is saved and the receiver isn't connected, so the mess
 | `sender` | Who sent it: `{ id, type, name, photo }`, the same as `sender` on the `new-message` event. `type` is `user`, `product-store` or `service-store`, and a store's `photo` is its logo. `photo` is `null` when there's none |
 
 - **`title`:** the sender's name, or the store's name when sent as a store.
-- **Photo:** the push itself shows no image. To show the sender's photo, for example in an in-app banner, read `data.sender.photo`.
+- **Photo:** the push carries `"richContent": { "image": "<photo URL>" }` and `"mutableContent": true`. The image is the sender's profile photo, or the store's logo when sent as a store. Both are left out when there's no photo. On iOS the image shows only if the app has a Notification Service Extension to download it; without one the push still arrives, just without the picture. The same URL is in `data.sender.photo`.
 - **`body`:** the message `content`, trimmed to 150 characters. An offer sent without a note reads "Made an offer: ₦5,000".
 
 **Opens:** the chat `conversationId`, acting as `receiverId`.

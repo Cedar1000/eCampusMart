@@ -20,6 +20,9 @@ export interface PendingReceipt {
   token: string;
 }
 
+// Expo's push API shows richContent.image on the notification
+type PushWithImage = ExpoPushMessage & { richContent?: { image: string } };
+
 const UNIQUE_VIOLATION = '23505';
 
 @Injectable()
@@ -68,7 +71,7 @@ export class PushService {
 
   // Pushes to every phone of every user. Never throws: a missed push mustn't
   // fail the request that sent it
-  async send(userIds: string[], { title, body, data }: PushMessage) {
+  async send(userIds: string[], { title, body, data, image }: PushMessage) {
     try {
       const ids = [...new Set(userIds.filter(Boolean))];
       if (!ids.length) return;
@@ -79,13 +82,20 @@ export class PushService {
       });
       if (!tokens.length) return;
 
-      const messages: ExpoPushMessage[] = tokens.map(({ token }) => ({
+      // expo-server-sdk 3.10's types lack richContent, but Expo's push API
+      // takes it. mutableContent lets iOS fetch the image before showing it
+      const picture: Partial<PushWithImage> = image
+        ? { richContent: { image }, mutableContent: true }
+        : {};
+
+      const messages: PushWithImage[] = tokens.map(({ token }) => ({
         to: token,
         title,
         body,
         data,
         sound: 'default',
         channelId: 'default',
+        ...picture,
       }));
 
       const pending: PendingReceipt[] = [];
