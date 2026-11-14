@@ -51,6 +51,7 @@ import { Housing } from 'src/housing/entities/housing.entity';
 import { ProductStatus } from 'src/product/enums/product-status.enum';
 import { ServiceStatus } from 'src/service/enums/service-status.enum';
 import { HousingStatus } from 'src/housing/enums/housing-status.enum';
+import { first } from 'rxjs';
 
 const MAX_OTP_ATTEMPTS = 5;
 const EMAIL_CHANGE_OTP_MINUTES = 10;
@@ -580,6 +581,19 @@ export class AuthService {
     const data = await factory.updateOne(this.userRepo, id, payload);
 
     if (campusId) await this.updateUserUploads(id, campusId);
+
+    const user = data.data as User;
+
+    data.data = {
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      phoneNumber: user.phoneNumber,
+      countryCode: user.countryCode,
+      campusId: user.campusId,
+      photo: user.photo,
+      bio: user.bio,
+    };
 
     return data;
   }
