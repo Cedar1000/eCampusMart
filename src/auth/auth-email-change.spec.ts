@@ -67,6 +67,7 @@ describe('AuthService email change', () => {
       unused,
       unused,
       unused,
+      unused,
     );
   });
 

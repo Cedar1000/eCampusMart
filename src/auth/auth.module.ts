@@ -17,6 +17,7 @@ import { Product } from 'src/product/entities/product.entity';
 import { ProductStore } from 'src/product-store/entities/product-store.entity';
 import { Service } from 'src/service/entities/service.entity';
 import { ServiceStore } from 'src/service-store/entities/service-store.entity';
+import { Housing } from 'src/housing/entities/housing.entity';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { ServiceStore } from 'src/service-store/entities/service-store.entity';
       ProductStore,
       Service,
       ServiceStore,
+      Housing,
     ]),
     WalletModule,
     ProductStoreModule,

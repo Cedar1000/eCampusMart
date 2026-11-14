@@ -88,6 +88,7 @@ describe('AuthService Clerk sign-in', () => {
       stores as never,
       stores as never,
       clerkService as never,
+      unused,
     );
   });
 

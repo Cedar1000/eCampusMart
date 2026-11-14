@@ -34,6 +34,9 @@ export class User extends BaseEntity {
   photo?: string;
 
   @Column({ nullable: true })
+  bio?: string;
+
+  @Column({ nullable: true })
   photoKey?: string;
 
   @Column({ default: 0 })

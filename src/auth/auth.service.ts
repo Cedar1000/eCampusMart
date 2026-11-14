@@ -9,7 +9,13 @@ import {
 } from '@nestjs/common';
 
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, MoreThan, QueryFailedError, Repository } from 'typeorm';
+import {
+  DataSource,
+  In,
+  MoreThan,
+  QueryFailedError,
+  Repository,
+} from 'typeorm';
 
 import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
@@ -41,6 +47,10 @@ import { ProductStore } from 'src/product-store/entities/product-store.entity';
 import { Service } from 'src/service/entities/service.entity';
 import { ServiceStore } from 'src/service-store/entities/service-store.entity';
 import { ClerkProfile, ClerkService } from './clerk.service';
+import { Housing } from 'src/housing/entities/housing.entity';
+import { ProductStatus } from 'src/product/enums/product-status.enum';
+import { ServiceStatus } from 'src/service/enums/service-status.enum';
+import { HousingStatus } from 'src/housing/enums/housing-status.enum';
 
 const MAX_OTP_ATTEMPTS = 5;
 const EMAIL_CHANGE_OTP_MINUTES = 10;
@@ -81,6 +91,7 @@ export class AuthService {
     private readonly productStoreService: ProductStoreService,
     private readonly serviceStoreService: ServiceStoreService,
     private readonly clerkService: ClerkService,
+    private readonly dataSource: DataSource,
   ) {}
 
   async signUp(signUpDto: SignUpDto) {
@@ -515,6 +526,32 @@ export class AuthService {
     const result = await factory.getOne(this.userRepo, id, query);
 
     return { ...result, data: this.visibleTo(result.data as User, viewerId) };
+  }
+
+  async deactivateUser(userId: string) {
+    await this.dataSource.transaction(async (manager) => {
+      const userResult = await manager.update(
+        User,
+        { id: userId },
+        { isActive: false },
+      );
+
+      if (!userResult.affected) {
+        throw new NotFoundException(`Can't find user with id: ${userId}`);
+      }
+
+      await Promise.all([
+        manager.update(Product, { userId }, { status: ProductStatus.INACTIVE }),
+        manager.update(
+          Service,
+          { ownerId: userId },
+          { status: ServiceStatus.INACTIVE },
+        ),
+        manager.update(Housing, { userId }, { status: HousingStatus.INACTIVE }),
+      ]);
+    });
+
+    return { status: 'success', message: 'Account deactivated successfully' };
   }
 
   async findAll(query: Partial<IQuery>, viewerId: string) {

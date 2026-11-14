@@ -30,6 +30,7 @@ describe('AuthService other users’ private fields', () => {
     unused,
     unused,
     unused,
+    unused,
   );
 
   const PRIVATE = [

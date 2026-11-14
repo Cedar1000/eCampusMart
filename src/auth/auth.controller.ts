@@ -1,5 +1,6 @@
 import {
   Get,
+  Delete,
   Body,
   Post,
   Param,
@@ -199,12 +200,20 @@ export class AuthController {
     @Query() query: Partial<IQuery>,
     @CurrentUser() user: User,
   ) {
+    query.fields =
+      'firstName,lastName,email,phoneNumber,campusId,countryCode,photo,bio,emailVerified,ratingsCount,ratingsAverage,createdAt';
     return this.authService.getSingleUser(id, query, user.id);
   }
 
   @Get('/me')
   async getMe(@CurrentUser() user: User) {
     return this.authService.getMe(user);
+  }
+
+  @Delete('/me')
+  @HttpCode(200)
+  async deactivateMe(@CurrentUser() user: User) {
+    return this.authService.deactivateUser(user.id);
   }
 
   @Patch('/update-me')
