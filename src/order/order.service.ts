@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as QRCode from 'qrcode';
+import * as jwt from 'jsonwebtoken';
 import { Repository } from 'typeorm';
 
 import { Offer } from 'src/offer/entities/offer.entity';
@@ -125,11 +126,22 @@ export class OrderService {
       metadata,
     });
 
-    // The QR holds just the order id, which the app sends to
-    // PATCH /orders/:id/complete
     const order = created.data as Order;
     try {
-      const image = await QRCode.toDataURL(order.id, { width: 512, margin: 2 });
+      const handoverToken = jwt.sign(
+        {
+          orderId: order.id,
+          sellerId: order.sellerId,
+          purpose: 'order-handover',
+        },
+        process.env.JWT_SECRET as string,
+        { algorithm: 'HS256', expiresIn: '48h' },
+      );
+
+      const image = await QRCode.toDataURL(handoverToken, {
+        width: 512,
+        margin: 2,
+      });
       order.qrCode = await uploadToCloudinary(image, 'orders', order.id);
       await this.orderRepo.update(order.id, { qrCode: order.qrCode });
     } catch (error) {
@@ -138,18 +150,31 @@ export class OrderService {
 
     await this.orderGateway.notify(order, 'placed', buyerId);
 
-    return { ...created, data: { ...order, amount: order.amount / 100 } };
+    // The buyer placed this order; only the seller's order screen gets the QR.
+    const { qrCode: _qrCode, ...buyerOrder } = order;
+    return { ...created, data: { ...buyerOrder, amount: order.amount / 100 } };
   }
 
   // Leaves out the orders this side deleted (see remove)
   async findAll(query: IQuery, side: OrderParty, userId: string) {
-    return await factory.getAll(
+    const result = await factory.getAll(
       this.orderRepo,
       query,
       side === 'seller'
         ? { sellerId: userId, hiddenBySeller: false }
         : { buyerId: userId, hiddenByBuyer: false },
     );
+
+    if (side === 'buyer') {
+      return {
+        ...result,
+        data: (result.data as Order[]).map(
+          ({ qrCode: _qrCode, ...order }) => order,
+        ),
+      };
+    }
+
+    return result;
   }
 
   findOne(id: number) {
@@ -169,6 +194,12 @@ export class OrderService {
       throw new ForbiddenException('This order is not yours');
     }
 
+    if (updateOrderDto.status === OrderStatus.COMPLETED) {
+      throw new BadRequestException(
+        'Use the handover QR to complete this order',
+      );
+    }
+
     return await factory.updateOne(this.orderRepo, id, updateOrderDto);
   }
 
@@ -178,7 +209,38 @@ export class OrderService {
     return await this.close(id, userId, OrderStatus.CANCELLED);
   }
 
-  async complete(id: string, userId: string) {
+  async complete(id: string, userId: string, token: string) {
+    let claims: jwt.JwtPayload;
+    try {
+      const verified = jwt.verify(token, process.env.JWT_SECRET as string, {
+        algorithms: ['HS256'],
+      });
+      if (typeof verified === 'string') throw new Error('Invalid token claims');
+      claims = verified;
+    } catch {
+      throw new BadRequestException('Invalid or expired handover token');
+    }
+
+    if (
+      claims.purpose !== 'order-handover' ||
+      claims.orderId !== id ||
+      typeof claims.sellerId !== 'string'
+    ) {
+      throw new BadRequestException('Handover token does not match this order');
+    }
+
+    const order = await this.orderRepo.findOne({
+      where: { id },
+      select: ['id', 'sellerId', 'buyerId'],
+    });
+    if (!order) throw new NotFoundException('No resource with that ID');
+    if (claims.sellerId !== order.sellerId) {
+      throw new BadRequestException('Handover token does not match this order');
+    }
+    if (userId !== order.buyerId) {
+      throw new ForbiddenException('Only the buyer can submit the handover QR');
+    }
+
     return await this.close(id, userId, OrderStatus.COMPLETED);
   }
 

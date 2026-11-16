@@ -25,7 +25,8 @@ import { WalletWebhookService } from './wallet-webhook.service';
 import { SubscriptionWebhookService } from './subscription-webhook.service';
 
 type PaymentPurpose = 'fund' | 'subscription';
-type PaymentStatus = 'success' | 'pending' | 'failed';
+type PaymentStatus =
+  'success' | 'pending' | 'failed' | 'refunded' | 'refund-failed';
 
 interface Payment {
   purpose: PaymentPurpose;
@@ -187,6 +188,9 @@ export class PaymentService {
   // Every status past pending, except failed, means the first payment went through
   private subscriptionStatus(status: SubscriptionStatus): PaymentStatus {
     if (status === SubscriptionStatus.PENDING) return 'pending';
+    if (status === SubscriptionStatus.REFUNDING) return 'pending';
+    if (status === SubscriptionStatus.REFUNDED) return 'refunded';
+    if (status === SubscriptionStatus.REFUND_FAILED) return 'refund-failed';
     if (status === SubscriptionStatus.FAILED) return 'failed';
     return 'success';
   }

@@ -6,4 +6,7 @@ export enum SubscriptionStatus {
   EXPIRED = 'expired',
   PENDING = 'pending',
   FAILED = 'failed',
+  REFUNDING = 'refunding',
+  REFUNDED = 'refunded',
+  REFUND_FAILED = 'refund-failed',
 }

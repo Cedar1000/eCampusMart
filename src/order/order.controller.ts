@@ -19,6 +19,7 @@ import { CurrentUser } from 'src/auth/decorators/get-current-user.decorator';
 import { User } from 'src/auth/entities/user.entity';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { CompleteOrderDto } from './dto/complete-order.dto';
 import { RateOrderDto } from './dto/rate-order.dto';
 import { OrderRatingService } from './order-rating.service';
 import { IncludeOrderRatingsInterceptor } from './interceptors/include-order-ratings.interceptor';
@@ -65,8 +66,12 @@ export class OrderController {
   }
 
   @Patch(':id/complete')
-  complete(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: User) {
-    return this.orderService.complete(id, user.id);
+  complete(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() payload: CompleteOrderDto,
+    @CurrentUser() user: User,
+  ) {
+    return this.orderService.complete(id, user.id, payload.token);
   }
 
   // Only an expired order, and only from the caller's own list

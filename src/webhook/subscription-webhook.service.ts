@@ -69,6 +69,12 @@ export class SubscriptionWebhookService {
       case 'charge.failed':
         return this.markSubscriptionFailed(this.getReference(data));
 
+      case 'refund.processed':
+        return this.updateRefundStatus(data, SubscriptionStatus.REFUNDED);
+
+      case 'refund.failed':
+        return this.updateRefundStatus(data, SubscriptionStatus.REFUND_FAILED);
+
       case 'subscription.create':
         return this.syncSubscription(data, SubscriptionStatus.ACTIVE);
 
@@ -180,12 +186,24 @@ export class SubscriptionWebhookService {
   ) {
     let storeDeleted = false;
     let alreadyOnPlan = false;
+    let shouldRefund = false;
 
     const subscription = await this.dataSource.transaction(async (manager) => {
       const subscription = await manager.findOne(Subscription, {
         where: { reference },
         lock: { mode: 'pessimistic_write' },
       });
+
+      if (
+        subscription &&
+        [
+          SubscriptionStatus.REFUNDING,
+          SubscriptionStatus.REFUNDED,
+          SubscriptionStatus.REFUND_FAILED,
+        ].includes(subscription.status)
+      ) {
+        return null;
+      }
 
       // A checkout paid after its store was deleted: nothing to activate, so refund it
       if (
@@ -196,6 +214,9 @@ export class SubscriptionWebhookService {
         }))
       ) {
         storeDeleted = true;
+        subscription.status = SubscriptionStatus.REFUNDING;
+        await manager.save(subscription);
+        shouldRefund = true;
         return null;
       }
 
@@ -206,10 +227,34 @@ export class SubscriptionWebhookService {
         (subscription?.status === SubscriptionStatus.EXPIRED &&
           !subscription.subscriptionCode);
 
-      if (!subscription || !isOpenCheckout) return null;
+      if (!subscription) {
+        shouldRefund = true;
+        return null;
+      }
+
+      if (!isOpenCheckout) {
+        // A charge that arrives after a checkout was marked failed still succeeded
+        // at Paystack; refund it instead of preserving a misleading failed state.
+        if (
+          !subscription.subscriptionCode &&
+          ![
+            SubscriptionStatus.REFUNDING,
+            SubscriptionStatus.REFUNDED,
+            SubscriptionStatus.REFUND_FAILED,
+          ].includes(subscription.status)
+        ) {
+          subscription.status = SubscriptionStatus.REFUNDING;
+          await manager.save(subscription);
+          shouldRefund = true;
+        }
+        return null;
+      }
 
       // A trial charge only checks the card and is refunded, so its amount can differ
       if (!subscription.isTrial && !this.isPaidInFull(subscription, data)) {
+        subscription.status = SubscriptionStatus.REFUNDING;
+        await manager.save(subscription);
+        shouldRefund = true;
         return null;
       }
 
@@ -225,8 +270,9 @@ export class SubscriptionWebhookService {
         })
       ) {
         alreadyOnPlan = true;
-        subscription.status = SubscriptionStatus.FAILED;
+        subscription.status = SubscriptionStatus.REFUNDING;
         await manager.save(subscription);
+        shouldRefund = true;
         return null;
       }
 
@@ -252,30 +298,23 @@ export class SubscriptionWebhookService {
       return subscription;
     });
 
-    if (alreadyOnPlan) {
-      console.error('Store already on a plan, refunding', reference);
-
+    if (shouldRefund) {
+      if (alreadyOnPlan)
+        console.error('Store already on a plan, refunding', reference);
+      if (storeDeleted)
+        console.error(
+          'Subscription paid for a deleted store, refunding',
+          reference,
+        );
       try {
         await refundPaystackTransaction(reference);
       } catch (error) {
-        console.error('Duplicate plan refund failed', reference, error);
+        console.error('Subscription checkout refund failed', reference, error);
+        await this.subscriptionRepository.update(
+          { reference, status: SubscriptionStatus.REFUNDING },
+          { status: SubscriptionStatus.REFUND_FAILED },
+        );
       }
-
-      return null;
-    }
-
-    if (storeDeleted) {
-      console.error(
-        'Subscription paid for a deleted store, refunding',
-        reference,
-      );
-
-      try {
-        await refundPaystackTransaction(reference);
-      } catch (error) {
-        console.error('Deleted store refund failed', reference, error);
-      }
-
       return null;
     }
 
@@ -353,6 +392,33 @@ export class SubscriptionWebhookService {
     await this.subscriptionRepository.save(subscription);
 
     return subscription;
+  }
+
+  private async updateRefundStatus(
+    data: PaystackEventData,
+    status: SubscriptionStatus.REFUNDED | SubscriptionStatus.REFUND_FAILED,
+  ) {
+    const reference =
+      asString(data.transaction_reference) ||
+      asString(asRecord(data.transaction).reference) ||
+      asString(data.reference);
+    if (!reference)
+      throw new BadRequestException('Missing transaction reference');
+
+    return this.dataSource.transaction(async (manager) => {
+      const subscription = await manager.findOne(Subscription, {
+        where: { reference },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (
+        !subscription ||
+        subscription.status !== SubscriptionStatus.REFUNDING
+      ) {
+        return null;
+      }
+      subscription.status = status;
+      return manager.save(subscription);
+    });
   }
 
   // Invoice events nest the subscription; reshape them like subscription.* payloads

@@ -75,6 +75,11 @@ export class WebhookService {
 
   // Run by the webhook job and by GET /payments/verify; every handler is idempotent
   async processEvent(event: string, data: PaystackEventData) {
+    if (event.startsWith('refund.')) {
+      await this.subscriptionWebhookService.handle(event, data);
+      return;
+    }
+
     const description = this.getDescription(event, data);
 
     switch (description) {
