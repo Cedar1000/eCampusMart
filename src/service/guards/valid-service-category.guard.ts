@@ -8,12 +8,16 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ServiceCategory } from 'src/service-category/entities/service-category.entity';
+import { ServiceStore } from 'src/service-store/entities/service-store.entity';
 
 @Injectable()
 export class ValidServiceCategoryGuard implements CanActivate {
   constructor(
     @InjectRepository(ServiceCategory)
     private readonly serviceCategoryRepository: Repository<ServiceCategory>,
+
+    @InjectRepository(ServiceStore)
+    private readonly serviceStoreRepo: Repository<ServiceStore>,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -24,20 +28,21 @@ export class ValidServiceCategoryGuard implements CanActivate {
 
     const serviceCategory = await this.serviceCategoryRepository.findOne({
       where: { id: String(categoryId) },
-      relations: { store: true },
     });
 
     if (!serviceCategory) {
       throw new NotFoundException('Service category not found');
     }
 
+    const store = await this.serviceStoreRepo.findOneBy({ id: storeId });
+
     request.body.categoryId = serviceCategory.id;
 
     const currentUserId = request.res?.locals?.user?.id;
 
-    if (serviceCategory.store?.ownerId !== currentUserId) {
+    if (store?.ownerId !== currentUserId) {
       throw new ForbiddenException(
-        'You can only use categories from your own store',
+        'You can only create service in your own store',
       );
     }
 

@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ServiceService } from './service.service';
 import { ServiceController } from './service.controller';
-import { ValidServiceCategoryGuard } from './guards/valid-service-category.guard';
 import { ValidServiceStoreGuard } from './guards/valid-service-store.guard';
 import { IncludeIsLikedServiceInterceptor } from './interceptors/has-liked-service.interceptor';
 
@@ -38,7 +37,6 @@ import { ValidServiceOwnerGuard } from './guards/valid-service-owner.guard';
     IncludeIsLikedServiceInterceptor,
     ValidServiceStoreGuard,
     ValidServiceOwnerGuard,
-    ValidServiceCategoryGuard,
     ServiceProcessor,
     ServiceViewService,
     ServiceFavouriteService,

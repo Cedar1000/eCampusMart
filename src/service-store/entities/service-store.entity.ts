@@ -3,7 +3,6 @@ import { Column, Entity, OneToMany } from 'typeorm';
 import { BaseEntity } from 'src/common/base.entity';
 
 import { Service } from 'src/service/entities/service.entity';
-import { ServiceCategory } from 'src/service-category/entities/service-category.entity';
 
 export type FreePlanReminder = '3d' | '1d' | 'ended';
 
@@ -111,9 +110,6 @@ export class ServiceStore extends BaseEntity {
 
   @Column({ type: 'json', default: DEFAULT_SERVICE_AVAILABILITY })
   availability: ServiceAvailability;
-
-  @OneToMany(() => ServiceCategory, (category) => category.store)
-  categories: ServiceCategory[];
 
   @OneToMany(() => Service, (service) => service.store)
   services: Service[];

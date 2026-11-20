@@ -1,16 +1,13 @@
-import { Column, Entity, ManyToOne } from 'typeorm';
+import { Column, Entity, OneToMany } from 'typeorm';
 
 import { BaseEntity } from 'src/common/base.entity';
-import { ServiceStore } from 'src/service-store/entities/service-store.entity';
+import { Service } from 'src/service/entities/service.entity';
 
 @Entity()
 export class ServiceCategory extends BaseEntity {
   @Column()
   name: string;
 
-  @ManyToOne(() => ServiceStore, (store) => store.categories)
-  store: ServiceStore;
-
-  @ManyToOne(() => ServiceStore, (store) => store.categories)
-  services: ServiceStore;
+  @OneToMany(() => Service, (service) => service.category)
+  services: Service[];
 }
