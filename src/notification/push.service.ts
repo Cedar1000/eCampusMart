@@ -43,23 +43,22 @@ export class PushService {
 
   // Returns whether the token is new. A token another user had (they signed in
   // on this phone before) moves to this user
-  async saveToken(userId: string, { token, platform }: SavePushTokenDto) {
-    const updated = await this.tokenRepo.update(
-      { token },
-      { userId, platform },
-    );
+  async saveToken(userId: string, savePushTokenDto: SavePushTokenDto) {
+    const { token } = savePushTokenDto;
+
+    const updated = await this.tokenRepo.update({ token }, savePushTokenDto);
 
     if (updated.affected) return false;
 
     try {
-      await this.tokenRepo.insert({ token, userId, platform });
+      await this.tokenRepo.insert({ userId, ...savePushTokenDto });
       return true;
     } catch (error) {
       // Saved by a request at the same moment
       const code = (error as QueryFailedError & { code?: string }).code;
       if (code !== UNIQUE_VIOLATION) throw error;
 
-      await this.tokenRepo.update({ token }, { userId, platform });
+      await this.tokenRepo.update({ token }, savePushTokenDto);
       return false;
     }
   }

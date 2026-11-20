@@ -6,6 +6,9 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { createHmac } from 'crypto';
 import { TransactionDescription } from 'src/transaction/entities/transaction.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from 'src/auth/entities/user.entity';
 import { SubscriptionWebhookService } from './subscription-webhook.service';
 import { WalletWebhookService } from './wallet-webhook.service';
 import { asRecord, asString, PaystackEventData } from './webhook.utils';
@@ -29,6 +32,9 @@ export class WebhookService {
 
     @InjectQueue(PAYMENT_QUE)
     private readonly paymentQueue: Queue<PaystackEventJobData>,
+
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {}
 
   async handlePaystackWebhook({
@@ -75,6 +81,34 @@ export class WebhookService {
 
   // Run by the webhook job and by GET /payments/verify; every handler is idempotent
   async processEvent(event: string, data: PaystackEventData) {
+    if (event.startsWith('transfer.')) {
+      await this.walletWebhookService.handle(event, data);
+      return;
+    }
+
+    if (
+      event === 'customeridentification.success' ||
+      event === 'customeridentification.failed'
+    ) {
+      const customerCode = asString(data.customer_code);
+      if (customerCode) {
+        await this.userRepository.update(
+          { paystackCustomerCode: customerCode },
+          {
+            bvnVerificationStatus:
+              event === 'customeridentification.success'
+                ? 'verified'
+                : 'failed',
+            bvnVerificationMessage:
+              event === 'customeridentification.failed'
+                ? asString(data.reason) || 'Verification failed'
+                : null,
+          },
+        );
+      }
+      return;
+    }
+
     if (event.startsWith('refund.')) {
       await this.subscriptionWebhookService.handle(event, data);
       return;

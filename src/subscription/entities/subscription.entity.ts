@@ -1,6 +1,9 @@
 import { BaseEntity } from 'src/common/base.entity';
 import { Column, Entity } from 'typeorm';
-import { SubscriptionStatus } from '../enums/subscription-status.enum';
+import {
+  SubscriptionRefundStatus,
+  SubscriptionStatus,
+} from '../enums/subscription-status.enum';
 
 @Entity()
 export class Subscription extends BaseEntity {
@@ -34,6 +37,13 @@ export class Subscription extends BaseEntity {
     default: SubscriptionStatus.PENDING,
   })
   status: SubscriptionStatus;
+
+  @Column({
+    type: 'enum',
+    enum: SubscriptionRefundStatus,
+    nullable: true,
+  })
+  refundStatus?: SubscriptionRefundStatus | null;
 
   // Free first period: Paystack only starts charging when it ends
   @Column({ default: false })

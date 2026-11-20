@@ -108,6 +108,42 @@ export class User extends BaseEntity {
   @Column({ default: 0, select: false })
   emailChangeAttempts?: number;
 
+  @Column({ nullable: true, select: false, type: 'varchar' })
+  transactionPinHash?: string | null;
+
+  @Column({ default: 0, select: false })
+  transactionPinAttempts?: number;
+
+  @Column({ nullable: true, select: false, type: 'timestamptz' })
+  transactionPinLockedUntil?: Date | null;
+
+  @Column({ nullable: true, select: false, type: 'varchar' })
+  pendingPhoneNumber?: string | null;
+
+  @Column({ nullable: true, select: false, type: 'varchar' })
+  pendingCountryCode?: string | null;
+
+  @Column({ nullable: true, select: false, type: 'varchar' })
+  phoneOtpHash?: string | null;
+
+  @Column({ nullable: true, select: false, type: 'timestamptz' })
+  phoneOtpExpiration?: Date | null;
+
+  @Column({ nullable: true, select: false, type: 'timestamptz' })
+  phoneOtpSentAt?: Date | null;
+
+  @Column({ default: 0, select: false })
+  phoneOtpAttempts?: number;
+
+  @Column({ nullable: true, type: 'varchar' })
+  paystackCustomerCode?: string | null;
+
+  @Column({ nullable: true, type: 'varchar' })
+  bvnVerificationStatus?: 'pending' | 'verified' | 'failed' | null;
+
+  @Column({ nullable: true, type: 'varchar' })
+  bvnVerificationMessage?: string | null;
+
   @Column({ type: 'enum', enum: UserRole, default: UserRole.USER })
   role?: UserRole;
 
@@ -133,6 +169,16 @@ export const USER_SECRET_FIELDS = [
   'emailChangeOtpHash',
   'emailChangeOtpExpiration',
   'emailChangeAttempts',
+  'transactionPinHash',
+  'transactionPinAttempts',
+  'transactionPinLockedUntil',
+  'pendingPhoneNumber',
+  'pendingCountryCode',
+  'phoneOtpHash',
+  'phoneOtpExpiration',
+  'phoneOtpSentAt',
+  'phoneOtpAttempts',
+  'paystackCustomerCode',
 ] as const satisfies readonly (keyof User)[];
 
 // What anyone may see of another user: no contact details, login data or role
@@ -142,6 +188,7 @@ export const USER_PUBLIC_FIELDS = [
   'lastName',
   'photo',
   'campusId',
+  'bio',
   'ratingsAverage',
   'ratingsCount',
   'isOnline',

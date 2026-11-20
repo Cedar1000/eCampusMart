@@ -10,3 +10,9 @@ export enum SubscriptionStatus {
   REFUNDED = 'refunded',
   REFUND_FAILED = 'refund-failed',
 }
+
+export enum SubscriptionRefundStatus {
+  PENDING = 'pending',
+  PROCESSED = 'processed',
+  FAILED = 'failed',
+}

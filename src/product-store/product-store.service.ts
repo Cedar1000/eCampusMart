@@ -6,13 +6,14 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import type IQuery from 'interfaces/query.Interface';
 import * as factory from 'utils/handlerFactory';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 
 import { CreateProductStoreDto } from './dto/create-product-store.dto';
 import { UpdateProductStoreDto } from './dto/update-product-store.dto';
 import { ProductStore } from './entities/product-store.entity';
 import { ProductStoreCategory } from 'src/product-store-category/entities/product-store-category.entity';
 import { ListingCleanupService } from 'src/common/listing-cleanup/listing-cleanup.service';
+import { ProductFavourite } from 'src/product-favourite/entities/product-favourite.entity';
 
 @Injectable()
 export class ProductStoreService {
@@ -74,7 +75,10 @@ export class ProductStoreService {
     await this.listingCleanupService.deleteListings(
       'product',
       { storeId: id },
-      async (manager) => {
+      async (manager, productIds) => {
+        if (productIds.length) {
+          await manager.delete(ProductFavourite, { productId: In(productIds) });
+        }
         await manager.delete(ProductStoreCategory, { storeId: id });
         await manager.delete(ProductStore, id);
 

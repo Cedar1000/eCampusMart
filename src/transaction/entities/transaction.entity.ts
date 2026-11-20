@@ -77,4 +77,13 @@ export class Transaction extends BaseEntity {
 
   @Column()
   expiresAt: Date;
+
+  @Column({ nullable: true, type: 'varchar' })
+  counterpartyId?: string | null;
+
+  @Column({ nullable: true, type: 'varchar' })
+  counterpartyName?: string | null;
+
+  @Column({ nullable: true, select: false, type: 'varchar' })
+  transferCode?: string | null;
 }

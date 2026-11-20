@@ -35,14 +35,16 @@ export class ListingCleanupService {
 
   /**
    * Deletes the matching listings together with their photos (rows and Cloudinary).
-   * Favourites are kept, so the user's Saved page can show the listing as deleted.
-   * `alsoDelete` runs in the same transaction, e.g. to remove the store, and can
-   * return more Cloudinary ids to delete.
+   * `alsoDelete` runs in the same transaction, e.g. to remove a store and its
+   * favourites, and can return more Cloudinary ids to delete.
    */
   async deleteListings(
     type: ListingType,
     where: Record<string, string>,
-    alsoDelete?: (manager: EntityManager) => Promise<string[] | void>,
+    alsoDelete?: (
+      manager: EntityManager,
+      listingIds: string[],
+    ) => Promise<string[] | void>,
   ) {
     const { entity, image, idField } = LISTINGS[type];
 
@@ -62,7 +64,7 @@ export class ListingCleanupService {
           await manager.delete(entity, { id: In(ids) });
         }
 
-        const extraKeys = (await alsoDelete?.(manager)) || [];
+        const extraKeys = (await alsoDelete?.(manager, ids)) || [];
 
         return {
           imageKeys: [...images.map(({ key }) => key), ...extraKeys],

@@ -3,7 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/auth/entities/user.entity';
 import { ServiceStore } from 'src/service-store/entities/service-store.entity';
 import { Subscription } from 'src/subscription/entities/subscription.entity';
-import { SubscriptionStatus } from 'src/subscription/enums/subscription-status.enum';
+import {
+  SubscriptionRefundStatus,
+  SubscriptionStatus,
+} from 'src/subscription/enums/subscription-status.enum';
 import { SubscriptionPlan } from 'src/subscription-plan/entities/subscription-plan.entity';
 import { PlanType } from 'src/subscription-plan/enums/plan-type.enum';
 import {
@@ -70,13 +73,16 @@ export class SubscriptionWebhookService {
         return this.markSubscriptionFailed(this.getReference(data));
 
       case 'refund.processed':
-        return this.updateRefundStatus(data, SubscriptionStatus.REFUNDED);
+        return this.updateRefundStatus(
+          data,
+          SubscriptionRefundStatus.PROCESSED,
+        );
 
       case 'refund.failed':
-        return this.updateRefundStatus(data, SubscriptionStatus.REFUND_FAILED);
+        return this.updateRefundStatus(data, SubscriptionRefundStatus.FAILED);
 
       case 'subscription.create':
-        return this.syncSubscription(data, SubscriptionStatus.ACTIVE);
+        return this.linkPaystackSubscription(data);
 
       // Paid period still runs until the next payment date, then subscription.disable follows
       case 'subscription.not_renew':
@@ -206,15 +212,23 @@ export class SubscriptionWebhookService {
       }
 
       // A checkout paid after its store was deleted: nothing to activate, so refund it
-      if (
-        subscription &&
-        !subscription.subscriptionCode &&
-        !(await manager.exists(ServiceStore, {
-          where: { id: subscription.storeId },
-        }))
-      ) {
+      if (!subscription) {
+        // Renewals and provider-managed plan charges have no checkout row; they
+        // are reconciled by invoice events and must not be mistaken for extras.
+        return null;
+      }
+
+      // Different checkouts have different references. Lock the store row too,
+      // so simultaneous charge.success events cannot both start a plan.
+      const store = await manager.findOne(ServiceStore, {
+        where: { id: subscription.storeId },
+        lock: { mode: 'pessimistic_write' },
+      });
+
+      if (!store) {
         storeDeleted = true;
         subscription.status = SubscriptionStatus.REFUNDING;
+        subscription.refundStatus = SubscriptionRefundStatus.PENDING;
         await manager.save(subscription);
         shouldRefund = true;
         return null;
@@ -224,19 +238,20 @@ export class SubscriptionWebhookService {
       // A checkout replaced by a newer one is expired with no code, but was still paid.
       const isOpenCheckout =
         subscription?.status === SubscriptionStatus.PENDING ||
+        subscription?.status === SubscriptionStatus.FAILED ||
         (subscription?.status === SubscriptionStatus.EXPIRED &&
           !subscription.subscriptionCode);
-
-      if (!subscription) {
-        shouldRefund = true;
-        return null;
-      }
 
       if (!isOpenCheckout) {
         // A charge that arrives after a checkout was marked failed still succeeded
         // at Paystack; refund it instead of preserving a misleading failed state.
         if (
           !subscription.subscriptionCode &&
+          [
+            SubscriptionStatus.FAILED,
+            SubscriptionStatus.CANCELLED,
+            SubscriptionStatus.INACTIVE,
+          ].includes(subscription.status) &&
           ![
             SubscriptionStatus.REFUNDING,
             SubscriptionStatus.REFUNDED,
@@ -244,6 +259,7 @@ export class SubscriptionWebhookService {
           ].includes(subscription.status)
         ) {
           subscription.status = SubscriptionStatus.REFUNDING;
+          subscription.refundStatus = SubscriptionRefundStatus.PENDING;
           await manager.save(subscription);
           shouldRefund = true;
         }
@@ -253,6 +269,7 @@ export class SubscriptionWebhookService {
       // A trial charge only checks the card and is refunded, so its amount can differ
       if (!subscription.isTrial && !this.isPaidInFull(subscription, data)) {
         subscription.status = SubscriptionStatus.REFUNDING;
+        subscription.refundStatus = SubscriptionRefundStatus.PENDING;
         await manager.save(subscription);
         shouldRefund = true;
         return null;
@@ -271,6 +288,7 @@ export class SubscriptionWebhookService {
       ) {
         alreadyOnPlan = true;
         subscription.status = SubscriptionStatus.REFUNDING;
+        subscription.refundStatus = SubscriptionRefundStatus.PENDING;
         await manager.save(subscription);
         shouldRefund = true;
         return null;
@@ -310,21 +328,13 @@ export class SubscriptionWebhookService {
         await refundPaystackTransaction(reference);
       } catch (error) {
         console.error('Subscription checkout refund failed', reference, error);
-        await this.subscriptionRepository.update(
-          { reference, status: SubscriptionStatus.REFUNDING },
-          { status: SubscriptionStatus.REFUND_FAILED },
-        );
       }
       return null;
     }
 
     // The trial charge only checked the card, so give it back
     if (subscription?.isTrial) {
-      try {
-        await refundPaystackTransaction(reference);
-      } catch (error) {
-        console.error('Trial card check refund failed', reference, error);
-      }
+      await this.requestTrialChargeRefund(reference);
     }
 
     return subscription;
@@ -396,7 +406,8 @@ export class SubscriptionWebhookService {
 
   private async updateRefundStatus(
     data: PaystackEventData,
-    status: SubscriptionStatus.REFUNDED | SubscriptionStatus.REFUND_FAILED,
+    status:
+      SubscriptionRefundStatus.PROCESSED | SubscriptionRefundStatus.FAILED,
   ) {
     const reference =
       asString(data.transaction_reference) ||
@@ -412,13 +423,36 @@ export class SubscriptionWebhookService {
       });
       if (
         !subscription ||
-        subscription.status !== SubscriptionStatus.REFUNDING
+        (subscription.status !== SubscriptionStatus.REFUNDING &&
+          subscription.refundStatus !== SubscriptionRefundStatus.PENDING)
       ) {
         return null;
       }
-      subscription.status = status;
+      subscription.refundStatus = status;
+      if (subscription.status === SubscriptionStatus.REFUNDING) {
+        subscription.status =
+          status === SubscriptionRefundStatus.PROCESSED
+            ? SubscriptionStatus.REFUNDED
+            : SubscriptionStatus.REFUND_FAILED;
+      }
       return manager.save(subscription);
     });
+  }
+
+  private async requestTrialChargeRefund(reference: string) {
+    const claimed = await this.subscriptionRepository
+      .createQueryBuilder()
+      .update(Subscription)
+      .set({ refundStatus: SubscriptionRefundStatus.PENDING })
+      .where('reference = :reference AND "refundStatus" IS NULL', { reference })
+      .execute();
+    if (!claimed.affected) return;
+
+    try {
+      await refundPaystackTransaction(reference);
+    } catch (error) {
+      console.error('Trial card check refund failed', reference, error);
+    }
   }
 
   // Invoice events nest the subscription; reshape them like subscription.* payloads
@@ -443,6 +477,16 @@ export class SubscriptionWebhookService {
 
       if (!subscription) {
         console.error('Subscription not found', { subscriptionCode, status });
+        return null;
+      }
+
+      if (
+        [
+          SubscriptionStatus.REFUNDING,
+          SubscriptionStatus.REFUNDED,
+          SubscriptionStatus.REFUND_FAILED,
+        ].includes(subscription.status)
+      ) {
         return null;
       }
 
@@ -488,6 +532,35 @@ export class SubscriptionWebhookService {
       await syncStoreVisibility(manager, subscription.storeId);
 
       return changed ? subscription : null;
+    });
+  }
+
+  // Paystack can emit subscription.create before charge.success. Link its code
+  // for later cancellation, but don't treat the checkout as paid until the charge
+  // is confirmed. This also leaves duplicate checkouts eligible for refund.
+  private async linkPaystackSubscription(data: PaystackEventData) {
+    const subscriptionCode = asString(data.subscription_code);
+    return this.dataSource.transaction(async (manager) => {
+      const subscription = await this.findSubscription(manager, {
+        subscriptionCode,
+        email: asString(asRecord(data.customer).email),
+        planCode: asString(asRecord(data.plan).plan_code),
+      });
+      if (!subscription) return null;
+
+      const emailToken = asString(data.email_token);
+      if (subscriptionCode) subscription.subscriptionCode = subscriptionCode;
+      if (emailToken) subscription.emailToken = emailToken;
+
+      if (PAID_STATUSES.includes(subscription.status)) {
+        const nextPaymentDate = new Date(asString(data.next_payment_date));
+        if (!Number.isNaN(nextPaymentDate.getTime())) {
+          subscription.expiresAt = nextPaymentDate;
+        }
+      }
+
+      await manager.save(subscription);
+      return null;
     });
   }
 

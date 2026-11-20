@@ -58,7 +58,7 @@ export class ProtectMiddleware implements NestMiddleware {
         where: { id: decoded.id },
       });
 
-      if (!currentUser || isExpired) {
+      if (!currentUser || isExpired || !currentUser.isActive) {
         throw new UnauthorizedException('Invalid or expired token');
       }
 

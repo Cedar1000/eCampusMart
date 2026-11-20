@@ -138,6 +138,8 @@ export class OrderService {
         { algorithm: 'HS256', expiresIn: '48h' },
       );
 
+      console.log({ handoverToken });
+
       const image = await QRCode.toDataURL(handoverToken, {
         width: 512,
         margin: 2,

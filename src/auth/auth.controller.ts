@@ -38,6 +38,8 @@ import { ChangeEmailDto, VerifyChangeEmailDto } from './dto/change-email.dto';
 import { ValidCampusGuard } from './guards/valid-campus.guard';
 import { UniquePhoneNumberGuard } from './guards/unique-phone-number.guard';
 import { ClerkSignInDto } from './dto/clerk-sign-in.dto';
+import { ChangePhoneDto, VerifyPhoneChangeDto } from './dto/change-phone.dto';
+import { VerifyBvnDto } from './dto/verify-bvn.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -194,6 +196,11 @@ export class AuthController {
     return this.authService.findAll(query, user.id);
   }
 
+  @Get('/users/search')
+  async searchUsers(@Query('q') query: string) {
+    return this.authService.searchUsers(query || '');
+  }
+
   @Get('/users/:id')
   async getSingleUser(
     @Param('id', ParseUUIDPipe) id: string,
@@ -208,6 +215,40 @@ export class AuthController {
   @Get('/me')
   async getMe(@CurrentUser() user: User) {
     return this.authService.getMe(user);
+  }
+
+  @Post('/change-phone')
+  @UsePipes(ValidationPipe)
+  @UseGuards(UniquePhoneNumberGuard)
+  requestPhoneChange(
+    @Body() payload: ChangePhoneDto,
+    @CurrentUser() user: User,
+  ) {
+    return this.authService.requestPhoneChange(
+      user.id,
+      payload.phoneNumber,
+      payload.countryCode,
+    );
+  }
+
+  @Post('/change-phone/verify')
+  @UsePipes(ValidationPipe)
+  verifyPhoneChange(
+    @Body() payload: VerifyPhoneChangeDto,
+    @CurrentUser() user: User,
+  ) {
+    return this.authService.verifyPhoneChange(user.id, payload.otp);
+  }
+
+  @Post('/verify-bvn')
+  @UsePipes(ValidationPipe)
+  verifyBvn(@Body() payload: VerifyBvnDto, @CurrentUser() user: User) {
+    return this.authService.verifyBvn(user.id, payload);
+  }
+
+  @Get('/bvn-status')
+  getBvnStatus(@CurrentUser() user: User) {
+    return this.authService.getBvnVerificationStatus(user.id);
   }
 
   @Delete('/me')

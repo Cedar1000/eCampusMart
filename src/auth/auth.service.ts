@@ -6,11 +6,13 @@ import {
   ForbiddenException,
   BadRequestException,
   UnauthorizedException,
+  BadGatewayException,
 } from '@nestjs/common';
 
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   DataSource,
+  Brackets,
   In,
   MoreThan,
   QueryFailedError,
@@ -51,7 +53,13 @@ import { Housing } from 'src/housing/entities/housing.entity';
 import { ProductStatus } from 'src/product/enums/product-status.enum';
 import { ServiceStatus } from 'src/service/enums/service-status.enum';
 import { HousingStatus } from 'src/housing/enums/housing-status.enum';
-import { first } from 'rxjs';
+import sendSms from 'utils/sendSms';
+import {
+  createPaystackCustomer,
+  getPaystackCustomer,
+  validatePaystackCustomer,
+} from 'utils/paystack';
+import { VerifyBvnDto } from './dto/verify-bvn.dto';
 
 const MAX_OTP_ATTEMPTS = 5;
 const EMAIL_CHANGE_OTP_MINUTES = 10;
@@ -508,6 +516,10 @@ export class AuthService {
         throw new NotFoundException('User not found');
       }
 
+      if (!user.isActive) {
+        throw new UnauthorizedException('Your account is not active!');
+      }
+
       return {
         status: 'success',
         token: newAccessToken,
@@ -527,6 +539,248 @@ export class AuthService {
     const result = await factory.getOne(this.userRepo, id, query);
 
     return { ...result, data: this.visibleTo(result.data as User, viewerId) };
+  }
+
+  async searchUsers(search: string) {
+    const term = search.trim();
+    if (term.length < 2) {
+      throw new BadRequestException(
+        'Search must contain at least 2 characters',
+      );
+    }
+    const pattern = `%${term.replace(/[\\%_]/g, '\\$&')}%`;
+    const users = await this.userRepo
+      .createQueryBuilder('user')
+      .where(
+        new Brackets((qb) => {
+          qb.where('LOWER(user.firstName) LIKE LOWER(:pattern)', { pattern })
+            .orWhere('LOWER(user.lastName) LIKE LOWER(:pattern)', { pattern })
+            .orWhere(
+              "LOWER(CONCAT(user.firstName, ' ', user.lastName)) LIKE LOWER(:pattern)",
+              { pattern },
+            )
+            .orWhere('LOWER(user.email) LIKE LOWER(:pattern)', { pattern })
+            .orWhere('user.phoneNumber LIKE :pattern', { pattern })
+            .orWhere(
+              'CONCAT(user.countryCode, user.phoneNumber) LIKE :pattern',
+              {
+                pattern,
+              },
+            );
+        }),
+      )
+      .andWhere('user.isActive = true')
+      .select([
+        'user.id',
+        'user.firstName',
+        'user.lastName',
+        'user.photo',
+        'user.campusId',
+        'user.bio',
+        'user.ratingsAverage',
+        'user.ratingsCount',
+        'user.isOnline',
+        'user.createdAt',
+      ])
+      .orderBy('user.firstName', 'ASC')
+      .take(25)
+      .getMany();
+    return { status: 'success', data: users.map(toPublicUser) };
+  }
+
+  async requestPhoneChange(
+    userId: string,
+    phoneNumber: string,
+    countryCode: string,
+  ) {
+    const user = await this.userRepo
+      .createQueryBuilder('user')
+      .addSelect('user.phoneOtpSentAt')
+      .where('user.id = :userId', { userId })
+      .getOne();
+    if (!user) throw new NotFoundException('User not found');
+
+    const duplicate = await this.userRepo.findOne({
+      where: { phoneNumber, countryCode, emailVerified: true },
+      select: ['id'],
+    });
+    if (duplicate && duplicate.id !== userId) {
+      throw new ConflictException(
+        'A verified account already uses that number',
+      );
+    }
+    if (
+      user.phoneOtpSentAt &&
+      Date.now() - new Date(user.phoneOtpSentAt).getTime() < 60_000
+    ) {
+      throw new BadRequestException(
+        'Wait a minute before requesting another code',
+      );
+    }
+
+    const otp = String(generateRandomNumber(6)).padStart(6, '0');
+    const otpHash = crypto
+      .createHash('sha256')
+      .update(`${userId}:${countryCode}:${phoneNumber}:${otp}`)
+      .digest('hex');
+    await this.userRepo.update(userId, {
+      pendingPhoneNumber: phoneNumber,
+      pendingCountryCode: countryCode,
+      phoneOtpHash: otpHash,
+      phoneOtpExpiration: new Date(Date.now() + 10 * 60 * 1000),
+      phoneOtpSentAt: new Date(),
+      phoneOtpAttempts: 0,
+    });
+
+    const destination = `${countryCode.startsWith('+') ? '' : '+'}${countryCode}${phoneNumber}`;
+    try {
+      await sendSms(
+        destination,
+        `Your eCampusMart phone change code is ${otp}. It expires in 10 minutes.`,
+      );
+    } catch {
+      await this.userRepo.update(userId, {
+        phoneOtpHash: null,
+        phoneOtpExpiration: null,
+        phoneOtpSentAt: null,
+      });
+      console.error('Phone change OTP delivery failed');
+      throw new BadGatewayException('Could not send verification code');
+    }
+    return { status: 'success', message: 'Verification code sent' };
+  }
+
+  async verifyPhoneChange(userId: string, otp: string | number) {
+    const user = await this.userRepo
+      .createQueryBuilder('user')
+      .addSelect([
+        'user.pendingPhoneNumber',
+        'user.pendingCountryCode',
+        'user.phoneOtpHash',
+        'user.phoneOtpExpiration',
+        'user.phoneOtpAttempts',
+      ])
+      .where('user.id = :userId', { userId })
+      .getOne();
+    if (
+      !user ||
+      !user.pendingPhoneNumber ||
+      !user.pendingCountryCode ||
+      !user.phoneOtpHash
+    ) {
+      throw new BadRequestException('Request a phone verification code first');
+    }
+    if (!user.phoneOtpExpiration || user.phoneOtpExpiration < new Date()) {
+      throw new BadRequestException('Verification code has expired');
+    }
+    if ((user.phoneOtpAttempts ?? 0) >= MAX_OTP_ATTEMPTS) {
+      await this.userRepo.update(userId, { phoneOtpHash: null });
+      throw new ForbiddenException(
+        'Too many wrong attempts. Request a new code.',
+      );
+    }
+    const expected = crypto
+      .createHash('sha256')
+      .update(
+        `${userId}:${user.pendingCountryCode}:${user.pendingPhoneNumber}:${otp}`,
+      )
+      .digest('hex');
+    if (expected !== user.phoneOtpHash) {
+      await this.userRepo.increment({ id: userId }, 'phoneOtpAttempts', 1);
+      throw new UnauthorizedException('Invalid verification code');
+    }
+
+    const duplicate = await this.userRepo.findOne({
+      where: {
+        phoneNumber: user.pendingPhoneNumber,
+        countryCode: user.pendingCountryCode,
+        emailVerified: true,
+      },
+      select: ['id'],
+    });
+    if (duplicate && duplicate.id !== userId) {
+      throw new ConflictException(
+        'A verified account already uses that number',
+      );
+    }
+    await this.userRepo.update(userId, {
+      phoneNumber: user.pendingPhoneNumber,
+      countryCode: user.pendingCountryCode,
+      pendingPhoneNumber: null,
+      pendingCountryCode: null,
+      phoneOtpHash: null,
+      phoneOtpExpiration: null,
+      phoneOtpAttempts: 0,
+      phoneOtpSentAt: null,
+    });
+    return { status: 'success', message: 'Phone number updated' };
+  }
+
+  async verifyBvn(userId: string, payload: VerifyBvnDto) {
+    const user = await this.userRepo.findOne({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+
+    let customerCode = user.paystackCustomerCode;
+    if (!customerCode) {
+      try {
+        const customer = await createPaystackCustomer({
+          email: user.email,
+          first_name: user.firstName || '',
+          last_name: user.lastName || '',
+          phone: user.phoneNumber
+            ? `${user.countryCode || ''}${user.phoneNumber}`
+            : undefined,
+        });
+        customerCode = String(customer.customer_code || '');
+      } catch {
+        try {
+          const existing = await getPaystackCustomer(user.email);
+          customerCode = String(existing.customer_code || '');
+        } catch {
+          throw new BadGatewayException('Could not create Paystack customer');
+        }
+      }
+      if (!customerCode)
+        throw new BadGatewayException('Could not create Paystack customer');
+      await this.userRepo.update(userId, {
+        paystackCustomerCode: customerCode,
+      });
+    }
+
+    try {
+      await validatePaystackCustomer(customerCode, {
+        country: 'NG',
+        type: 'bank_account',
+        account_number: payload.accountNumber,
+        bvn: payload.bvn,
+        bank_code: payload.bankCode,
+        first_name: user.firstName || '',
+        last_name: user.lastName || '',
+      });
+    } catch {
+      console.error('Paystack BVN verification request failed');
+      throw new BadGatewayException('Could not start BVN verification');
+    }
+    await this.userRepo.update(userId, {
+      bvnVerificationStatus: 'pending',
+      bvnVerificationMessage: null,
+    });
+    return { status: 'success', data: { status: 'pending' } };
+  }
+
+  async getBvnVerificationStatus(userId: string) {
+    const user = await this.userRepo.findOne({
+      where: { id: userId },
+      select: ['id', 'bvnVerificationStatus', 'bvnVerificationMessage'],
+    });
+    if (!user) throw new NotFoundException('User not found');
+    return {
+      status: 'success',
+      data: {
+        status: user.bvnVerificationStatus ?? 'not-started',
+        message: user.bvnVerificationMessage ?? null,
+      },
+    };
   }
 
   async deactivateUser(userId: string) {
@@ -576,6 +830,15 @@ export class AuthService {
   }
 
   async updateAuthUser(id: string, payload: UpdateUserDto) {
+    if (
+      payload.phoneNumber !== undefined ||
+      payload.countryCode !== undefined
+    ) {
+      throw new BadRequestException(
+        'Use the phone change verification endpoints to update your number',
+      );
+    }
+
     const { campusId } = payload;
 
     const data = await factory.updateOne(this.userRepo, id, payload);

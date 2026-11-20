@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import {
   Transaction,
+  TransactionDescription,
   TransactionStatus,
 } from 'src/transaction/entities/transaction.entity';
 import { Wallet } from 'src/wallet/entities/wallet.entity';
@@ -45,6 +46,66 @@ export class WalletWebhookService {
     if (event === 'charge.failed') {
       await this.markTransactionFailed(reference);
     }
+
+    if (
+      event === 'transfer.success' ||
+      event === 'transfer.failed' ||
+      event === 'transfer.reversed'
+    ) {
+      await this.settleWithdrawal(reference, event);
+    }
+  }
+
+  private async settleWithdrawal(
+    reference: string,
+    event: 'transfer.success' | 'transfer.failed' | 'transfer.reversed',
+  ) {
+    await this.dataSource.transaction(async (manager) => {
+      const transaction = await manager.findOne(Transaction, {
+        where: {
+          reference,
+          description: TransactionDescription.WITHDRAW,
+        },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (!transaction || transaction.status === TransactionStatus.FAILED) {
+        return;
+      }
+
+      if (
+        event === 'transfer.success' &&
+        transaction.status === TransactionStatus.PENDING
+      ) {
+        transaction.status = TransactionStatus.SUCCESS;
+        await manager.save(transaction);
+        return;
+      }
+      if (
+        event === 'transfer.failed' &&
+        transaction.status !== TransactionStatus.PENDING
+      ) {
+        return;
+      }
+      if (
+        event === 'transfer.reversed' &&
+        transaction.status !== TransactionStatus.PENDING &&
+        transaction.status !== TransactionStatus.SUCCESS
+      ) {
+        return;
+      }
+
+      const wallet = await manager.findOne(Wallet, {
+        where: { id: transaction.walletId },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (!wallet) throw new BadRequestException('Wallet not found');
+      const beforeBalance = Number(wallet.balance);
+      wallet.balance = beforeBalance + Number(transaction.amount);
+      transaction.beforeBalance = beforeBalance;
+      transaction.afterBalance = wallet.balance;
+      transaction.status = TransactionStatus.FAILED;
+      await manager.save([wallet, transaction]);
+    });
   }
 
   // Credits the wallet once, and only if Paystack took the amount and currency we expect

@@ -1,6 +1,7 @@
 import {
   IsEnum,
   IsNotEmpty,
+  IsOptional,
   IsString,
   Validate,
   ValidatorConstraint,
@@ -27,6 +28,9 @@ export class SavePushTokenDto {
 
   @IsEnum(PushPlatform)
   platform: PushPlatform;
+
+  @IsOptional()
+  drawsChatPushes: boolean;
 }
 
 // Any string, so a token from an older format can still be removed on sign-out

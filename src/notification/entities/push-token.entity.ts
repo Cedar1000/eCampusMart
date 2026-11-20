@@ -20,4 +20,7 @@ export class PushToken extends BaseEntity {
 
   @Column({ type: 'enum', enum: PushPlatform })
   platform: PushPlatform;
+
+  @Column({ default: false })
+  drawsChatPushes: boolean;
 }

@@ -16,6 +16,7 @@ import { SubscriptionStatus } from 'src/subscription/enums/subscription-status.e
 import { CreateServiceStoreDto } from './dto/create-service-store.dto';
 import { UpdateServiceStoreDto } from './dto/update-service-store.dto';
 import { ServiceStore } from './entities/service-store.entity';
+import { ServiceFavourite } from 'src/service-favourite/entities/service-favourite.entity';
 import {
   getTrialEnd,
   isInFreeMonth,
@@ -235,7 +236,10 @@ export class ServiceStoreService {
     await this.listingCleanupService.deleteListings(
       'service',
       { storeId: id },
-      async (manager) => {
+      async (manager, serviceIds) => {
+        if (serviceIds.length) {
+          await manager.delete(ServiceFavourite, { serviceId: In(serviceIds) });
+        }
         await manager.delete(ServiceStore, id);
 
         return [store.logoKey, store.bannerKey].filter(Boolean);
