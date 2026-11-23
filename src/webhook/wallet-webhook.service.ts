@@ -60,7 +60,7 @@ export class WalletWebhookService {
     reference: string,
     event: 'transfer.success' | 'transfer.failed' | 'transfer.reversed',
   ) {
-    await this.dataSource.transaction(async (manager) => {
+    const completed = await this.dataSource.transaction(async (manager) => {
       const transaction = await manager.findOne(Transaction, {
         where: {
           reference,
@@ -69,7 +69,7 @@ export class WalletWebhookService {
         lock: { mode: 'pessimistic_write' },
       });
       if (!transaction || transaction.status === TransactionStatus.FAILED) {
-        return;
+        return null;
       }
 
       if (
@@ -78,20 +78,24 @@ export class WalletWebhookService {
       ) {
         transaction.status = TransactionStatus.SUCCESS;
         await manager.save(transaction);
-        return;
+        const wallet = await manager.findOne(Wallet, {
+          where: { id: transaction.walletId },
+        });
+        if (!wallet) throw new BadRequestException('Wallet not found');
+        return { userId: wallet.userId, amount: Number(transaction.amount) };
       }
       if (
         event === 'transfer.failed' &&
         transaction.status !== TransactionStatus.PENDING
       ) {
-        return;
+        return null;
       }
       if (
         event === 'transfer.reversed' &&
         transaction.status !== TransactionStatus.PENDING &&
         transaction.status !== TransactionStatus.SUCCESS
       ) {
-        return;
+        return null;
       }
 
       const wallet = await manager.findOne(Wallet, {
@@ -105,7 +109,17 @@ export class WalletWebhookService {
       transaction.afterBalance = wallet.balance;
       transaction.status = TransactionStatus.FAILED;
       await manager.save([wallet, transaction]);
+      return null;
     });
+
+    if (completed) {
+      const amount = completed.amount / 100;
+      await this.pushService.send([completed.userId], {
+        title: 'Withdrawal successful',
+        body: `₦${amount.toLocaleString('en-NG')} was sent to your bank account`,
+        data: { type: 'wallet-withdrawal-success', reference, amount },
+      });
+    }
   }
 
   // Credits the wallet once, and only if Paystack took the amount and currency we expect

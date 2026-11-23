@@ -5,8 +5,8 @@ import {
   UsePipes,
   ValidationPipe,
   Get,
-  Query,
   Param,
+  HttpCode,
 } from '@nestjs/common';
 
 import { WalletService } from './wallet.service';
@@ -19,6 +19,7 @@ import {
   FinalizeWithdrawalDto,
   WithdrawWalletDto,
 } from './dto/withdraw-wallet.dto';
+import { ResolveAccountNumberDto } from './dto/resolve-account-number.dto';
 
 @Controller('wallet')
 export class WalletController {
@@ -42,12 +43,9 @@ export class WalletController {
     return this.walletService.getBanks();
   }
 
-  @Get('resolve-account')
-  resolveAccount(
-    @Query('accountNumber') accountNumber: string,
-    @Query('bankCode') bankCode: string,
-  ) {
-    return this.walletService.resolveAccount(accountNumber, bankCode);
+  @Post('resolve-account')
+  resolveAccount(@Body() dto: ResolveAccountNumberDto) {
+    return this.walletService.resolveAccount(dto);
   }
 
   @Post('pin')
@@ -74,6 +72,7 @@ export class WalletController {
   }
 
   @Post('withdraw')
+  @HttpCode(200)
   @UsePipes(ValidationPipe)
   withdraw(@Body() payload: WithdrawWalletDto, @CurrentUser() user: User) {
     return this.walletService.withdraw(user.id, payload);

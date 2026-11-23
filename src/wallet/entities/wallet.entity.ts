@@ -1,6 +1,7 @@
 import { BaseEntity } from 'src/common/base.entity';
 import { Column, Entity, Index, OneToMany } from 'typeorm';
 import { Transaction } from 'src/transaction/entities/transaction.entity';
+import { BankAccount } from 'src/bank-account/entities/bank-account.entity';
 
 @Entity()
 export class Wallet extends BaseEntity {
@@ -19,4 +20,7 @@ export class Wallet extends BaseEntity {
 
   @OneToMany(() => Transaction, (transaction) => transaction.wallet)
   transactions: Transaction[];
+
+  @OneToMany(() => BankAccount, (account) => account.wallet)
+  bankAccounts: BankAccount[];
 }

@@ -91,6 +91,7 @@ export class WebhookService {
       event === 'customeridentification.failed'
     ) {
       const customerCode = asString(data.customer_code);
+
       if (customerCode) {
         await this.userRepository.update(
           { paystackCustomerCode: customerCode },

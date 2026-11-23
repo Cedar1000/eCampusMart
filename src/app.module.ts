@@ -49,6 +49,7 @@ import { OfferModule } from './offer/offer.module';
 import { OrderModule } from './order/order.module';
 import { NotificationModule } from './notification/notification.module';
 import { ReviewModule } from './review/review.module';
+import { BankAccountModule } from './bank-account/bank-account.module';
 
 @Module({
   imports: [
@@ -92,6 +93,7 @@ import { ReviewModule } from './review/review.module';
     OrderModule,
     NotificationModule,
     ReviewModule,
+    BankAccountModule,
   ],
   controllers: [AppController],
   providers: [AppService],

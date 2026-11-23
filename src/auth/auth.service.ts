@@ -353,7 +353,7 @@ export class AuthService {
     return {
       status: 'success',
       message: 'Get user successful!',
-      user: await this.withRelatedAccounts(user),
+      user: await this.withRelatedAccounts(user, true),
     };
   }
 
@@ -1109,9 +1109,12 @@ export class AuthService {
     await this.userRepo.update({ id: userId }, this.clearedEmailChange());
   }
 
-  private async withRelatedAccounts<T extends { id: string }>(user: T) {
+  private async withRelatedAccounts<T extends { id: string }>(
+    user: T,
+    includeBankAccounts = false,
+  ) {
     const [wallet, productStore, serviceStore] = await Promise.all([
-      this.walletService.findByUserId(user.id),
+      this.walletService.findByUserId(user.id, includeBankAccounts),
       this.productStoreService.findByUserId(user.id),
       this.serviceStoreService.findByOwnerId(user.id),
     ]);

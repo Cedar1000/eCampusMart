@@ -36,6 +36,8 @@ import {
   resolvePaystackAccount,
   getPaystackTransfer,
 } from 'utils/paystack';
+import { ResolveAccountNumberDto } from './dto/resolve-account-number.dto';
+import { BankAccount } from 'src/bank-account/entities/bank-account.entity';
 
 interface PaystackInitializeResponse {
   status: boolean;
@@ -55,6 +57,9 @@ export class WalletService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
 
+    @InjectRepository(BankAccount)
+    private readonly bankAccountRepository: Repository<BankAccount>,
+
     private readonly configService: ConfigService,
 
     private readonly dataSource: DataSource,
@@ -69,7 +74,8 @@ export class WalletService {
     }
   }
 
-  async resolveAccount(accountNumber: string, bankCode: string) {
+  async resolveAccount(dto: ResolveAccountNumberDto) {
+    const { accountNumber, bankCode } = dto;
     try {
       const data = await resolvePaystackAccount(accountNumber, bankCode);
       return { status: 'success', data };
@@ -91,13 +97,17 @@ export class WalletService {
       ])
       .where('user.id = :userId', { userId })
       .getOne();
+
     if (!user) throw new NotFoundException('User not found');
+
     if (user.transactionPinHash) {
       throw new ConflictException('Transaction PIN has already been created');
     }
+
     await this.userRepository.update(userId, {
       transactionPinHash: await bcrypt.hash(pin, 12),
     });
+
     return { status: 'success', message: 'Transaction PIN created' };
   }
 
@@ -236,29 +246,43 @@ export class WalletService {
     userId: string,
     payload: {
       amount: number;
-      accountNumber: string;
-      bankCode: string;
+      accountId: string;
       pin: string;
     },
   ) {
     await this.verifyTransactionPin(userId, payload.pin);
+
+    const account = await this.bankAccountRepository.findOne({
+      where: { id: payload.accountId, wallet: { userId } },
+    });
+
+    if (!account) throw new NotFoundException('Bank account not found');
+
     const user = await this.userRepository.findOne({
       where: { id: userId },
       select: ['id', 'firstName', 'lastName'],
     });
+
     if (!user) throw new NotFoundException('User not found');
 
-    let resolved: Record<string, unknown>;
-    let recipient: Record<string, unknown>;
-    try {
-      resolved = await resolvePaystackAccount(
-        payload.accountNumber,
-        payload.bankCode,
+    if (user.id !== account.userId) {
+      throw new BadRequestException(
+        'You can only withdraw to your own bank account',
       );
+    }
+
+    let recipient: Record<string, unknown>;
+
+    try {
+      // resolved = await resolvePaystackAccount(
+      //   account.accountNumber,
+      //   account.bankCode,
+      // );
+
       recipient = await createPaystackTransferRecipient({
-        name: String(resolved.account_name || ''),
-        account_number: payload.accountNumber,
-        bank_code: payload.bankCode,
+        name: String(account.accountName || account.accountName || ''),
+        account_number: account.accountNumber,
+        bank_code: account.bankCode,
         currency: 'NGN',
       });
     } catch (error) {
@@ -268,25 +292,34 @@ export class WalletService {
       throw new BadGatewayException('Could not validate withdrawal account');
     }
     const recipientCode = String(recipient.recipient_code || '');
+
     if (!recipientCode)
       throw new BadGatewayException('Paystack returned no recipient code');
 
-    const reference = randomUUID().toLowerCase();
+    const reference = generateReference();
+
     await this.dataSource.transaction(async (manager) => {
       const wallet = await manager.findOne(Wallet, {
         where: { userId },
         lock: { mode: 'pessimistic_write' },
       });
+
       if (!wallet) throw new NotFoundException('Wallet not found');
+
       if (wallet.currency !== 'NGN') {
         throw new BadRequestException('Withdrawals currently support NGN only');
       }
+
       const beforeBalance = Number(wallet.balance);
+
       if (beforeBalance < payload.amount) {
         throw new BadRequestException('Insufficient wallet balance');
       }
+
       wallet.balance = beforeBalance - payload.amount;
+
       await manager.save(wallet);
+
       await manager.save(
         manager.create(Transaction, {
           walletId: wallet.id,
@@ -299,7 +332,7 @@ export class WalletService {
           description: TransactionDescription.WITHDRAW,
           currency: 'NGN',
           expiresAt: new Date(),
-          counterpartyName: String(resolved.account_name || ''),
+          counterpartyName: String(account.accountName || ''),
         }),
       );
     });
@@ -311,12 +344,16 @@ export class WalletService {
         reference,
         reason: `eCampusMart wallet withdrawal for ${user.firstName || 'customer'}`,
       });
+
       const status = String(transfer.status || '').toLowerCase();
+
       if (status === 'failed' || status === 'rejected') {
         await this.releaseWithdrawal(reference);
         throw new BadGatewayException('Paystack could not start this transfer');
       }
+
       const transferCode = String(transfer.transfer_code || '');
+
       if (transferCode) {
         await this.transactionRepository
           .createQueryBuilder()
@@ -334,7 +371,7 @@ export class WalletService {
         data: {
           reference,
           amount: payload.amount / 100,
-          accountName: resolved.account_name,
+          accountName: account.accountName,
           transferStatus: status || 'pending',
           requiresApproval: status === 'otp',
         },
@@ -469,8 +506,14 @@ export class WalletService {
     );
   }
 
-  async findByUserId(userId: string): Promise<Wallet | null> {
-    return this.walletRepository.findOne({ where: { userId } });
+  async findByUserId(
+    userId: string,
+    includeBankAccounts = false,
+  ): Promise<Wallet | null> {
+    return this.walletRepository.findOne({
+      where: { userId },
+      ...(includeBankAccounts && { relations: { bankAccounts: true } }),
+    });
   }
 
   async initializeTransaction(

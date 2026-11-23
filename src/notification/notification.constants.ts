@@ -41,6 +41,11 @@ export type PushData =
       conversationId: string | null;
     }
   | { type: 'wallet-funded'; reference: string; amount: number }
+  | {
+      type: 'wallet-withdrawal-success';
+      reference: string;
+      amount: number;
+    }
   | { type: 'subscription-updated'; storeId: string; status: string }
   | { type: 'free-plan-ending'; storeId: string; stage: '3d' | '1d' | 'ended' }
   // orderId is null for a service store review

@@ -1,5 +1,5 @@
 import { Transform, Type } from 'class-transformer';
-import { IsNumber, IsString, Matches, Max, Min } from 'class-validator';
+import { IsNumber, IsString, IsUUID, Matches, Max, Min } from 'class-validator';
 
 export class WithdrawWalletDto {
   @Type(() => Number)
@@ -9,12 +9,8 @@ export class WithdrawWalletDto {
   @Transform(({ value }) => Math.round(Number(value) * 100))
   amount: number;
 
-  @IsString()
-  @Matches(/^\d{10}$/)
-  accountNumber: string;
-
-  @IsString()
-  bankCode: string;
+  @IsUUID()
+  accountId: string;
 
   @IsString()
   @Matches(/^\d{4,6}$/)
