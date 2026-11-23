@@ -6,6 +6,7 @@ import {
   ValidationPipe,
   Get,
   Param,
+  Patch,
   HttpCode,
 } from '@nestjs/common';
 
@@ -20,6 +21,8 @@ import {
   WithdrawWalletDto,
 } from './dto/withdraw-wallet.dto';
 import { ResolveAccountNumberDto } from './dto/resolve-account-number.dto';
+import { VerifyPinOtpDto } from './dto/verify-pin-otp.dto';
+import { UpdateTransactionPinDto } from './dto/update-transaction-pin.dto';
 
 @Controller('wallet')
 export class WalletController {
@@ -54,10 +57,47 @@ export class WalletController {
     return this.walletService.createTransactionPin(user.id, payload.pin);
   }
 
+  @Patch('pin')
+  @UsePipes(ValidationPipe)
+  updatePin(
+    @Body() payload: UpdateTransactionPinDto,
+    @CurrentUser() user: User,
+  ) {
+    return this.walletService.updateTransactionPin(
+      user.id,
+      payload.currentPin,
+      payload.newPin,
+    );
+  }
+
   @Post('pin/verify')
+  @HttpCode(200)
   @UsePipes(ValidationPipe)
   verifyPin(@Body() payload: TransactionPinDto, @CurrentUser() user: User) {
     return this.walletService.verifyTransactionPin(user.id, payload.pin);
+  }
+
+  @Post('pin/send-otp')
+  @HttpCode(200)
+  sendPinOtp(@CurrentUser() user: User) {
+    return this.walletService.sendPinOtp(user.id);
+  }
+
+  @Post('pin/verify-otp')
+  @HttpCode(200)
+  @UsePipes(ValidationPipe)
+  verifyPinOtp(@Body() payload: VerifyPinOtpDto, @CurrentUser() user: User) {
+    return this.walletService.verifyPinOtp(user.id, payload.otp);
+  }
+
+  @Patch('pin/reset/:resetPinToken')
+  @HttpCode(200)
+  @UsePipes(ValidationPipe)
+  resetPin(
+    @Param('resetPinToken') resetPinToken: string,
+    @Body() payload: TransactionPinDto,
+  ) {
+    return this.walletService.resetTransactionPin(resetPinToken, payload.pin);
   }
 
   @Post('transfer')

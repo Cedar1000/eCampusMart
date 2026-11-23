@@ -11,14 +11,14 @@ import {
 
 import axios, { AxiosError } from 'axios';
 import * as bcrypt from 'bcryptjs';
-import { randomUUID } from 'crypto';
+import { createHash, randomBytes, randomInt, randomUUID } from 'crypto';
 
 import { InitializeTransactionDto } from './dto/initialize-transaction.dto';
 
 import generateReference from 'utils/generateReference';
 import { Wallet } from './entities/wallet.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, MoreThan, Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 
 import {
@@ -38,6 +38,7 @@ import {
 } from 'utils/paystack';
 import { ResolveAccountNumberDto } from './dto/resolve-account-number.dto';
 import { BankAccount } from 'src/bank-account/entities/bank-account.entity';
+import sendEmail from 'utils/sendEmail';
 
 interface PaystackInitializeResponse {
   status: boolean;
@@ -111,6 +112,20 @@ export class WalletService {
     return { status: 'success', message: 'Transaction PIN created' };
   }
 
+  async updateTransactionPin(
+    userId: string,
+    currentPin: string,
+    newPin: string,
+  ) {
+    await this.verifyTransactionPin(userId, currentPin);
+    await this.userRepository.update(userId, {
+      transactionPinHash: await bcrypt.hash(newPin, 12),
+      transactionPinAttempts: 0,
+      transactionPinLockedUntil: null,
+    });
+    return { status: 'success', message: 'Transaction PIN updated' };
+  }
+
   async verifyTransactionPin(userId: string, pin: string) {
     const user = await this.userRepository
       .createQueryBuilder('user')
@@ -146,6 +161,119 @@ export class WalletService {
       transactionPinLockedUntil: null,
     });
     return { status: 'success', message: 'Transaction PIN is correct' };
+  }
+
+  async sendPinOtp(userId: string) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      select: ['id', 'email', 'firstName'],
+    });
+
+    if (!user) throw new NotFoundException('User not found');
+
+    const otp = randomInt(0, 1_000_000).toString().padStart(6, '0');
+
+    await this.userRepository.update(userId, {
+      pinOtp: Number(otp),
+      pinOtpExpiration: new Date(Date.now() + 10 * 60 * 1000),
+      pinOtpAttempts: 0,
+    });
+
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: 'Your transaction PIN reset code',
+        text: `Hi ${user.firstName || 'there'}, your transaction PIN reset code is ${otp}. It expires in 10 minutes.`,
+      });
+    } catch {
+      await this.userRepository.update(userId, {
+        pinOtp: null,
+        pinOtpExpiration: null,
+      });
+      throw new BadGatewayException('Could not send PIN reset code');
+    }
+
+    return { status: 'success', message: 'PIN reset code sent' };
+  }
+
+  async verifyPinOtp(userId: string, otp: string) {
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .addSelect([
+        'user.pinOtp',
+        'user.pinOtpExpiration',
+        'user.pinOtpAttempts',
+      ])
+      .where('user.id = :userId', { userId })
+      .getOne();
+
+    if (!user) throw new NotFoundException('User not found');
+
+    if (
+      user.pinOtp === null ||
+      user.pinOtp === undefined ||
+      !user.pinOtpExpiration ||
+      user.pinOtpExpiration <= new Date()
+    ) {
+      throw new BadRequestException('PIN reset code is invalid or expired');
+    }
+
+    if (Number(otp) !== user.pinOtp) {
+      const attempts = (user.pinOtpAttempts || 0) + 1;
+
+      await this.userRepository.update(userId, {
+        pinOtpAttempts: attempts,
+        ...(attempts >= 5 && { pinOtp: null, pinOtpExpiration: null }),
+      });
+
+      throw new UnauthorizedException('PIN reset code is incorrect');
+    }
+
+    const resetPinToken = randomBytes(32).toString('hex');
+
+    const hashedToken = createHash('sha256')
+      .update(resetPinToken)
+      .digest('hex');
+
+    await this.userRepository.update(userId, {
+      pinOtp: null,
+      pinOtpExpiration: null,
+      pinOtpAttempts: 0,
+      resetPinToken: hashedToken,
+      resetPinTokenExpires: new Date(Date.now() + 15 * 60 * 1000),
+    });
+
+    return {
+      status: 'success',
+      message: 'Otp verification success!',
+      resetPinToken,
+    };
+  }
+
+  async resetTransactionPin(resetPinToken: string, pin: string) {
+    const hashedToken = createHash('sha256')
+      .update(resetPinToken)
+      .digest('hex');
+    const user = await this.userRepository.findOne({
+      where: {
+        resetPinToken: hashedToken,
+        resetPinTokenExpires: MoreThan(new Date()),
+      },
+      select: ['id'],
+    });
+    if (!user) {
+      throw new BadRequestException('Reset PIN token is invalid or expired');
+    }
+
+    await this.userRepository.update(user.id, {
+      transactionPinHash: await bcrypt.hash(pin, 12),
+      transactionPinAttempts: 0,
+      transactionPinLockedUntil: null,
+      resetPinToken: null,
+      resetPinTokenExpires: null,
+    });
+
+    return { status: 'success', message: 'Transaction PIN reset successful' };
   }
 
   async transferToUser(

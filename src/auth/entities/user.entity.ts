@@ -64,6 +64,21 @@ export class User extends BaseEntity {
   @Column({ type: 'int', nullable: true, select: false })
   otp?: number | null;
 
+  @Column({ type: 'int', nullable: true, select: false })
+  pinOtp?: number | null;
+
+  @Column({ nullable: true, select: false, type: 'timestamptz' })
+  pinOtpExpiration?: Date | null;
+
+  @Column({ default: 0, select: false })
+  pinOtpAttempts?: number;
+
+  @Column({ nullable: true, select: false, type: 'varchar', length: 64 })
+  resetPinToken?: string | null;
+
+  @Column({ nullable: true, select: false, type: 'timestamptz' })
+  resetPinTokenExpires?: Date | null;
+
   @Column({ default: 0 })
   ratingsCount?: number;
 
@@ -163,6 +178,11 @@ export const USER_SECRET_FIELDS = [
   'otp',
   'otpExpiration',
   'otpAttempts',
+  'pinOtp',
+  'pinOtpExpiration',
+  'pinOtpAttempts',
+  'resetPinToken',
+  'resetPinTokenExpires',
   'passwordChangedAt',
   'passwordResetToken',
   'passwordResetTokenExpires',

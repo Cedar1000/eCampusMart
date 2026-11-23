@@ -3,10 +3,11 @@ import {
   Get,
   NotFoundException,
   Param,
+  Query,
   UseInterceptors,
 } from '@nestjs/common';
 import { TransactionService } from './transaction.service';
-import IQuery from 'interfaces/query.Interface';
+import type IQuery from 'interfaces/query.Interface';
 import { CurrentUser } from 'src/auth/decorators/get-current-user.decorator';
 import { User } from 'src/auth/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -28,7 +29,7 @@ export class TransactionController {
 
   @UseInterceptors(FormatAmountInterceptor)
   @Get('my-transactions')
-  async findMyTransactions(@CurrentUser() user: User, query: Partial<IQuery>) {
+  async findMyTransactions(@Query() query: IQuery, @CurrentUser() user: User) {
     const wallet = await this.walletRepo.findOne({
       where: { userId: user.id },
     });

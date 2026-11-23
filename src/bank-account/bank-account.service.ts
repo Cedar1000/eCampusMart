@@ -24,14 +24,14 @@ export class BankAccountService {
 
     if (!wallet) throw new NotFoundException('Wallet not found');
 
-    const { data: resolved } = await this.walletService.resolveAccount({
-      accountNumber: dto.accountNumber,
-      bankCode: dto.bankCode,
-    });
+    // const { data: resolved } = await this.walletService.resolveAccount({
+    //   accountNumber: dto.accountNumber,
+    //   bankCode: dto.bankCode,
+    // });
 
     return factory.createOne(this.bankAccountRepo, {
       ...dto,
-      accountName: String(resolved.account_name || ''),
+      accountName: String(dto.accountName || ''),
       userId,
       walletId: wallet.id,
     });
@@ -65,8 +65,9 @@ export class BankAccountService {
     });
   }
 
-  async remove(userId: string, id: string) {
+  async remove(userId: string, id: string, pin: string) {
     await this.assertOwner(userId, id);
+    await this.walletService.verifyTransactionPin(userId, pin);
     return factory.deleteOne(this.bankAccountRepo, id);
   }
 

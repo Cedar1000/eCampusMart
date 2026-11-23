@@ -1,4 +1,5 @@
 import {
+  IsBoolean,
   IsEnum,
   IsNotEmpty,
   IsOptional,
@@ -30,6 +31,7 @@ export class SavePushTokenDto {
   platform: PushPlatform;
 
   @IsOptional()
+  @IsBoolean()
   drawsChatPushes: boolean;
 }
 

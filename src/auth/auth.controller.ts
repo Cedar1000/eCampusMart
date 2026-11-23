@@ -13,6 +13,7 @@ import {
   Controller,
   ValidationPipe,
   ParseUUIDPipe,
+  UseInterceptors,
 } from '@nestjs/common';
 import type { Request } from 'express';
 
@@ -40,6 +41,7 @@ import { UniquePhoneNumberGuard } from './guards/unique-phone-number.guard';
 import { ClerkSignInDto } from './dto/clerk-sign-in.dto';
 import { ChangePhoneDto, VerifyPhoneChangeDto } from './dto/change-phone.dto';
 import { VerifyBvnDto } from './dto/verify-bvn.dto';
+import { TransactionPinStatusInterceptor } from './interceptors/transaction-pin-status.interceptor';
 
 @Controller('auth')
 export class AuthController {
@@ -213,6 +215,7 @@ export class AuthController {
   }
 
   @Get('/me')
+  @UseInterceptors(TransactionPinStatusInterceptor)
   async getMe(@CurrentUser() user: User) {
     return this.authService.getMe(user);
   }

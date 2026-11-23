@@ -18,6 +18,7 @@ import { ProductStore } from 'src/product-store/entities/product-store.entity';
 import { Service } from 'src/service/entities/service.entity';
 import { ServiceStore } from 'src/service-store/entities/service-store.entity';
 import { Housing } from 'src/housing/entities/housing.entity';
+import { TransactionPinStatusInterceptor } from './interceptors/transaction-pin-status.interceptor';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { Housing } from 'src/housing/entities/housing.entity';
     ValidCampusGuard,
     UniquePhoneNumberGuard,
     UnverifiedAccountsSweep,
+    TransactionPinStatusInterceptor,
   ],
 })
 export class AuthModule {}

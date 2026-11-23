@@ -17,6 +17,7 @@ import type IQuery from 'interfaces/query.Interface';
 import { BankAccountService } from './bank-account.service';
 import { CreateBankAccountDto } from './dto/create-bank-account.dto';
 import { UpdateBankAccountDto } from './dto/update-bank-account.dto';
+import { TransactionPinDto } from 'src/wallet/dto/transaction-pin.dto';
 
 @Controller('bank-accounts')
 export class BankAccountController {
@@ -54,7 +55,12 @@ export class BankAccountController {
   }
 
   @Delete(':id')
-  remove(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: User) {
-    return this.bankAccountService.remove(user.id, id);
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  remove(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() payload: TransactionPinDto,
+    @CurrentUser() user: User,
+  ) {
+    return this.bankAccountService.remove(user.id, id, payload.pin);
   }
 }
