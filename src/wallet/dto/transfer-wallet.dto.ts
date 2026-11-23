@@ -1,5 +1,14 @@
 import { Transform, Type } from 'class-transformer';
-import { IsNumber, IsString, IsUUID, Matches, Max, Min } from 'class-validator';
+
+import {
+  Max,
+  Min,
+  IsUUID,
+  Length,
+  Matches,
+  IsNumber,
+  IsString,
+} from 'class-validator';
 
 export class TransferWalletDto {
   @IsUUID()
@@ -13,6 +22,7 @@ export class TransferWalletDto {
   amount: number;
 
   @IsString()
-  @Matches(/^\d{4,6}$/)
+  @Matches(/^\d{4,4}$/)
+  @Length(4, 4, { message: 'PIN must be exactly 4 digits' })
   pin: string;
 }

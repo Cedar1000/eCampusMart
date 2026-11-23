@@ -113,7 +113,6 @@ export class WalletController {
 
   @Post('withdraw')
   @HttpCode(200)
-  @UsePipes(ValidationPipe)
   withdraw(@Body() payload: WithdrawWalletDto, @CurrentUser() user: User) {
     return this.walletService.withdraw(user.id, payload);
   }

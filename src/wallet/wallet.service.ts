@@ -40,6 +40,8 @@ import { ResolveAccountNumberDto } from './dto/resolve-account-number.dto';
 import { BankAccount } from 'src/bank-account/entities/bank-account.entity';
 import sendEmail from 'utils/sendEmail';
 
+const TRANSACTION_PIN_LOCK_MS = 30 * 60 * 1000;
+
 interface PaystackInitializeResponse {
   status: boolean;
   message: string;
@@ -144,16 +146,31 @@ export class WalletService {
       user.transactionPinLockedUntil &&
       user.transactionPinLockedUntil > new Date()
     ) {
-      throw new ForbiddenException('Transaction PIN is temporarily locked');
+      const minutesRemaining = Math.max(
+        1,
+        Math.ceil(
+          (user.transactionPinLockedUntil.getTime() - Date.now()) / 60_000,
+        ),
+      );
+      throw new ForbiddenException(
+        `Transaction PIN is locked. Try again in ${minutesRemaining} ${minutesRemaining === 1 ? 'minute' : 'minutes'}.`,
+      );
     }
     if (!(await bcrypt.compare(pin, user.transactionPinHash))) {
       const attempts = (user.transactionPinAttempts || 0) + 1;
       await this.userRepository.update(userId, {
         transactionPinAttempts: attempts,
         ...(attempts >= 5 && {
-          transactionPinLockedUntil: new Date(Date.now() + 15 * 60 * 1000),
+          transactionPinLockedUntil: new Date(
+            Date.now() + TRANSACTION_PIN_LOCK_MS,
+          ),
         }),
       });
+      if (attempts >= 5) {
+        throw new ForbiddenException(
+          'Transaction PIN is locked. Try again in 30 minutes.',
+        );
+      }
       throw new UnauthorizedException('Transaction PIN is incorrect');
     }
     await this.userRepository.update(userId, {
