@@ -138,41 +138,54 @@ export class WalletService {
       ])
       .where('user.id = :userId', { userId })
       .getOne();
+
     if (!user) throw new NotFoundException('User not found');
+
     if (!user.transactionPinHash) {
       throw new BadRequestException('Create a transaction PIN first');
     }
+
     if (
       user.transactionPinLockedUntil &&
       user.transactionPinLockedUntil > new Date()
     ) {
-      const minutesRemaining = Math.max(
-        1,
-        Math.ceil(
-          (user.transactionPinLockedUntil.getTime() - Date.now()) / 60_000,
-        ),
+      const remainingSeconds = Math.ceil(
+        (user.transactionPinLockedUntil.getTime() - Date.now()) / 1000,
       );
-      throw new ForbiddenException(
-        `Transaction PIN is locked. Try again in ${minutesRemaining} ${minutesRemaining === 1 ? 'minute' : 'minutes'}.`,
-      );
+
+      const minutesRemaining = Math.max(1, Math.ceil(remainingSeconds / 60));
+
+      throw new ForbiddenException({
+        message: `Transaction PIN is locked. Try again in ${minutesRemaining} ${minutesRemaining === 1 ? 'minute' : 'minutes'}.`,
+        lockedUntil: user.transactionPinLockedUntil.toISOString(),
+        remainingSeconds,
+      });
     }
+
     if (!(await bcrypt.compare(pin, user.transactionPinHash))) {
       const attempts = (user.transactionPinAttempts || 0) + 1;
+
+      const lockedUntil =
+        attempts >= 5 ? new Date(Date.now() + TRANSACTION_PIN_LOCK_MS) : null;
+
       await this.userRepository.update(userId, {
         transactionPinAttempts: attempts,
-        ...(attempts >= 5 && {
-          transactionPinLockedUntil: new Date(
-            Date.now() + TRANSACTION_PIN_LOCK_MS,
-          ),
-        }),
+        ...(lockedUntil && { transactionPinLockedUntil: lockedUntil }),
       });
+
       if (attempts >= 5) {
-        throw new ForbiddenException(
-          'Transaction PIN is locked. Try again in 30 minutes.',
-        );
+        throw new ForbiddenException({
+          message: 'Transaction PIN is locked. Try again in 30 minutes.',
+          lockedUntil: lockedUntil!.toISOString(),
+          remainingSeconds: Math.ceil(
+            (lockedUntil!.getTime() - Date.now()) / 1000,
+          ),
+        });
       }
+
       throw new UnauthorizedException('Transaction PIN is incorrect');
     }
+
     await this.userRepository.update(userId, {
       transactionPinAttempts: 0,
       transactionPinLockedUntil: null,
